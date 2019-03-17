@@ -1,0 +1,354 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import numpy as np
+import itertools
+
+import sys
+sys.path.append('../')
+
+from modules.io_modules import read_bin_dt
+from modules.estadistica import agrupa_datos
+   
+
+def lee_dt_encabezado(encabezado):
+    """ Lee en el encabezado el intervalo dt con que se realizó la adquisición """
+
+    dt = encabezado[4].decode('utf8').rsplit(':')[-1]
+    dt = np.float(dt)
+    print('Intervalo de adquisición leido del encabezado es: {} s'.format(dt))
+    return dt
+
+
+def calcula_alfa_feynman_input(datos, numero_de_historias, dt_base, dt_maximo):
+    """
+    Genera la lista con historias y parámetros para la técnica de agrupamiento
+    """
+
+    print('='*50)
+    print('    Parámetros del método alfa-Feynman')
+    print('='*50)
+    print('*Datos de entrada:')
+    print('\tNúmero de historias: {}'.format(numero_de_historias))
+    print('\tInervalo temporal de los datos: {} s'.format(dt_base))
+    print('\tIntervalo temporal máximo de cada historia: {} s'.format(dt_maximo))
+    print('*Datos derivados:')
+    datos_totales = len(datos) 
+    print('\tDatos totales: {}'.format(datos_totales))
+    datos_por_historia =  datos_totales // numero_de_historias
+    print('\tDatos por historia: {}'.format(datos_por_historia))
+    maximos_int_para_agrupar = int(dt_maximo / dt_base)
+    print('\tNumero máximo de intervalos para agrupar: {}'.format(maximos_int_para_agrupar))
+    print('='*50)
+
+    # Se dividen todos los datos en historias
+    historias = np.split(datos[0:datos_por_historia*numero_de_historias], numero_de_historias)
+    return historias, maximos_int_para_agrupar, datos_por_historia
+
+
+def agrupamiento_historia_cov(arg_tupla):
+    """ Técnica de agrupamientto para el método de la covarianza """
+
+    historia, maximos, datos_x_hist = arg_tupla
+    det1 = historia[0]
+    det2 = historia[1]
+    Y_k1 = []
+    Y_k2 = []
+    Y_k12 = []
+    for i in range(1, maximos+1):
+        _partes = datos_x_hist // i
+        _indice_exacto = _partes * i
+        _matriz1 = det1[0:_indice_exacto].reshape(_partes, i)
+        _matriz2 = det2[0:_indice_exacto].reshape(_partes, i)
+        _intervalos1 = _matriz1.sum(axis=1, dtype='uint32')
+        _intervalos2 = _matriz2.sum(axis=1, dtype='uint32')
+        _cov = np.cov(_intervalos1, _intervalos2)
+        Y_k1.append(_cov[0,0] / np.mean(_intervalos1) - 1)
+        Y_k2.append(_cov[1,1] / np.mean(_intervalos2) - 1)
+        Y_k12.append(_cov[0,1] / np.sqrt(np.mean(_intervalos1) * np.mean(_intervalos2)))
+    return Y_k1, Y_k2, Y_k12
+
+
+def agrupamiento_historia(arg_tupla):
+    """ Técnica de agrupamiento para una historia """
+    
+    historia, maximos, datos_x_hist = arg_tupla
+    Y_k = []
+    for i in range(1, maximos+1):
+        _partes = datos_x_hist // i
+        _indice_exacto = _partes * i
+        _matriz = historia[0:_indice_exacto].reshape(_partes, i)
+        _intervalos = _matriz.sum(axis=1, dtype='uint32')
+        Y_k.append(np.var(_intervalos, ddof=1) / np.mean(_intervalos) - 1)
+    return Y_k
+
+
+def calcula_alfa_feynman(datos, numero_de_historias, dt_base, dt_maximo):
+    """
+    Método de alfa-Feynman con la técnica de agrupamiento. En serie.
+
+    """
+    # Se generan historias y datos para la técnia de agrupamiento
+    historias, maximos_int_para_agrupar, datos_por_historia =  \
+                calcula_alfa_feynman_input(datos, numero_de_historias, dt_base, dt_maximo)
+    # Se aplica la técnica de agrupamiento
+    Y_historias = []
+    for j, historia in enumerate(historias):
+        Y_k = agrupamiento_historia((historia, maximos_int_para_agrupar, datos_por_historia))
+        Y_historias.append(Y_k)
+        print('Historia: {}'.format(j+1))
+    return Y_historias
+
+
+def wrapper_lectura(nombre, int_agrupar, numero_de_historias, dt_maximo):
+    """
+    Función para leer los datos y agrupar intervalos
+   
+    Parametros
+    ----------
+    nombre : lista de strings
+        El camino y nombre de los archivos para leer
+    int_agrupar : entero
+        Cantidad de datos que se quieren agrupar antes del procesamiento
+    numero_de_historias : entero
+        Cantidad de historias en que se dividirán los datos.
+    dt_maximo : float
+        dt máximo que se quiere alcanzar. Es el útlimo punto de la curva
+        de Y(dt) vs dt
+   
+    Resultados
+    ----------
+    datos_leidos_agrupados : array numpy
+        Array con los datos leidos de cuentas en cada dt, y agrupados en
+        "int_agrupar" intervalos consecutivos.
+    dt_agrupado : dt de cada intervalo luego de agrupar
+        dt_base = dt_base * int_agrupar 
+
+    """
+    
+    datos_leidos, header = read_bin_dt(nombre)
+    #a = np.uint16(a)
+    print('-'*50)
+    print('    Encabezado')
+    print('-'*50)
+    for line in header:
+        print(line)
+    print('-'*50)
+    # Se lee el intervalo dt con que se realizó la adquisición
+    dt_base =  lee_dt_encabezado(header)
+    # Se agrupan los datos originales de la adquisición
+    datos_leidos_agrupados, dt_agrupado = agrupa_datos(datos_leidos, int_agrupar, dt_base)
+    return datos_leidos_agrupados, dt_agrupado
+
+
+def afey_varianza_serie(leidos, numero_de_historias, dt_maximo):
+    """ 
+    Metodo de alfa-Feynman aplicado variance to mean, en serie.
+
+    Ver el DocString de "metodo_alfa_feynman" para parametros y resultados.
+    
+    """
+
+    Y_historias = []
+    for leido in leidos:
+        a, dt_base = leido
+        Y_historias.append(calcula_alfa_feynman(a, numero_de_historias, 
+                                                dt_base, dt_maximo))
+    return Y_historias
+
+
+def agrupa_argumentos(a, b, c):
+    """ Función auxiliar para construir argumentos como tuplas al paralelizar """
+    return zip(a, itertools.repeat(b), itertools.repeat(c))
+
+
+def afey_varianza_paralelo(leidos, numero_de_historias, dt_maximo):
+    """ 
+    Metodo de alfa-Feynman aplicado variance to mean, en paralelo.
+
+    Ver el DocString de "metodo_alfa_feynman" para parametros y resultados.
+    
+    """
+
+    Y_historias = []
+    for leido in leidos:
+        a, dt_base = leido
+        historias, max_int, datos_x_hist = \
+        calcula_alfa_feynman_input(a, numero_de_historias, dt_base, dt_maximo)
+        # Se corre con todos los procesadores disponibles
+        num_proc = mp.cpu_count()
+        pool = mp.Pool(processes=num_proc)
+        print('Se utilizan {} procesos'.format(num_proc))
+        # Argumento de 'agrupamiento_historia' como tupla
+        arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist)
+        Y_historias.append(pool.map(agrupamiento_historia, arg_tupla))
+    return Y_historias
+
+
+def afey_covarianza_paralelo(leidos, numero_de_historias, dt_maximo):
+    """ 
+    Metodo de alfa-Feynman aplicado la covarianza entre detectores, en paralelo.
+
+    Solo se toman los primeros dos elementos de leidos.
+
+    Ver el DocString de "metodo_alfa_feynman" para parametros y resultados.
+    
+    """
+
+    # Daatos de ambos detectores
+    datos = [leido[0] for leido in leidos]
+    dt_base = leidos[0][1] # Asumo que serán iguales, tomo arbitrariamente el det1
+
+    hist1, max_int, datos_x_hist = \
+        calcula_alfa_feynman_input(datos[0], numero_de_historias, dt_base, dt_maximo)
+    hist2, max_int, datos_x_hist = \
+        calcula_alfa_feynman_input(datos[1], numero_de_historias, dt_base, dt_maximo)
+    historias = zip(hist1, hist2)
+    arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist)
+    # Se corre con todos los procesadores disponibles
+    num_proc = mp.cpu_count()
+    pool = mp.Pool(processes=num_proc)
+    print('Se utilizan {} procesos'.format(num_proc))
+    _Y_det = pool.map(agrupamiento_historia_cov, arg_tupla)
+    # Ordeno salida para obtener una lista de Y similar a los otros casos
+    # [Y_var1, Y_var2, Y_cov12]
+    Y_historias = []
+    for i in range(3):
+        Y_historias.append(np.array(_Y_det)[:,i,:])
+    return Y_historias
+
+
+def afey_suma_paralelo(leidos, numero_de_historias, dt_maximo):
+    """ 
+    Metodo de alfa-Feynman aplicado a la suma de detectores, en paralelo.
+
+    Se suman los elementos de leidos
+
+    Ver el DocString de "metodo_alfa_feynman" para parametros y resultados.
+    
+    """
+
+    historias = []
+    for leido in leidos:
+        a, dt_base = leido
+        _hist, max_int, datos_x_hist = \
+            calcula_alfa_feynman_input(a, numero_de_historias, dt_base, dt_maximo)
+        historias.append(_hist)
+    historias = np.array(historias)
+    # Se suman las historias de los detectores
+    historias_sumadas = np.sum(historias, axis=0)
+    num_proc = mp.cpu_count()
+    pool = mp.Pool(processes=num_proc)
+    print('Se utilizan {} procesos'.format(num_proc))
+    arg_tupla = agrupa_argumentos(historias_sumadas, max_int, datos_x_hist)
+    # Lo pongo comom lista de un elemento para homogenizar el formato
+    return [pool.map(agrupamiento_historia, arg_tupla)]
+
+
+def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo):
+    """
+    Función principal para el método de alfa Feynman
+   
+    Aplica el método de alfa-Feynman con agrupamiento. Permite aplica
+    el método de la varianza como la covarianza. También suma distintos
+    detectores.
+    Se paralelizó con el paquete multirpocessig, donde se toman todos los 
+    threads dispnibles de la PC.
+
+    Limitaciones: se asume que "leidos# proviene de una misma medición, por
+    lo cual los parámetros del método son similares para todos los detectores
+
+    Parametros
+    ----------
+    leidos : lista de numpy array
+        Cada array corresponde a un detector y contiene los pulsos detectados
+        en cada intervalo dt (continuos). Si se quiere, previamente se pueden 
+        reagrupar intervalos.
+
+    numero_de_historias : entero
+        Cantidad de historias en que se dividirán los datos "leidos"
+
+    dt_maximo: float
+        dt máximo que se quiere alcanzar. Es el útlimo punto de la curva
+        de Y(dt) vs dt
+
+    calculo : string
+        Indica el tipo de cálculo que se quiere hacer
+        'var_serie' : Método variance to mean en serie
+            A cada elemento de leidos.
+        'var_paralelo' : Método variance to mean paralelo
+            A cada elemento de leídos                
+        'cov_paralelo' : Método de la covarianza en paralelo
+            Sólo toma los dos primeros elementos de leidos
+        'sum_paralelo' : Suma los datos de todos los detectores
+            Sumo todos los datos de leidos
+   
+   Resultados
+   ----------
+    Y_historias : Lista de numpy array
+        Cada elemento de la lista es un array de
+        (numero_de_historias x numero_datos_por_historia)
+        La cantidad de elementos depederá del calculo realizado:
+        'var_serie' : Un elemento por cada detector
+        'var_paralelo' : Un elemento por cada detector
+        'cov_paralelo' : Tres elementos [Y(var1) Y(var2) Y(cov12)]
+        'sum_paralelo' : Un elemento
+    """
+
+    diccionario_afey= {
+            'var_serie': afey_varianza_serie,
+            'var_paralelo' : afey_varianza_paralelo,
+            'cov_paralelo' : afey_covarianza_paralelo,
+            'sum_paralelo' : afey_suma_paralelo,
+                      }
+    fun_seleccionada = diccionario_afey.get(calculo)
+    if fun_seleccionada is None:
+        print('El calculo "{}" solicitado no está implementado'.format(calculo))
+        print('Se sale del programa')
+        quit()
+    else:
+        return fun_seleccionada(leidos, numero_de_historias, dt_maximo)
+
+if __name__ == '__main__':
+
+    import multiprocessing as mp
+    import time
+
+    # ---------------------------------------------------------------------------------
+    # Parámetros de entrada
+    # ---------------------------------------------------------------------------------
+    # Archivos a leer
+    nombres = [
+              '../datos/nucleo_01.D1.bin',
+              '../datos/nucleo_01.D2.bin',
+              ]
+    # Intervalos para agrupar los datos adquiridos
+    int_agrupar = 1
+    # Técnica de agrupamiento 
+    numero_de_historias = 100  # Historias que se promediarán
+    dt_maximo = 50e-3          # másimo intervalo temporal para cada historia
+    # ---------------------------------------------------------------------------------
+    # Lectura y agrupamiento
+    leidos = []
+    for nombre in nombres:
+        leidos.append(wrapper_lectura(nombre, int_agrupar, 
+                                      numero_de_historias, dt_maximo))
+    # ---------------------------------------------------------------------------------
+
+    calculos = [
+                'var_serie',
+                'var_paralelo',
+                'cov_paralelo',
+                'sum_paralelo',
+                'no_implementado',
+                ]
+
+    for calculo in calculos:
+        t0 = time.time()
+        Y_historias = metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo)
+        tf = time.time()
+        print('Tiempo para {}: {} s'.format(calculo, tf-t0))
+        for Y_historia in Y_historias:
+            print(np.array(Y_historia)[19,:])
+
+    

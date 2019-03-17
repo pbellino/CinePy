@@ -1,0 +1,9 @@
+# Se lee el archivo
+nucleo_01.D1.bin
+# Se lee como entero de 32 bits sin signo. Se quita el primer punto
+# length(aa1)=
+14622351
+# aa1(45000:45009)'
+0  0  0  2  2  0  1  1  1  1
+# aa1(end-9:end)'
+0  2  0  0  0  1  1  0  1  0
