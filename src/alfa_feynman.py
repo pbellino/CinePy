@@ -154,7 +154,7 @@ def afey_varianza_serie(leidos, numero_de_historias, dt_maximo):
         a, dt_base = leido
         Y_historias.append(calcula_alfa_feynman(a, numero_de_historias, 
                                                 dt_base, dt_maximo))
-    return Y_historias
+    return Y_historias, dt_base
 
 
 def agrupa_argumentos(a, b, c):
@@ -182,7 +182,7 @@ def afey_varianza_paralelo(leidos, numero_de_historias, dt_maximo):
         # Argumento de 'agrupamiento_historia' como tupla
         arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist)
         Y_historias.append(pool.map(agrupamiento_historia, arg_tupla))
-    return Y_historias
+    return Y_historias, dt_base
 
 
 def afey_covarianza_paralelo(leidos, numero_de_historias, dt_maximo):
@@ -215,7 +215,7 @@ def afey_covarianza_paralelo(leidos, numero_de_historias, dt_maximo):
     Y_historias = []
     for i in range(3):
         Y_historias.append(np.array(_Y_det)[:,i,:])
-    return Y_historias
+    return Y_historias, dt_base
 
 
 def afey_suma_paralelo(leidos, numero_de_historias, dt_maximo):
@@ -242,8 +242,33 @@ def afey_suma_paralelo(leidos, numero_de_historias, dt_maximo):
     print('Se utilizan {} procesos'.format(num_proc))
     arg_tupla = agrupa_argumentos(historias_sumadas, max_int, datos_x_hist)
     # Lo pongo comom lista de un elemento para homogenizar el formato
-    return [pool.map(agrupamiento_historia, arg_tupla)]
+    return [pool.map(agrupamiento_historia, arg_tupla)], dt_base
 
+def promedia_historias(Y_historias):
+    """
+    Hace estadística sobre todas las historias para cada detector
+
+    Calcula el valor medio y la desviación estandar del valor medio como
+        sig_mean(Y) = sig(Y) / sqrt(N)
+
+    Parametros
+    ----------
+        Y_historias : lista de numpy ndarray
+            Un array por cada detector. La estadistica se realiza sin
+            iterar sobre los elementos, usando axis=1.
+    Resultados
+    ----------
+        mean_Y_historias : numpy ndarray 
+            Valor medio de Y_historias para cada detector
+        std_mean_Y_historias : numpy ndarray
+            Desviación estandar del promedio para cada detector
+
+    """
+
+    mean_Y_historias = np.mean(Y_historias, axis=1)
+    std_mean_Y_historias = np.std(Y_historias, axis=1, ddof=1) / \
+                         np.sqrt(np.shape(Y_historias)[1])
+    return mean_Y_historias, std_mean_Y_historias
 
 def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo):
     """
@@ -307,7 +332,11 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo):
         print('Se sale del programa')
         quit()
     else:
-        return fun_seleccionada(leidos, numero_de_historias, dt_maximo)
+        Y_historias, dt_base = fun_seleccionada(leidos, numero_de_historias, dt_maximo)
+        prom, des = promedia_historias(Y_historias)
+        # TODO: Escribir los datos en archivos
+        #       Generar datos de referencia promedio y desviación
+        return Y_historias
 
 if __name__ == '__main__':
 
