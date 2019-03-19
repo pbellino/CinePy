@@ -323,7 +323,7 @@ if __name__ == '__main__':
               '../datos/nucleo_01.D2.bin',
               ]
     # Intervalos para agrupar los datos adquiridos
-    int_agrupar = 1
+    int_agrupar = 5
     # Técnica de agrupamiento 
     numero_de_historias = 100  # Historias que se promediarán
     dt_maximo = 50e-3          # másimo intervalo temporal para cada historia
