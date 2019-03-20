@@ -3,6 +3,8 @@
 
 import numpy as np
 import itertools
+import datetime
+import os
 
 import sys
 sys.path.append('../')
@@ -100,9 +102,12 @@ def calcula_alfa_feynman(datos, numero_de_historias, dt_base, dt_maximo):
     return Y_historias
 
 
-def wrapper_lectura(nombre, int_agrupar, numero_de_historias, dt_maximo):
+def wrapper_lectura(nombres, int_agrupar, numero_de_historias, dt_maximo):
     """
     Función para leer los datos y agrupar intervalos
+
+    También escribe el archivo 'archivos_leidos.tmp' con los nombres de los 
+    archivos leidos 'nombre'.
    
     Parametros
     ----------
@@ -118,26 +123,48 @@ def wrapper_lectura(nombre, int_agrupar, numero_de_historias, dt_maximo):
    
     Resultados
     ----------
-    datos_leidos_agrupados : array numpy
+    datos_leidos_agrupados : lista de array numpy 
         Array con los datos leidos de cuentas en cada dt, y agrupados en
-        "int_agrupar" intervalos consecutivos.
-    dt_agrupado : dt de cada intervalo luego de agrupar
+        "int_agrupar" intervalos consecutivos. Un elemento por archivo leido
+    dt_agrupado :  lista
+        dt de cada intervalo luego de agrupar. Un elemento por archivo leido
         dt_base = dt_base * int_agrupar 
 
     """
+    def _escribe_nombres_leidos(nombres):
+        """ Escribe los nombres de los archivos leidos """
+        
+        filename = 'archivos_leidos.tmp'
+        try:
+            os.remove(filename)
+        except OSError:
+            pass
+        with open(filename, 'a') as f:
+            for nombre in nombres:
+                f.write(nombre + '\n')
     
-    datos_leidos, header = read_bin_dt(nombre)
-    #a = np.uint16(a)
-    print('-'*50)
-    print('    Encabezado')
-    print('-'*50)
-    for line in header:
-        print(line)
-    print('-'*50)
-    # Se lee el intervalo dt con que se realizó la adquisición
-    dt_base =  lee_dt_encabezado(header)
-    # Se agrupan los datos originales de la adquisición
-    datos_leidos_agrupados, dt_agrupado = agrupa_datos(datos_leidos, int_agrupar, dt_base)
+    tamanos = []
+    datos = []
+    for nombre in nombres:
+        datos_leidos, header = read_bin_dt(nombre)
+        print('-'*50)
+        print('    Encabezado')
+        print('-'*50)
+        for line in header:
+            print(line)
+        print('-'*50)
+        # Se lee el intervalo dt con que se realizó la adquisición
+        dt_base =  lee_dt_encabezado(header)
+        tamanos.append(len(datos_leidos))
+        datos.append(datos_leidos)
+    tamano_minimo = np.min(tamanos)
+    results = []
+    for dato in datos:
+        dato = dato[0:tamano_minimo]
+        # Se agrupan los datos originales de la adquisición
+        results.append(agrupa_datos(dato, int_agrupar, dt_base))
+    _escribe_nombres_leidos(nombres)
+    datos_leidos_agrupados, dt_agrupado = results
     return datos_leidos_agrupados, dt_agrupado
 
 
@@ -270,6 +297,107 @@ def promedia_historias(Y_historias):
                          np.sqrt(np.shape(Y_historias)[1])
     return mean_Y_historias, std_mean_Y_historias
 
+def escribe_archivos_promedios(mean_Y, std_mean_Y, dt_base, calculo):
+    """
+    Escribe los archivos que contienen el promedio y desvio de las historias
+    """
+
+    header = genera_encabezados(dt_base, calculo)
+    nombres_archivos = genera_nombre_archivos(mean_Y)
+    # Para diferencia
+    for j, nombre in enumerate(nombres_archivos):
+        with open(nombre, 'w') as f:
+            for line in header:
+                f.write(line + '\n')
+        with open(nombre, 'ab') as f:
+            # Lo ordeno para que quede en dos columnas
+            ordenado = [mean_Y[j], std_mean_Y[j]]
+            ordenado = np.vstack(ordenado)
+            np.savetxt(f, ordenado.T)
+
+
+def escribe_archivos_completos(Y_historias, dt_base, calculo):
+    """
+    Escribe los archivos que contienen a todas las historias
+    """
+
+    header = genera_encabezados(dt_base, calculo)
+    nombres_archivos = genera_nombre_archivos(Y_historias)
+    # Para diferencia
+    for j, nombre in enumerate(nombres_archivos):
+        # Cambio la extensión para diferenciarlo del promedio
+        nombre = nombre.rsplit('.',1)[0] + '.dat'
+        #nombre = nombre+'.gz'
+        with open(nombre, 'w') as f:
+            for line in header:
+                f.write(line + '\n')
+        with open(nombre, 'ab') as f:
+            np.savetxt(f, np.array(Y_historias[j]).T)
+        # TODO: se puede guardar comprimido, pero no es fácil hacer append
+        # np.savetxt(_nombre, np.array(Y_historia).T)
+
+def genera_encabezados(dt_base, calculo):
+    """ Genera el enabezado + info con el intervalo dt """
+
+    header_str = []
+    header_str.append('# Historias completas obtenidas con el método de alfa-Feynman')
+    header_str.append('#')
+       
+    diccionario_calculo= {
+            'var_serie' : '# Cáclulo de (var/mean - 1) en serie',
+            'var_paralelo' : '# Cálculo de (var_i/mean_i - 1) en paralelo',
+            'cov_paralelo' : '# Cálculo de [cov_12/sqrt(mean_1*mean_2)] en paralelo',
+            'sum_paralelo' : '# Cálculo de (var/mean - 1) sumando detectores en paralelo',
+                      }
+    header_str.append(diccionario_calculo.get(calculo))
+    header_str.append('#')
+    # Fecha y hora
+    now = datetime.datetime.now()
+    now_str = now.strftime(now.strftime("%d-%m-%Y %H:%M"))
+    header_str.append('# Fecha de procesamiento: {}'.format(now_str))
+    header_str.append('#')
+    header_str.append('# Valor de dt [s]:')
+    header_str.append('{}'.format(dt_base))
+    header_str.append('#')
+    header_str.append('# Cada columna es una historia')
+    header_str.append('#')
+
+    return header_str
+
+def genera_nombre_archivos(Y_historias):
+    """ Genera los nombres de los archivos donde se guardarán los datos """
+
+    # Se guardan en la carpeta 'resultados'
+    # Se crea si no existe
+    directorio = 'resultados'
+    if not os.path.exists(directorio):
+        os.makedirs(directorio)
+    # Lee el archivo donde se guardaron los nombres (wrapper_lectura)
+    nombres_archivos = []
+    id_det = []
+    with open('archivos_leidos.tmp', 'r') as f:
+        for line in f:
+            _nom = line.split('/')[-1]
+            _nom = _nom.rsplit('.')
+            id_det.append(_nom[-2])
+            nombres_archivos.append(directorio + '/' +_nom[-3])
+    # Para saber si se pidió var, cov o sum 
+    id_calculo = calculo.split('_')[-2]
+    _final = []   
+    for j, Y_historia in enumerate(Y_historias):
+        if id_calculo == 'var':
+            _final.append(nombres_archivos[j] + '.' + id_det[j] + '.fey')
+        elif id_calculo == 'cov':
+            if j != 2:
+                _final.append(nombres_archivos[j] + '.' + id_det[j] + '_cov.fey')
+            elif j==2:
+                _final.append(nombres_archivos[0] + '.' + ''.join(id_det[0:2]) + '_cov.fey')
+        elif id_calculo == 'sum':
+            _final.append(nombres_archivos[0] + '.' + ''.join(id_det) + '_sum.fey')
+        else:
+            print('No se reconoce el cálculo')
+    return _final
+
 def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo):
     """
     Función principal para el método de alfa Feynman
@@ -333,9 +461,12 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo):
         quit()
     else:
         Y_historias, dt_base = fun_seleccionada(leidos, numero_de_historias, dt_maximo)
-        prom, des = promedia_historias(Y_historias)
-        # TODO: Escribir los datos en archivos
-        #       Generar datos de referencia promedio y desviación
+        # Escribe todas las historias
+        escribe_archivos_completos(Y_historias, dt_base, calculo)
+        # Calcula estadistica sobre historias
+        promedio, desvio = promedia_historias(Y_historias)
+        # Escribe promedios y desvios
+        escribe_archivos_promedios(promedio, desvio, dt_base, calculo)
         return Y_historias
 
 if __name__ == '__main__':
@@ -358,10 +489,10 @@ if __name__ == '__main__':
     dt_maximo = 50e-3          # másimo intervalo temporal para cada historia
     # ---------------------------------------------------------------------------------
     # Lectura y agrupamiento
-    leidos = []
-    for nombre in nombres:
-        leidos.append(wrapper_lectura(nombre, int_agrupar, 
-                                      numero_de_historias, dt_maximo))
+    leidos = wrapper_lectura(nombres, int_agrupar, numero_de_historias, dt_maximo)
+    for a in leidos:
+        print(len(a[0]))
+   # quit()
     # ---------------------------------------------------------------------------------
 
     calculos = [
@@ -378,6 +509,6 @@ if __name__ == '__main__':
         tf = time.time()
         print('Tiempo para {}: {} s'.format(calculo, tf-t0))
         for Y_historia in Y_historias:
-            print(np.array(Y_historia)[19,:])
+            print(np.array(Y_historia)[9,:])
 
     
