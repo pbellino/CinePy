@@ -15,7 +15,7 @@ Contenido de la carpeta
     * `datos/` 
         Carpeta donde estarán los datos en crudo obtenidos por los programas de adquisición
     
-    * `resultados/` 
+    * `src/resultados/` 
         Carpeta donde se guardan los archivos con las curvas de a-Feynman
 
     * `modules/` 
