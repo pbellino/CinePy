@@ -143,7 +143,33 @@ def wrapper_lectura(nombres, int_agrupar, numero_de_historias, dt_maximo):
             for nombre in nombres:
                 f.write(nombre + '\n')
     
-    tamanos = []
+    # tamanos = []
+    # datos = []
+    # for nombre in nombres:
+    #     datos_leidos, header = read_bin_dt(nombre)
+    #     print('-'*50)
+    #     print('    Encabezado')
+    #     print('-'*50)
+    #     for line in header:
+    #         print(line)
+    #     print('-'*50)
+    #     # Se lee el intervalo dt con que se realizó la adquisición
+    #     dt_base =  lee_dt_encabezado(header)
+    #     tamanos.append(len(datos_leidos))
+    #     datos.append(datos_leidos)
+    datos, dt_base = lee_bin_datos_dt(nombres)
+    tamanos = map(len,datos)
+    tamano_minimo = np.min(tamanos)
+    results = []
+    for dato in datos:
+        dato = dato[0:tamano_minimo]
+        # Se agrupan los datos originales de la adquisición
+        results.append(agrupa_datos(dato, int_agrupar, dt_base))
+    _escribe_nombres_leidos(nombres)
+    datos_leidos_agrupados, dt_agrupado = results
+    return datos_leidos_agrupados, dt_agrupado
+
+def lee_bin_datos_dt(nombres):
     datos = []
     for nombre in nombres:
         datos_leidos, header = read_bin_dt(nombre)
@@ -155,17 +181,8 @@ def wrapper_lectura(nombres, int_agrupar, numero_de_historias, dt_maximo):
         print('-'*50)
         # Se lee el intervalo dt con que se realizó la adquisición
         dt_base =  lee_dt_encabezado(header)
-        tamanos.append(len(datos_leidos))
         datos.append(datos_leidos)
-    tamano_minimo = np.min(tamanos)
-    results = []
-    for dato in datos:
-        dato = dato[0:tamano_minimo]
-        # Se agrupan los datos originales de la adquisición
-        results.append(agrupa_datos(dato, int_agrupar, dt_base))
-    _escribe_nombres_leidos(nombres)
-    datos_leidos_agrupados, dt_agrupado = results
-    return datos_leidos_agrupados, dt_agrupado
+    return datos, dt_base
 
 
 def afey_varianza_serie(leidos, numero_de_historias, dt_maximo):
@@ -496,8 +513,8 @@ if __name__ == '__main__':
     # ---------------------------------------------------------------------------------
 
     calculos = [
-                'var_serie',
-                'var_paralelo',
+                #'var_serie',
+                #'var_paralelo',
                 'cov_paralelo',
                 'sum_paralelo',
                 'no_implementado',
