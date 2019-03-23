@@ -23,28 +23,44 @@ def grafica_datos_agrupados(nombres, int_agrupar=None):
     ----------
     nombres : lista de strings
         Camino y nombre de los archivos .bin que se quieren graficar
-    int_agrupar : entero, opcional
+    int_agrupar : entero ó lista de enteros, opcional
         Cantidad de intervalos que se quieren agrupar. Si no se especifica
         se calcula de tal manera de obetner un dt_agrupado de 1 seg
         (y el gráfico será la tasa de cuentas en cps)
+        Si se da una lista, se usan distintos intervalos para cada archivo
+        
 
     """
     _results = lee_bin_datos_dt(nombres)
-    
+   
+    def _define_int_agrupar():
+        """ Define los intervalos a agrupar en base al dado en el input """
+
+        if int_agrupar is not None:
+            if type(int_agrupar) is not list:
+                # Si sólo es un número, se hace que sea una lista con el mismo valor
+                # para todos los archivos leidos
+                int_agrupar_it = [int_agrupar for _ in nombres]
+            elif len(int_agrupar) != len(nombres):
+                # Si es una lista y no coinciden los tamaños, se sale
+                print('No coinciden los tamaños')
+                quit()
+            else: int_agrupar_it = int_agrupar
+        else:
+            int_agrupar_it = []
+            for _, dt_base in _results:
+                int_agrupar_it.append(int(1.0 / dt_base))
+        return int_agrupar_it
+
+    int_agrupar_it = _define_int_agrupar()
+    print(int_agrupar_it)
+
     datos_agrupados = []
     vec_temp = []
-    for result in _results:
+    for j, result in enumerate(_results):
         dato = result[0]
         dt_base = result[1]
-   
-        if int_agrupar is None:
-            int_agrupar_it = int(1.0 / dt_base)
-            str_ylabel = 'Tasa de cuentas [cps]'
-        else:
-            int_agrupar_it = int_agrupar
-            str_ylabel = 'Cuentas cada {} s'.format(dt_base*int_agrupar_it)
- 
-        _data, dt_agrupado = agrupa_datos(dato, int_agrupar_it, dt_base) 
+        _data, dt_agrupado = agrupa_datos(dato, int_agrupar_it[j], dt_base) 
         datos_agrupados.append(_data)
         # Construyo vector temporal
         dt_max = dt_agrupado * len(_data)
@@ -58,12 +74,20 @@ def grafica_datos_agrupados(nombres, int_agrupar=None):
         ax1.plot(x,y)
 
     ax1.set_xlabel('Tiempo [s]')
-    ax1.set_ylabel(str_ylabel)
- 
+
+    dt_agrupado = [vec[0] for vec in vec_temp]
     # Nombre de los archivos para la leyenda
+    # Se cambia dependiendo si se grafican tasa de cuentas (dt=1s)
+    # Si no, se agrega info del dt en la leyenda
     str_legend = []
-    for nombre in nombres:
-        str_legend.append(nombre.rsplit('/')[-1])
+    if int_agrupar is None:
+        ax1.set_ylabel('Tasa de cuentas [cps]')
+        for nombre in nombres:
+            str_legend.append(nombre.rsplit('/')[-1])
+    else:
+        ax1.set_ylabel('Cuentas por dt')
+        for nombre, dt in zip(nombres, dt_agrupado):
+            str_legend.append(nombre.rsplit('/')[-1] + ' (dt={} s)'.format(dt))
   
     ax1.legend(str_legend, loc='best')
 
@@ -85,5 +109,6 @@ if __name__ == '__main__':
     int_agrupar = 5000
     # ---------------------------------------------------------------------------------
    
-    #grafica_datos_agrupados(nombres)
-    grafica_datos_agrupados(nombres, int_agrupar)
+    grafica_datos_agrupados(nombres)
+    #grafica_datos_agrupados(nombres, [1000, 2000])
+    #grafica_datos_agrupados(nombres, int_agrupar)
