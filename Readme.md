@@ -11,6 +11,7 @@ Contenido de la carpeta
 
     * `src/` 
         - `alfa_feynman.py` :  Procesa los datos con el método de alfa-Feynman
+        - `grafica_adquisicion.py` :  Grafica los datos guardados por los programas de adquisición
 
     * `datos/` 
         Carpeta donde estarán los datos en crudo obtenidos por los programas de adquisición
