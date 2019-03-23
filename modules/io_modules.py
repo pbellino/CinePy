@@ -82,15 +82,17 @@ def lee_bin_datos_dt(nombres):
             Lista con el camino y nombre del archivo a leer
 
     Resultados
-        datos : lista de numpy array
-            Datos leidos de cada archivo dado en 'nombres'
-        dt_base : lista de flotat
-            Intervalo temporal con que se hizo la medición para cada archivo
+    ----------
+        result: lista de tuplas
+            Cada elemento es una tupla con (datos, dt_base), siendo estos
+            datos : lista de numpy array
+                Datos leidos de cada archivo dado en 'nombres'
+            dt_base : lista de float
+                Intervalo temporal con que se hizo la medición para cada archivo
     
     """
 
-    datos = []
-    dt_base = []
+    result = []
     for nombre in nombres:
         datos_leidos, header = read_bin_dt(nombre)
         print('-'*50)
@@ -99,10 +101,8 @@ def lee_bin_datos_dt(nombres):
         for line in header:
             print(line)
         print('-'*50)
-        # Se lee el intervalo dt con que se realizó la adquisición
-        dt_base.append(lee_dt_encabezado(header))
-        datos.append(datos_leidos)
-    return datos, dt_base
+        result.append((datos_leidos, lee_dt_encabezado(header)))
+    return result
 
 
 if __name__ == '__main__':
