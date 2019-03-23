@@ -8,7 +8,7 @@ import sys
 sys.path.append('../')
 
 from modules.estadistica import agrupa_datos
-from alfa_feynman import lee_bin_datos_dt
+from modules.io_modules import lee_bin_datos_dt
 
 plt.style.use('paper')
 
@@ -29,19 +29,22 @@ def grafica_datos_agrupados(nombres, int_agrupar=None):
         (y el gráfico será la tasa de cuentas en cps)
 
     """
-   
-    datos, dt_base = lee_bin_datos_dt(nombres)
-   
-    if int_agrupar is None:
-        int_agrupar = int(1.0 / dt_base)
-        str_ylabel = 'Tasa de cuentas [cps]'
-    else:
-        str_ylabel = 'Cuentas cada {} s'.format(dt_base*int_agrupar)
- 
+    _results = lee_bin_datos_dt(nombres)
+    
     datos_agrupados = []
     vec_temp = []
-    for dato in datos:
-        _data, dt_agrupado = agrupa_datos(dato, int_agrupar, dt_base) 
+    for result in _results:
+        dato = result[0]
+        dt_base = result[1]
+   
+        if int_agrupar is None:
+            int_agrupar_it = int(1.0 / dt_base)
+            str_ylabel = 'Tasa de cuentas [cps]'
+        else:
+            int_agrupar_it = int_agrupar
+            str_ylabel = 'Cuentas cada {} s'.format(dt_base*int_agrupar_it)
+ 
+        _data, dt_agrupado = agrupa_datos(dato, int_agrupar_it, dt_base) 
         datos_agrupados.append(_data)
         # Construyo vector temporal
         dt_max = dt_agrupado * len(_data)
