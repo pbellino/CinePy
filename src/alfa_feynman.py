@@ -132,13 +132,15 @@ def wrapper_lectura(nombres, int_agrupar):
             for nombre in nombres:
                 f.write(nombre + '\n')
     
-    datos, dt_base = lee_bin_datos_dt(nombres)
+    _results = lee_bin_datos_dt(nombres)
+    
     # Tamaños de los datos adquiridos
-    tamanos = map(len,datos)
+    tamanos = [len(result[0]) for result in _results]
     # Busco el tamaño mínimo para unificar el tamaño del resto
     tamano_minimo = np.min(tamanos)
+    
     agrupado_y_dt = []
-    for dato, dt in zip(datos, dt_base):
+    for dato, dt in _results:
         # Todos tendrán el mismo tamaño (obligatorio para calcular cov)
         dato = dato[0:tamano_minimo]
         # Se agrupan los datos originales de la adquisición
@@ -490,7 +492,7 @@ if __name__ == '__main__':
                 'var_paralelo',
                 'cov_paralelo',
                 'sum_paralelo',
-                'no_implementado',
+                'pirulo',
                 ]
 
     for calculo in calculos:
