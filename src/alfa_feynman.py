@@ -102,7 +102,7 @@ def calcula_alfa_feynman(datos, numero_de_historias, dt_base, dt_maximo):
     return Y_historias
 
 
-def wrapper_lectura(nombres, int_agrupar, numero_de_historias, dt_maximo):
+def wrapper_lectura(nombres, int_agrupar):
     """
     Función para leer los datos y agrupar intervalos
 
@@ -115,11 +115,6 @@ def wrapper_lectura(nombres, int_agrupar, numero_de_historias, dt_maximo):
         El camino y nombre de los archivos para leer
     int_agrupar : entero
         Cantidad de datos que se quieren agrupar antes del procesamiento
-    numero_de_historias : entero
-        Cantidad de historias en que se dividirán los datos.
-    dt_maximo : float
-        dt máximo que se quiere alcanzar. Es el útlimo punto de la curva
-        de Y(dt) vs dt
    
     Resultados
     ----------
@@ -143,25 +138,14 @@ def wrapper_lectura(nombres, int_agrupar, numero_de_historias, dt_maximo):
             for nombre in nombres:
                 f.write(nombre + '\n')
     
-    # tamanos = []
-    # datos = []
-    # for nombre in nombres:
-    #     datos_leidos, header = read_bin_dt(nombre)
-    #     print('-'*50)
-    #     print('    Encabezado')
-    #     print('-'*50)
-    #     for line in header:
-    #         print(line)
-    #     print('-'*50)
-    #     # Se lee el intervalo dt con que se realizó la adquisición
-    #     dt_base =  lee_dt_encabezado(header)
-    #     tamanos.append(len(datos_leidos))
-    #     datos.append(datos_leidos)
     datos, dt_base = lee_bin_datos_dt(nombres)
+    # Tamaños de los datos adquiridos
     tamanos = map(len,datos)
+    # Busco el tamaño mínimo para unificar el tamaño del resto
     tamano_minimo = np.min(tamanos)
     results = []
     for dato in datos:
+        # Todos tendrán el mismo tamaño (obligatorio para calcular cov)
         dato = dato[0:tamano_minimo]
         # Se agrupan los datos originales de la adquisición
         results.append(agrupa_datos(dato, int_agrupar, dt_base))
@@ -506,7 +490,7 @@ if __name__ == '__main__':
     dt_maximo = 50e-3          # másimo intervalo temporal para cada historia
     # ---------------------------------------------------------------------------------
     # Lectura y agrupamiento
-    leidos = wrapper_lectura(nombres, int_agrupar, numero_de_historias, dt_maximo)
+    leidos = wrapper_lectura(nombres, int_agrupar)
     for a in leidos:
         print(len(a[0]))
    # quit()
