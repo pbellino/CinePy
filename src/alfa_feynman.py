@@ -9,18 +9,9 @@ import os
 import sys
 sys.path.append('../')
 
-from modules.io_modules import read_bin_dt
+from modules.io_modules import read_bin_dt, lee_bin_datos_dt
 from modules.estadistica import agrupa_datos
    
-
-def lee_dt_encabezado(encabezado):
-    """ Lee en el encabezado el intervalo dt con que se realizó la adquisición """
-
-    dt = encabezado[4].decode('utf8').rsplit(':')[-1]
-    dt = np.float(dt)
-    print('Intervalo de adquisición leido del encabezado es: {} s'.format(dt))
-    return dt
-
 
 def calcula_alfa_feynman_input(datos, numero_de_historias, dt_base, dt_maximo):
     """
@@ -118,12 +109,15 @@ def wrapper_lectura(nombres, int_agrupar):
    
     Resultados
     ----------
-    datos_leidos_agrupados : lista de array numpy 
-        Array con los datos leidos de cuentas en cada dt, y agrupados en
-        "int_agrupar" intervalos consecutivos. Un elemento por archivo leido
-    dt_agrupado :  lista
-        dt de cada intervalo luego de agrupar. Un elemento por archivo leido
-        dt_base = dt_base * int_agrupar 
+    agrupado_y_dt: lista de tuplas
+        Por cada archivo leido se obtiene una tupla con 
+        (datos_agrupados, dt_agrupado) donde
+        datos_agrupados : lista de array numpy 
+            Array con los datos leidos de cuentas en cada dt, 
+            y agrupados en "int_agrupar" intervalos consecutivos. 
+        dt_agrupado : float 
+            dt de cada intervalo luego de agrupar
+            dt_agrupado = (dt_base * int_agrupar )
 
     """
     def _escribe_nombres_leidos(nombres):
@@ -143,31 +137,16 @@ def wrapper_lectura(nombres, int_agrupar):
     tamanos = map(len,datos)
     # Busco el tamaño mínimo para unificar el tamaño del resto
     tamano_minimo = np.min(tamanos)
-    results = []
-    for dato in datos:
+    agrupado_y_dt = []
+    for dato, dt in zip(datos, dt_base):
         # Todos tendrán el mismo tamaño (obligatorio para calcular cov)
         dato = dato[0:tamano_minimo]
         # Se agrupan los datos originales de la adquisición
-        results.append(agrupa_datos(dato, int_agrupar, dt_base))
+        agrupado_y_dt.append(agrupa_datos(dato, int_agrupar, dt))
+
     _escribe_nombres_leidos(nombres)
-    datos_leidos_agrupados, dt_agrupado = results
-    return datos_leidos_agrupados, dt_agrupado
-
-def lee_bin_datos_dt(nombres):
-    datos = []
-    for nombre in nombres:
-        datos_leidos, header = read_bin_dt(nombre)
-        print('-'*50)
-        print('    Encabezado')
-        print('-'*50)
-        for line in header:
-            print(line)
-        print('-'*50)
-        # Se lee el intervalo dt con que se realizó la adquisición
-        dt_base =  lee_dt_encabezado(header)
-        datos.append(datos_leidos)
-    return datos, dt_base
-
+    #return datos_leidos_agrupados, dt_agrupado
+    return agrupado_y_dt
 
 def afey_varianza_serie(leidos, numero_de_historias, dt_maximo):
     """ 
@@ -223,6 +202,17 @@ def afey_covarianza_paralelo(leidos, numero_de_historias, dt_maximo):
     
     """
 
+    if len(leidos) <2 :
+        print('='*50)
+        print('Para calcular la covarianza se necesita especifiar dos detectores')
+        print('Se sale del programa')
+        print('='*50)
+        quit()
+    elif len(leidos) > 2:
+        print('='*50)
+        print('Se calcula la covarianza con los primeros dos archivos especificados')
+        print('='*50)
+
     # Daatos de ambos detectores
     datos = [leido[0] for leido in leidos]
     dt_base = leidos[0][1] # Asumo que serán iguales, tomo arbitrariamente el det1
@@ -232,6 +222,7 @@ def afey_covarianza_paralelo(leidos, numero_de_historias, dt_maximo):
     hist2, max_int, datos_x_hist = \
         calcula_alfa_feynman_input(datos[1], numero_de_historias, dt_base, dt_maximo)
     historias = zip(hist1, hist2)
+    
     arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist)
     # Se corre con todos los procesadores disponibles
     num_proc = mp.cpu_count()
@@ -262,6 +253,7 @@ def afey_suma_paralelo(leidos, numero_de_historias, dt_maximo):
         _hist, max_int, datos_x_hist = \
             calcula_alfa_feynman_input(a, numero_de_historias, dt_base, dt_maximo)
         historias.append(_hist)
+   
     historias = np.array(historias)
     # Se suman las historias de los detectores
     historias_sumadas = np.sum(historias, axis=0)
@@ -491,14 +483,11 @@ if __name__ == '__main__':
     # ---------------------------------------------------------------------------------
     # Lectura y agrupamiento
     leidos = wrapper_lectura(nombres, int_agrupar)
-    for a in leidos:
-        print(len(a[0]))
-   # quit()
     # ---------------------------------------------------------------------------------
 
     calculos = [
-                #'var_serie',
-                #'var_paralelo',
+                'var_serie',
+                'var_paralelo',
                 'cov_paralelo',
                 'sum_paralelo',
                 'no_implementado',

@@ -61,7 +61,50 @@ def read_bin_dt(filename):
     except:
         print('Se produjo un error inseperado al abrir/leer el archivo' + filename)        
         sys.exit()
+
+
+def lee_dt_encabezado(encabezado):
+    """ Lee en el encabezado el intervalo dt con que se realizó la adquisición """
+
+    dt = encabezado[4].decode('utf8').rsplit(':')[-1]
+    dt = np.float(dt)
+    print('Intervalo de adquisición leido del encabezado es: {} s'.format(dt))
+    return dt
+
+
+def lee_bin_datos_dt(nombres):
+    """ 
+    Lee los datos del archivo binario y obteiene el dt del encabezado
     
+    Parametros
+    ----------
+        nombres : lista de strings
+            Lista con el camino y nombre del archivo a leer
+
+    Resultados
+        datos : lista de numpy array
+            Datos leidos de cada archivo dado en 'nombres'
+        dt_base : lista de flotat
+            Intervalo temporal con que se hizo la medición para cada archivo
+    
+    """
+
+    datos = []
+    dt_base = []
+    for nombre in nombres:
+        datos_leidos, header = read_bin_dt(nombre)
+        print('-'*50)
+        print('    Encabezado')
+        print('-'*50)
+        for line in header:
+            print(line)
+        print('-'*50)
+        # Se lee el intervalo dt con que se realizó la adquisición
+        dt_base.append(lee_dt_encabezado(header))
+        datos.append(datos_leidos)
+    return datos, dt_base
+
+
 if __name__ == '__main__':
     
     a, header = read_bin_dt('../datos/nucleo_01.D1.bin')
