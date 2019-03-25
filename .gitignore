@@ -25,5 +25,8 @@ target/
 # Jupyter Notebook
 .ipynb_checkpoints
 
+# Rope
+.ropeproject/
+
 # vim
 *.swp
