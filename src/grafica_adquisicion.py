@@ -39,8 +39,8 @@ def grafica_datos_agrupados(nombres, int_agrupar=None):
 
         if int_agrupar is not None:
             if type(int_agrupar) is not list:
-                # Si sólo es un número, se hace que sea una lista
-                # con el mismo valor para todos los archivos leidos
+                # Si sólo es un número, se hace que sea una lista con el mismo
+                # valor para todos los archivos leidos
                 int_agrupar_it = [int_agrupar for _ in nombres]
             elif len(int_agrupar) != len(nombres):
                 # Si es una lista y no coinciden los tamaños, se sale
