@@ -113,7 +113,7 @@ def lee_bin_datos_dt(nombres):
 
 
 def lee_historias_completas(nombre):
-    """ 
+    """
     Lee el archivo que contiene todas las historias de alfa-Feynman
 
     Parametros
@@ -155,7 +155,7 @@ def lee_historias_completas(nombre):
 
 
 if __name__ == '__main__':
-    
+
     # Prueba read_bin_dt
     a, header = read_bin_dt('../datos/nucleo_01.D1.bin')
     for line in header:
