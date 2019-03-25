@@ -14,6 +14,7 @@ plt.style.use('paper')
 
 def grafica_historias_afey(nombre):
     """
+    Grafica todas las historias guardadas en el archivo 'nombre'
 
     Parametros
     ----------
