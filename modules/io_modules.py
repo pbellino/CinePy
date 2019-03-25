@@ -113,12 +113,29 @@ def lee_bin_datos_dt(nombres):
 
 
 def lee_historias_completas(nombre):
+    """ 
+    Lee el archivo que contiene todas las historias de alfa-Feynman
+
+    Parametros
+    ----------
+    nombre: string
+        Camino y nombre del archivo a leer (*.dat)
+
+    Resultados
+    ----------
+    vec_tamp: array numpy
+        Vector temporal de los dt para alfa-Feynman
+    data: ndarray numpy
+        Array en 2D donde cada columna es una de las historias calculadas
+
+    """
+
     try:
         with open(nombre, 'r') as f:
             # Se lee el dt
             for line in f:
                 if line.startswith('# Valor de dt'):
-                    dt = next(f)
+                    dt = np.double(next(f).rstrip())
                     break
             # Se leen todas las historias
             data = np.loadtxt(nombre, skiprows=11)
@@ -129,11 +146,17 @@ def lee_historias_completas(nombre):
         print('Se produjo un error inseperado al abrir/leer el archivo'
               + nombre)
         sys.exit()
-    return data, dt
+
+    # Vector temporal
+    vec_temp = np.arange(0, dt * data.shape[0], dt)
+    vec_temp = vec_temp + dt
+
+    return vec_temp, data
 
 
 if __name__ == '__main__':
-    """
+    
+    # Prueba read_bin_dt
     a, header = read_bin_dt('../datos/nucleo_01.D1.bin')
     for line in header:
         print(line)
@@ -142,12 +165,13 @@ if __name__ == '__main__':
     print(a[45000-1:45010-1])
     # Los últimos 10 datos
     print(a[-10:])
-    """
+
+    print('-'*50)
+    # Prueba lee_historia
 
     nombre = '../src/resultados/nucleo_01.D1.dat'
+    vec_t, data = lee_historias_completas(nombre)
 
-    data, dt = lee_historias_completas(nombre)
-
-    print(dt)
+    print(vec_t)
     print(data.shape)
     print(data[:, 19])
