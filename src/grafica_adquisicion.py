@@ -10,6 +10,8 @@ sys.path.append('../')
 from modules.estadistica import agrupa_datos
 from modules.io_modules import lee_bin_datos_dt
 
+import seaborn as sns
+sns.set()
 plt.style.use('paper')
 
 
