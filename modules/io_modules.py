@@ -154,6 +154,32 @@ def lee_historias_completas(nombre):
     return vec_temp, data
 
 
+def lee_fey(nombre):
+    """
+    Lee el archivo que contiene la curva promedio y desvio de a-Feynman
+
+    Parametros
+    ----------
+    nombre : string
+        Camino y nombre del archivo a leer (*.dat)
+
+    Resultados
+    ----------
+    vec_tamp : array numpy
+        Vector temporal de los dt para alfa-Feynman
+    mean_Y : array numpy
+        Array con el valor medio de Y(Dt)
+    std_Y : array numpy
+        Array con la desviación estandar del valor medio de Y(Dt)
+
+    """
+    vec_temp, data = lee_historias_completas(nombre)
+    mean_Y = data[:, 0]
+    std_Y = data[:, 1]
+
+    return vec_temp, mean_Y, std_Y
+
+
 if __name__ == '__main__':
 
     # Prueba read_bin_dt
