@@ -158,10 +158,13 @@ def lee_fey(nombre):
     """
     Lee el archivo que contiene la curva promedio y desvio de a-Feynman
 
+    Usa la función lee_historias_completas() ya que el encabezado es similar.
+    Se leen las dos columnas y se definen las variables de interés.
+
     Parametros
     ----------
     nombre : string
-        Camino y nombre del archivo a leer (*.dat)
+        Camino y nombre del archivo a leer (*.fey)
 
     Resultados
     ----------
