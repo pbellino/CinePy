@@ -15,11 +15,14 @@ Contenido de la carpeta
 
     * `datos/` 
         Carpeta donde estarán los datos en crudo obtenidos por los programas de adquisición
+ 
+    * `constantes/` 
+        Carpeta donde estarán los archivos con las constantes necesarias
     
     * `src/resultados/` 
         Carpeta donde se guardan los archivos con las curvas de a-Feynman
 
-    * `modules/` 
+    * `modules/`
         - `io_modules.py` : Módulo con funciones relacionadas con lectura/escritura de archivos
         - `estadistica.py` : Módulo con funciones estadísticas
 
