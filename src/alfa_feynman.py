@@ -34,6 +34,36 @@ def calcula_alfa_feynman_input(datos, numero_de_historias, dt_base, dt_maximo):
     print('\tNumero máximo de intervalos para agrupar: {}'.format(maximos_int_para_agrupar))
     print('='*50)
 
+    def _datos_por_intervalo(datos_por_historia, maximos_int_para_agrupar):
+        """
+        Dato usados para hacer estadística para cada intervalo agrupado
+
+        Para ser usado como corrección en el ajuste teórico. Como esto se
+        agregó la final, los datos son guardados en un archivo con
+        extensión *.Nk. El nombre de dicho archivo se lee del archivo
+        "archivos_leidos.tmp". Se graba uno para cada detector, aunque en
+        verdad son los mismos datos. Esto es por si en un futuro se necesita
+        diferenciarlos
+
+        """
+        N_k = [datos_por_historia // i for i in
+               range(1, maximos_int_para_agrupar + 1)]
+        nombres_archivos = []
+        with open('archivos_leidos.tmp', 'r') as f:
+            for line in f:
+                _nom = line.split('/')[-1]
+                _nom = _nom.rsplit('.', 1)
+                nombres_archivos.append('resultados/' + _nom[-2] + '.Nk')
+        header = u'Cantidad de datos utilizados para hacer estadística ' + \
+                 u'con cada intervalo dt.\ne usa para corregir la ' + \
+                 u'función teórica durante el ajuste'
+        for nombre in nombres_archivos:
+            np.savetxt(nombre, N_k, fmt='%.i', header=header)
+
+        return None
+
+    _datos_por_intervalo(datos_por_historia, maximos_int_para_agrupar)
+
     # Se dividen todos los datos en historias
     historias = np.split(datos[0:datos_por_historia*numero_de_historias],
                          numero_de_historias)
@@ -171,7 +201,7 @@ def afey_varianza_serie(leidos, numero_de_historias, dt_maximo):
 
 
 def agrupa_argumentos(a, b, c):
-    """ Función auxiliar para construir argumentos como tuplas al paralelizar """
+    """ Función para construir argumentos como tuplas al paralelizar """
     return zip(a, itertools.repeat(b), itertools.repeat(c))
 
 
@@ -308,7 +338,7 @@ def escribe_archivos_promedios(mean_Y, std_mean_Y, dt_base, calculo):
     """
 
     header = genera_encabezados(dt_base, calculo)
-    nombres_archivos = genera_nombre_archivos(mean_Y)
+    nombres_archivos = genera_nombre_archivos(mean_Y, calculo)
     # Para diferencia
     for j, nombre in enumerate(nombres_archivos):
         with open(nombre, 'w') as f:
@@ -327,7 +357,7 @@ def escribe_archivos_completos(Y_historias, dt_base, calculo):
     """
 
     header = genera_encabezados(dt_base, calculo)
-    nombres_archivos = genera_nombre_archivos(Y_historias)
+    nombres_archivos = genera_nombre_archivos(Y_historias, calculo)
     # Para diferencia
     for j, nombre in enumerate(nombres_archivos):
         # Cambio la extensión para diferenciarlo del promedio
@@ -372,8 +402,25 @@ def genera_encabezados(dt_base, calculo):
     return header_str
 
 
-def genera_nombre_archivos(Y_historias):
-    """ Genera los nombres de los archivos donde se guardarán los datos """
+def genera_nombre_archivos(Y_historias, calculo):
+    """
+    Genera los nombres de los archivos donde se guardarán los datos
+
+    Parametros
+    ----------
+        Y_historia : lista de numpy array
+            Se lo utiliza solamente para contar la cantidad de curvas Y(dt)
+            que se calcularon
+            TODO: Se puede pasar directamente len(Y_historias)
+        calculo : string
+            Tipo de caĺculo utilizado (var, cov o sum)
+
+   Resultados
+   ----------
+   _final : lista de strings
+        Nombre de los archivos donde se guardaran los datos
+
+    """
 
     # Se guardan en la carpeta 'resultados'
     # Se crea si no existe
@@ -392,7 +439,7 @@ def genera_nombre_archivos(Y_historias):
     # Para saber si se pidió var, cov o sum
     id_calculo = calculo.split('_')[-2]
     _final = []
-    for j, Y_historia in enumerate(Y_historias):
+    for j in range(len(Y_historias)):
         if id_calculo == 'var':
             _final.append(nombres_archivos[j] + '.' + id_det[j] + '.fey')
         elif id_calculo == 'cov':
@@ -414,13 +461,13 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo):
     """
     Función principal para el método de alfa Feynman
 
-    Aplica el método de alfa-Feynman con agrupamiento. Permite aplica
+    Aplica el método de alfa-Feynman con agrupamiento. Permite aplicar
     el método de la varianza como la covarianza. También suma distintos
     detectores.
     Se paralelizó con el paquete multirpocessig, donde se toman todos los
     threads dispnibles de la PC.
 
-    Limitaciones: se asume que "leidos# proviene de una misma medición, por
+    Limitaciones: se asume que "leidos" proviene de una misma medición, por
     lo cual los parámetros del método son similares para todos los detectores
 
     Parametros
