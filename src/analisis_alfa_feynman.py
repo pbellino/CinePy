@@ -43,7 +43,7 @@ def grafica_historias_afey(nombre):
     ax.set_title('{} historias leidas del archivo: {}'.format(
        historias.shape[1], nombre))
     ax.grid(True)
-    plt.show()
+    # plt.show()
 
     return fig
 
@@ -76,7 +76,7 @@ def grafica_afey(nombres):
     ax.set_ylabel(r'Y($\Delta$ t)')
     ax.legend(loc='best')
     ax.grid(True)
-    plt.show()
+    # plt.show()
 
     return fig
 
@@ -89,10 +89,15 @@ if __name__ == '__main__':
     # Archivos a leer
     nombre = 'resultados/nucleo_01.D1D2_cov.dat'
     grafica_historias_afey(nombre)
+    plt.show()
     nombre = 'resultados/nucleo_01.D1.fey'
     nombres = ['resultados/nucleo_01.D1.fey',
                'resultados/nucleo_01.D2.fey',
                ]
     # ---------------------------------------------------------------------------------
 
-    grafica_afey(nombres)
+    myfig = grafica_afey(nombres)
+
+    ax = myfig.get_axes()[0]
+    ax.set_title(u'Un título')
+    plt.show()
