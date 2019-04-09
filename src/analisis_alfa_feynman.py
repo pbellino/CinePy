@@ -119,7 +119,8 @@ def ajuste_afey(nombre):
                        fcn_kws={'data': Y, 'sigma': std_Y}
                        )
     # Se realiza la minimización
-    result = minner.minimize()
+    # Se puede usar directamente la función minimize como wrapper de Minimizer
+    result = minner.minimize(method='leastsq')
     report_fit(result)
 
     best_fit = Y + result.residual * std_Y
@@ -168,7 +169,7 @@ if __name__ == '__main__':
     #
     # ------------------------------------------------------------------------
 
-    nombre = 'resultados/nucleo_01.D1.fey'
+    nombre = 'resultados/nucleo_01.D2.fey'
     ajuste_afey(nombre)
 
     plt.show()
