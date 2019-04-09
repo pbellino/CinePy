@@ -2,15 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import matplotlib.pyplot as plt
+from lmfit import Minimizer, Parameters, report_fit
+
+import seaborn as sns
+sns.set()
+plt.style.use('paper')
 
 import sys
 sys.path.append('../')
 
 from modules.io_modules import lee_historias_completas, lee_fey
-
-import seaborn as sns
-sns.set()
-plt.style.use('paper')
+from modules.funciones import alfa_feynman_lin_dead_time
 
 
 def grafica_historias_afey(nombre):
@@ -81,23 +83,92 @@ def grafica_afey(nombres):
     return fig
 
 
+def ajuste_afey(nombre):
+    """
+    Ajuste no lineal de la curva de alfa-Feynman
+
+    Se ajustan los datos guardados en el archivo 'nombre'
+    Se utiliza el paquete lmfit para realizar el ajuste
+
+    """
+
+    tau, Y, std_Y = lee_fey(nombre)
+
+    def residual(params, tau, data=None, sigma=None):
+        parvals = params.valuesdict()
+        alfa = parvals['alfa']
+        amplitud = parvals['amplitud']
+        offset = parvals['offset']
+
+        model = alfa_feynman_lin_dead_time(tau, alfa, amplitud, offset)
+
+        if data is None:
+            return model
+        if sigma is None:
+            return model - data
+        return (model - data) / sigma
+
+    # Se definen los parámetros del ajuste
+    params = Parameters()
+    params.add('alfa', value=300, min=0)
+    params.add('amplitud', value=1, min=0)
+    params.add('offset', value=1)
+    # Se define la minimización
+    minner = Minimizer(residual, params,
+                       fcn_args=(tau,),
+                       fcn_kws={'data': Y, 'sigma': std_Y}
+                       )
+    # Se realiza la minimización
+    result = minner.minimize()
+    report_fit(result)
+
+    best_fit = Y + result.residual * std_Y
+
+    fig, (ax0, ax1) = plt.subplots(2, sharex=True,
+                                   gridspec_kw={'height_ratios': [3, 1]},
+                                   )
+
+    ax0.errorbar(tau, Y, yerr=std_Y, fmt='k.', elinewidth=4,
+                 label='measurement')
+    ax0.plot(tau, best_fit, 'r', zorder=3, label='fit')
+    ax0.set_ylabel(r'$Y(\tau)$')
+
+    # Invierto el orden de las leyendas
+    handles, labels = ax0.get_legend_handles_labels()
+    ax0.legend(handles[::-1], labels[::-1], loc='best')
+
+    ax1.plot(tau, result.residual, 'k')
+    ax1.set_xlabel(r'$\tau$ [ms]')
+    ax1.set_ylabel(r'Residuals')
+    fig.subplots_adjust(hspace=0.1)
+
+    return None
+
+
 if __name__ == '__main__':
 
-    # ---------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # Parámetros de entrada
-    # ---------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # Archivos a leer
-    nombre = 'resultados/nucleo_01.D1D2_cov.dat'
-    grafica_historias_afey(nombre)
-    plt.show()
+    # nombre = 'resultados/nucleo_01.D1D2_cov.dat'
+    # grafica_historias_afey(nombre)
+    # plt.show()
+    # nombre = 'resultados/nucleo_01.D1.fey'
+    # nombres = ['resultados/nucleo_01.D1.fey',
+    #            'resultados/nucleo_01.D2.fey',
+    #            ]
+    # -------------------------------------------------------------------------
+    #
+    # myfig = grafica_afey(nombres)
+    #
+    # ax = myfig.get_axes()[0]
+    # ax.set_title(u'Un título')
+    # plt.show()
+    #
+    # ------------------------------------------------------------------------
+
     nombre = 'resultados/nucleo_01.D1.fey'
-    nombres = ['resultados/nucleo_01.D1.fey',
-               'resultados/nucleo_01.D2.fey',
-               ]
-    # ---------------------------------------------------------------------------------
+    ajuste_afey(nombre)
 
-    myfig = grafica_afey(nombres)
-
-    ax = myfig.get_axes()[0]
-    ax.set_title(u'Un título')
     plt.show()
