@@ -83,16 +83,14 @@ def grafica_afey(nombres):
     return fig
 
 
-def ajuste_afey(nombre):
+def ajuste_afey(tau, Y, std_Y):
     """
     Ajuste no lineal de la curva de alfa-Feynman
 
-    Se ajustan los datos guardados en el archivo 'nombre'
+    Se ajustan los datos de  Y vs tau con incerteza de stt_Y
     Se utiliza el paquete lmfit para realizar el ajuste
 
     """
-
-    tau, Y, std_Y = lee_fey(nombre)
 
     def residual(params, tau, data=None, sigma=None):
         parvals = params.valuesdict()
@@ -170,6 +168,7 @@ if __name__ == '__main__':
     # ------------------------------------------------------------------------
 
     nombre = 'resultados/nucleo_01.D2.fey'
-    ajuste_afey(nombre)
+    tau, Y, std_Y = lee_fey(nombre)
+    ajuste_afey(tau, Y, std_Y)
 
     plt.show()
