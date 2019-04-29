@@ -12,6 +12,7 @@ Contenido de la carpeta
     * `src/` 
         - `alfa_feynman.py` :  Procesa los datos con el método de alfa-Feynman
         - `grafica_adquisicion.py` :  Grafica los datos guardados por los programas de adquisición
+        - `analisis_alfa_feynman.py` : Graficación y ajuste no lineal para las curvas de alfa-Feynman
 
     * `datos/` 
         Carpeta donde estarán los datos en crudo obtenidos por los programas de adquisición
@@ -27,5 +28,7 @@ Contenido de la carpeta
         - `estadistica.py` : Módulo con funciones estadísticas
 
     * `tests/`
-        - `test_lectura.py` : Script para probar la función de lectura de datos `read_bin_dt` de `modules/io_modules.py`
+        - `test_read_bin_dt.py` : Script para probar la función de lectura de datos `read_bin_dt` de `modules/io_modules.py`
+        - `test_ajuste_afey.py` : Se prueba el ajuste no lineal con señales simuladas
         - `octave` : Scripts originales cuyos resultados se toman como referencia
+
