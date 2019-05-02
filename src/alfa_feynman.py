@@ -376,8 +376,8 @@ def genera_encabezados(dt_base, calculo):
     """ Genera el enabezado + info con el intervalo dt """
 
     header_str = []
-    header_str.append('# Historias completas obtenidas con el método de \
-                      alfa-Feynman')
+    line_1 = '# Historias completas obtenidas con el método de alfa-Feynman'
+    header_str.append(line_1)
     header_str.append('#')
 
     diccionario_calculo = {
