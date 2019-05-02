@@ -3,6 +3,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import norm
 from lmfit import Minimizer, Parameters, report_fit
 
 import seaborn as sns
@@ -68,10 +69,22 @@ def ajuste_afey(tau, Y, std_Y):
     handles, labels = ax0.get_legend_handles_labels()
     ax0.legend(handles[::-1], labels[::-1], loc='best')
 
-    ax1.plot(tau, result.residual, 'k')
+    ax1.plot(tau, result.residual, 'k.')
     ax1.set_xlabel(r'$\tau$ [ms]')
     ax1.set_ylabel(r'Residuals')
     fig.subplots_adjust(hspace=0.1)
+
+    # Graficación del histograma de los residuos
+    fig2, ax3 = plt.subplots(1, 1)
+    ax3.hist(result.residual, bins=15, density=True, label='Residuals')
+    res_mean = np.mean(result.residual)
+    res_std = np.std(result.residual)
+    x = np.linspace(norm.ppf(0.001), norm.ppf(0.999), 500)
+    ax3.plot(x, norm.pdf(x, loc=res_mean, scale=res_std),
+             'r-', lw=5, alpha=0.6, label='Normal pdf')
+    # Invierto el orden de las leyendas
+    handles, labels = ax3.get_legend_handles_labels()
+    ax3.legend(handles[::-1], labels[::-1], loc='best')
 
     return None
 
@@ -87,7 +100,7 @@ def simula_afey(alfa, amplitud, offset):
 
     dt_min = 50e-6
     dt_max = 50e-3
-    N_tau = 200
+    N_tau = 500
     desv_std = 0.2
     # Intervalos temporales
     tau = np.linspace(dt_min, dt_max, N_tau)
@@ -105,7 +118,7 @@ if __name__ == '__main__':
     # TODO: se usa 'ajuste_afey' de este script, pero se podría llamar
     #       directamente al módulo ../src/analisis_alfa_feynman
 
-    tau, Y, std_Y = simula_afey(350, 5, 0.5)
+    tau, Y, std_Y = simula_afey(400, 8, 0.5)
     ajuste_afey(tau, Y, std_Y)
 
     plt.show()
