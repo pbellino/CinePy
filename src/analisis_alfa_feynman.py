@@ -139,7 +139,7 @@ def ajuste_afey(tau, Y, std_Y):
     handles, labels = ax0.get_legend_handles_labels()
     ax0.legend(handles[::-1], labels[::-1], loc='best')
 
-    ax1.plot(tau, result.residual, 'k')
+    ax1.plot(tau, result.residual, 'k.')
     ax1.set_xlabel(r'$\tau$ [ms]')
     ax1.set_ylabel(r'Residuals')
     fig.subplots_adjust(hspace=0.1)
