@@ -191,4 +191,6 @@ if __name__ == '__main__':
     tau, Y, std_Y = lee_fey(abs_nombre)
     ajuste_afey(tau, Y, std_Y)
 
+    fig8, ax8 = plt.subplots(1, 1)
+    ax8.plot(tau, std_Y)
     plt.show()
