@@ -34,7 +34,7 @@ def grafica_historias_afey(nombre):
 
     """
 
-    vec_t, historias = lee_historias_completas(nombre)
+    vec_t, historias, _ = lee_historias_completas(nombre)
 
     fig = plt.figure(1)
     ax = fig.add_subplot(1, 1, 1)
@@ -72,7 +72,7 @@ def grafica_afey(nombres):
     fig = plt.figure(1)
     ax = fig.add_subplot(1, 1, 1)
     for nombre in nombres:
-        vec_t, Y, std_Y = lee_fey(nombre)
+        vec_t, Y, std_Y, _ = lee_fey(nombre)
 
         ax.errorbar(vec_t, Y, yerr=std_Y, fmt='.',
                     label=nombre.rsplit('/')[-1])
@@ -188,7 +188,7 @@ if __name__ == '__main__':
     nombre = 'resultados/nucleo_01.D2.fey'
     # Camino absoluto del archivo que se quiere leer
     abs_nombre = os.path.join(script_dir, nombre)
-    tau, Y, std_Y = lee_fey(abs_nombre)
+    tau, Y, std_Y, num_hist = lee_fey(abs_nombre)
     ajuste_afey(tau, Y, std_Y)
 
     fig8, ax8 = plt.subplots(1, 1)

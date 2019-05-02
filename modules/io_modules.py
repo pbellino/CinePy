@@ -136,6 +136,8 @@ def lee_historias_completas(nombre):
             for line in f:
                 if line.startswith('# Valor de dt'):
                     dt = np.double(next(f).rstrip())
+                elif line.startswith('# Número de historias'):
+                    num_hist = np.uint32(next(f).rstrip())
                     break
             # Se leen todas las historias
             data = np.loadtxt(nombre, skiprows=11)
@@ -151,7 +153,7 @@ def lee_historias_completas(nombre):
     vec_temp = np.arange(0, dt * data.shape[0], dt)
     vec_temp = vec_temp + dt
 
-    return vec_temp, data
+    return vec_temp, data, num_hist
 
 
 def lee_fey(nombre):
@@ -176,11 +178,11 @@ def lee_fey(nombre):
         Array con la desviación estandar del valor medio de Y(Dt)
 
     """
-    vec_temp, data = lee_historias_completas(nombre)
+    vec_temp, data, num_hist = lee_historias_completas(nombre)
     mean_Y = data[:, 0]
     std_Y = data[:, 1]
 
-    return vec_temp, mean_Y, std_Y
+    return vec_temp, mean_Y, std_Y, num_hist
 
 
 if __name__ == '__main__':
@@ -199,8 +201,9 @@ if __name__ == '__main__':
     # Prueba lee_historia
 
     nombre = '../src/resultados/nucleo_01.D1.dat'
-    vec_t, data = lee_historias_completas(nombre)
+    vec_t, data, num_hist = lee_historias_completas(nombre)
 
+    print(num_hist)
     print(vec_t)
     print(data.shape)
     print(data[:, 19])

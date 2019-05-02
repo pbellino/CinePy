@@ -252,7 +252,7 @@ def afey_covarianza_paralelo(leidos, numero_de_historias, dt_maximo):
 
     # Daatos de ambos detectores
     datos = [leido[0] for leido in leidos]
-    dt_base = leidos[0][1] # Asumo que serán iguales, tomo arbitrariamente el det1
+    dt_base = leidos[0][1]  # Asumo que serán iguales, tomo arbitrariamente el det1
 
     hist1, max_int, datos_x_hist = \
         calcula_alfa_feynman_input(datos[0], numero_de_historias, dt_base,
@@ -332,12 +332,12 @@ def promedia_historias(Y_historias):
     return mean_Y_historias, std_mean_Y_historias
 
 
-def escribe_archivos_promedios(mean_Y, std_mean_Y, dt_base, calculo):
+def escribe_archivos_promedios(mean_Y, std_mean_Y, dt_base, calculo, num_hist):
     """
     Escribe los archivos que contienen el promedio y desvio de las historias
     """
 
-    header = genera_encabezados(dt_base, calculo)
+    header = genera_encabezados(dt_base, calculo, num_hist)
     nombres_archivos = genera_nombre_archivos(mean_Y, calculo)
     # Para diferencia
     for j, nombre in enumerate(nombres_archivos):
@@ -351,12 +351,12 @@ def escribe_archivos_promedios(mean_Y, std_mean_Y, dt_base, calculo):
             np.savetxt(f, ordenado.T)
 
 
-def escribe_archivos_completos(Y_historias, dt_base, calculo):
+def escribe_archivos_completos(Y_historias, dt_base, calculo, num_hist):
     """
     Escribe los archivos que contienen a todas las historias
     """
 
-    header = genera_encabezados(dt_base, calculo)
+    header = genera_encabezados(dt_base, calculo, num_hist)
     nombres_archivos = genera_nombre_archivos(Y_historias, calculo)
     # Para diferencia
     for j, nombre in enumerate(nombres_archivos):
@@ -372,8 +372,8 @@ def escribe_archivos_completos(Y_historias, dt_base, calculo):
         # np.savetxt(_nombre, np.array(Y_historia).T)
 
 
-def genera_encabezados(dt_base, calculo):
-    """ Genera el enabezado + info con el intervalo dt """
+def genera_encabezados(dt_base, calculo, num_hist):
+    """ Genera el enabezado + info con el intervalo dt + cantidad de hist."""
 
     header_str = []
     line_1 = '# Historias completas obtenidas con el método de alfa-Feynman'
@@ -396,6 +396,8 @@ def genera_encabezados(dt_base, calculo):
     header_str.append('# Valor de dt [s]:')
     header_str.append('{}'.format(dt_base))
     header_str.append('#')
+    header_str.append('# Número de historias:')
+    header_str.append('{}'.format(num_hist))
     header_str.append('# Cada columna es una historia')
     header_str.append('#')
 
@@ -522,11 +524,13 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo):
         Y_historias, dt_base = fun_seleccionada(leidos, numero_de_historias,
                                                 dt_maximo)
         # Escribe todas las historias
-        escribe_archivos_completos(Y_historias, dt_base, calculo)
+        escribe_archivos_completos(Y_historias, dt_base, calculo,
+                                   numero_de_historias)
         # Calcula estadistica sobre historias
         promedio, desvio = promedia_historias(Y_historias)
         # Escribe promedios y desvios
-        escribe_archivos_promedios(promedio, desvio, dt_base, calculo)
+        escribe_archivos_promedios(promedio, desvio, dt_base, calculo,
+                                   numero_de_historias)
         return Y_historias
 
 
