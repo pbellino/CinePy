@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import numpy as np
+from scipy.stats import norm
 import matplotlib.pyplot as plt
+import os
 from lmfit import Minimizer, Parameters, report_fit
 
 import seaborn as sns
@@ -141,11 +144,26 @@ def ajuste_afey(tau, Y, std_Y):
     ax1.set_ylabel(r'Residuals')
     fig.subplots_adjust(hspace=0.1)
 
+    # Graficación del histograma de los residuos
+    fig2, ax3 = plt.subplots(1, 1)
+    ax3.hist(result.residual, bins=15, density=True, label='Residuals')
+    res_mean = np.mean(result.residual)
+    res_std = np.std(result.residual)
+    x = np.linspace(norm.ppf(0.001), norm.ppf(0.999), 500)
+    ax3.plot(x, norm.pdf(x, loc=res_mean, scale=res_std),
+             'r-', lw=5, alpha=0.6, label='Normal pdf')
+    # Invierto el orden de las leyendas
+    handles, labels = ax3.get_legend_handles_labels()
+    ax3.legend(handles[::-1], labels[::-1], loc='best')
+
     return None
 
 
 if __name__ == '__main__':
 
+    # Carpeta donde se encuentra este script
+    # Lo uso por si quiero llamarlo desde otro dierectorio
+    script_dir = os.path.dirname(__file__)
     # -------------------------------------------------------------------------
     # Parámetros de entrada
     # -------------------------------------------------------------------------
@@ -168,7 +186,9 @@ if __name__ == '__main__':
     # ------------------------------------------------------------------------
 
     nombre = 'resultados/nucleo_01.D2.fey'
-    tau, Y, std_Y = lee_fey(nombre)
+    # Camino absoluto del archivo que se quiere leer
+    abs_nombre = os.path.join(script_dir, nombre)
+    tau, Y, std_Y = lee_fey(abs_nombre)
     ajuste_afey(tau, Y, std_Y)
 
     plt.show()
