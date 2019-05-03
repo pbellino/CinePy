@@ -159,6 +159,15 @@ def ajuste_afey(tau, Y, std_Y):
     return None
 
 
+def teo_variance_berglof(Y, Nk):
+    """ Varianza teórica """
+    return 2*(Y+1)**2 / (Nk-1)
+
+
+def lee_Nk(nombre):
+    Nk = np.loadtxt(nombre, dtype=np.uint32)
+    return Nk
+
 if __name__ == '__main__':
 
     # Carpeta donde se encuentra este script
@@ -189,8 +198,19 @@ if __name__ == '__main__':
     # Camino absoluto del archivo que se quiere leer
     abs_nombre = os.path.join(script_dir, nombre)
     tau, Y, std_Y, num_hist = lee_fey(abs_nombre)
-    ajuste_afey(tau, Y, std_Y)
 
+    Nk = lee_Nk(nombre.rstrip('fey') + 'Nk')
+    var_teo = teo_variance_berglof(Y, Nk)
+
+    # ajuste_afey(tau, Y, np.sqrt(var_teo/num_hist))
+    ajuste_afey(tau, Y, std_Y)
     fig8, ax8 = plt.subplots(1, 1)
-    ax8.plot(tau, std_Y)
+    ax8.plot(tau, num_hist*std_Y**2, '.', label='Estimated variance')
+    ax8.set_xlabel(r'$\tau$ [ms]')
+    ax8.set_ylabel(r'Var[Y($\tau$)]')
+
+    ax8.plot(tau, var_teo, 'r', lw=2, label='Teoretical variance')
+    ax8.grid(True)
+    ax8.legend(loc='best')
+
     plt.show()
