@@ -332,15 +332,58 @@ def promedia_historias(Y_historias):
     return mean_Y_historias, std_mean_Y_historias
 
 
-def escribe_archivos_promedios(mean_Y, std_mean_Y, dt_base, calculo, num_hist):
+def ordena_tasas_encabezado(tasas, calculo):
+    """
+    Ordena las tasas de cuenta para ser escritas en el encabezado
+
+    Dependiendo del método construye distintas listas ya que los encabezados
+    serán distintos.
+
+    Parametros
+    ----------
+        tasas : lista
+            Cada elemento tiene [val_medio, std_val_medio] de cada rchivo
+        calculo : string
+            Tipo de cálculo para implementar alfa-Feynman
+
+    Resultados
+    ----------
+        tasas_ordenadas : lista
+            Dependiendo del método se ordenara el promedio y desvio
+            Ejemplo: para la covarianza será
+             [ [mean_D1, std_D1] ,
+               [mean_D2, std_D2],
+               [mean_D1, std_D1, mean_D2, std_D2]
+             ]
+
+    """
+    if 'sum_' in calculo:
+        # Un elemento con todos los detectores) [ [D1 D2 ....] ]
+        tasas_ordenadas = [[item for sublist in tasas for item in sublist]]
+    elif 'cov_' in calculo:
+        # Los primeros dos detectoers (tres elementos [D1 D2 [D1 D2]])
+        _tasas = tasas[0:2]
+        _juntas = [item for sublist in _tasas for item in sublist]
+        tasas_ordenadas = _tasas + [_juntas]
+    else:
+        # Tantos elementos como detectores [D1 D2 ....]
+        tasas_ordenadas = tasas
+    return tasas_ordenadas
+
+
+def escribe_archivos_promedios(mean_Y, std_mean_Y, dt_base,
+                               calculo, num_hist, tasas):
     """
     Escribe los archivos que contienen el promedio y desvio de las historias
     """
 
-    header = genera_encabezados(dt_base, calculo, num_hist)
+    tasas_ordenadas = ordena_tasas_encabezado(tasas, calculo)
+    #header = genera_encabezados(dt_base, calculo, num_hist)
     nombres_archivos = genera_nombre_archivos(mean_Y, calculo)
     # Para diferencia
     for j, nombre in enumerate(nombres_archivos):
+        header = genera_encabezados(dt_base, calculo,
+                                    num_hist, tasas_ordenadas[j])
         with open(nombre, 'w') as f:
             for line in header:
                 f.write(line + '\n')
@@ -351,15 +394,18 @@ def escribe_archivos_promedios(mean_Y, std_mean_Y, dt_base, calculo, num_hist):
             np.savetxt(f, ordenado.T)
 
 
-def escribe_archivos_completos(Y_historias, dt_base, calculo, num_hist):
+def escribe_archivos_completos(Y_historias, dt_base, calculo, num_hist, tasas):
     """
     Escribe los archivos que contienen a todas las historias
     """
 
-    header = genera_encabezados(dt_base, calculo, num_hist)
+    tasas_ordenadas = ordena_tasas_encabezado(tasas, calculo)
+    #header = genera_encabezados(dt_base, calculo, num_hist)
     nombres_archivos = genera_nombre_archivos(Y_historias, calculo)
     # Para diferencia
     for j, nombre in enumerate(nombres_archivos):
+        header = genera_encabezados(dt_base, calculo,
+                                    num_hist, tasas_ordenadas[j])
         # Cambio la extensión para diferenciarlo del promedio
         nombre = nombre.rsplit('.', 1)[0] + '.dat'
         # nombre = nombre+'.gz'
@@ -372,7 +418,7 @@ def escribe_archivos_completos(Y_historias, dt_base, calculo, num_hist):
         # np.savetxt(_nombre, np.array(Y_historia).T)
 
 
-def genera_encabezados(dt_base, calculo, num_hist):
+def genera_encabezados(dt_base, calculo, num_hist, tasas):
     """ Genera el enabezado + info con el intervalo dt + cantidad de hist."""
 
     header_str = []
@@ -398,6 +444,9 @@ def genera_encabezados(dt_base, calculo, num_hist):
     header_str.append('#')
     header_str.append('# Número de historias:')
     header_str.append('{}'.format(num_hist))
+    header_str.append('# Tasa de cuentas [cps]:')
+    header_str.append('# [promedio desvio_promedio ...]')
+    header_str.append('{}'.format(tasas))
     header_str.append('# Cada columna es una historia')
     header_str.append('#')
 
@@ -523,14 +572,34 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo):
     else:
         Y_historias, dt_base = fun_seleccionada(leidos, numero_de_historias,
                                                 dt_maximo)
+
+        # Agrego la info de tasa de cuentas para ser grabada en el encabezado
+        # Servirá para hacer correcciones en los parámetros estimados (por
+        # ejemplo en el tiempo muerto).
+        # Es un parche que se hizo a último momento. Se tendría que hacer
+        # más prolijo reescribiendo toda las funciones con esto en mente
+        def _tasa_de_cuentas(leidos):
+            """ Calcula la tasa de cuentas promedio de cada medición """
+
+            _tasas = []
+            for leido in leidos:
+                # Tasa promedio
+                _prom = np.mean(leido[0]) / leido[1]
+                # Desvío del promedio
+                _desvio = np.std(leido[0]) / leido[1] / np.sqrt(len(leido[0]))
+                _tasas.append([_prom, _desvio])
+            return _tasas
+
+        tasas = _tasa_de_cuentas(leidos)
+
         # Escribe todas las historias
         escribe_archivos_completos(Y_historias, dt_base, calculo,
-                                   numero_de_historias)
+                                   numero_de_historias, tasas)
         # Calcula estadistica sobre historias
         promedio, desvio = promedia_historias(Y_historias)
         # Escribe promedios y desvios
         escribe_archivos_promedios(promedio, desvio, dt_base, calculo,
-                                   numero_de_historias)
+                                   numero_de_historias, tasas)
         return Y_historias
 
 
