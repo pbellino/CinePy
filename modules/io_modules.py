@@ -138,22 +138,22 @@ def lee_historias_completas(nombre):
                     dt = np.double(next(f).rstrip())
                 elif line.startswith('# Número de historias'):
                     num_hist = np.uint32(next(f).rstrip())
+                elif line.startswith('# Tasa de cuentas'):
+                    next(f)
+                    tasas = np.array(next(f).rstrip())
                     break
             # Se leen todas las historias
-            data = np.loadtxt(nombre, skiprows=11)
+            data = np.loadtxt(nombre, skiprows=15)
     except IOError as err:
         print('No se pudo leer el archivo: ' + nombre)
         raise err
-    except:
-        print('Se produjo un error inseperado al abrir/leer el archivo'
-              + nombre)
         sys.exit()
 
     # Vector temporal
     vec_temp = np.arange(0, dt * data.shape[0], dt)
     vec_temp = vec_temp + dt
 
-    return vec_temp, data, num_hist
+    return vec_temp, data, num_hist, tasas
 
 
 def lee_fey(nombre):
@@ -178,11 +178,11 @@ def lee_fey(nombre):
         Array con la desviación estandar del valor medio de Y(Dt)
 
     """
-    vec_temp, data, num_hist = lee_historias_completas(nombre)
+    vec_temp, data, num_hist, tasas = lee_historias_completas(nombre)
     mean_Y = data[:, 0]
     std_Y = data[:, 1]
 
-    return vec_temp, mean_Y, std_Y, num_hist
+    return vec_temp, mean_Y, std_Y, num_hist, tasas
 
 
 if __name__ == '__main__':
@@ -201,9 +201,11 @@ if __name__ == '__main__':
     # Prueba lee_historia
 
     nombre = '../src/resultados/nucleo_01.D1.dat'
-    vec_t, data, num_hist = lee_historias_completas(nombre)
+    nombre = '../src/resultados/nucleo_01.D1D2_sum.dat'
+    vec_t, data, num_hist, tasas = lee_historias_completas(nombre)
 
-    print(num_hist)
+    print('Tasas de cuenta: {}'.format(tasas))
+    print('Número de historias: {}'.format(num_hist))
     print(vec_t)
     print(data.shape)
     print(data[:, 19])
