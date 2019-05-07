@@ -72,7 +72,7 @@ def grafica_afey(nombres):
     fig = plt.figure(1)
     ax = fig.add_subplot(1, 1, 1)
     for nombre in nombres:
-        vec_t, Y, std_Y, _ = lee_fey(nombre)
+        vec_t, Y, std_Y, _, _ = lee_fey(nombre)
 
         ax.errorbar(vec_t, Y, yerr=std_Y, fmt='.',
                     label=nombre.rsplit('/')[-1])
@@ -197,7 +197,7 @@ if __name__ == '__main__':
     nombre = 'resultados/nucleo_01.D2.fey'
     # Camino absoluto del archivo que se quiere leer
     abs_nombre = os.path.join(script_dir, nombre)
-    tau, Y, std_Y, num_hist = lee_fey(abs_nombre)
+    tau, Y, std_Y, num_hist, _ = lee_fey(abs_nombre)
 
     Nk = lee_Nk(nombre.rstrip('fey') + 'Nk')
     var_teo = teo_variance_berglof(Y, Nk)
