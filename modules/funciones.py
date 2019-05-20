@@ -59,6 +59,21 @@ def alfa_feynman_dos_exp(tau, alfa, amplitud, offset, alfa_2, amplitud_2):
     return Y
 
 
+def alfa_feynman_tres_exp(tau, alfa, amplitud, offset, alfa_2, amplitud_2,
+                          alfa_3, amplitud_3):
+    """
+    Función de alfa-Feynman teniendo en cuenta tres exponenciales
+
+    Para considerar efectos espaciales se agrega una exponencial más al
+    método estandar. Se mantiene la corrección lineal del tiempo muerto.
+
+    """
+    Y = amplitud * func_aux(alfa*tau) - offset \
+        + amplitud_2 * func_aux(alfa_2*tau) \
+        + amplitud_3 * func_aux(alfa_3*tau)
+    return Y
+
+
 def alfa_feynman_lin_dead_time_lin_delayed(tau, alfa, amplitud, offset, slope):
     """
     Función del método de alfa-Feynman con tiempo muerto y retardados
