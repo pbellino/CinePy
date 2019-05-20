@@ -54,9 +54,9 @@ def calcula_alfa_feynman_input(datos, numero_de_historias, dt_base, dt_maximo):
                 _nom = line.split('/')[-1]
                 _nom = _nom.rsplit('.', 1)
                 nombres_archivos.append('resultados/' + _nom[-2] + '.Nk')
-        header = 'Cantidad de datos utilizados para hacer estadística ' + \
-                 'con cada intervalo dt. Se usa para corregir la ' + \
-                 'función teórica durante el ajuste'
+        header = u'Cantidad de datos utilizados para hacer estadística ' + \
+                 u'con cada intervalo dt. Se usa para corregir la ' + \
+                 u'función teórica durante el ajuste'
         for nombre in nombres_archivos:
             np.savetxt(nombre, N_k, fmt='%.i', header=header)
 
