@@ -59,6 +59,20 @@ def alfa_feynman_dos_exp(tau, alfa, amplitud, offset, alfa_2, amplitud_2):
     return Y
 
 
+def alfa_feynman_dos_exp_delayed(tau, alfa, amplitud, offset, slope, alfa_2,
+                                 amplitud_2):
+    """
+    Función de alfa-Feynman teniendo en cuenta dos exponenciales
+
+    Para considerar efectos espaciales se agrega una exponencial más al
+    método estandar. Se mantiene la corrección lineal del tiempo muerto.
+
+    """
+    Y = amplitud * func_aux(alfa*tau) - offset \
+        + amplitud_2 * func_aux(alfa_2*tau) + slope * tau
+    return Y
+
+
 def alfa_feynman_tres_exp(tau, alfa, amplitud, offset, alfa_2, amplitud_2,
                           alfa_3, amplitud_3):
     """
@@ -73,6 +87,12 @@ def alfa_feynman_tres_exp(tau, alfa, amplitud, offset, alfa_2, amplitud_2,
         + amplitud_3 * func_aux(alfa_3*tau)
     return Y
 
+
+def alfa_feynman_nldtime(tau, alfa, amplitud, t_dead, amplitud_dead):
+    Y = - amplitud_dead*(2 - t_dead/tau) \
+        + amplitud * ((1-t_dead/tau) * np.exp(-alfa*t_dead)
+                      * func_aux(alfa*(tau-t_dead)))
+    return Y
 
 def alfa_feynman_lin_dead_time_lin_delayed(tau, alfa, amplitud, offset, slope):
     """
@@ -105,8 +125,10 @@ if __name__ == '__main__':
     Y_1 = alfa_feynman(t, 200, 5)
     Y_2 = alfa_feynman_lin_dead_time(t, 200, 5, 0.5)
     Y_3 = alfa_feynman_lin_dead_time_lin_delayed(t, 200, 5, 0.5, 5)
+    Y_4 = alfa_feynman_nldtime(t, 200, 5, 10e-6, 0.5)
     plt.plot(t, Y_1, '.', label='alfa_feynman')
     plt.plot(t, Y_2, '.', label='alfa_feynman_lin_dead_time')
     plt.plot(t, Y_3, '.', label='alfa_feynman_lin_dead_time_lin_delayed')
+    plt.plot(t, Y_4, '.', label='alfa_feynman_nldtime')
     plt.legend()
     plt.show()
