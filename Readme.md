@@ -21,7 +21,7 @@ Contenido de la carpeta
         Carpeta donde estarán los archivos con las constantes necesarias
     
     * `src/resultados/` 
-        Carpeta donde se guardan los archivos con las curvas de a-Feynman
+        Carpeta donde se guardan los archivos con los datos ya procesados
 
     * `modules/`
         - `io_modules.py` : Módulo con funciones relacionadas con lectura/escritura de archivos
@@ -29,6 +29,7 @@ Contenido de la carpeta
 
     * `tests/`
         - `test_read_bin_dt.py` : Script para probar la función de lectura de datos `read_bin_dt` de `modules/io_modules.py`
+        - `test_read_timestamp.py`: Script para probal la función de lectura de datos `read_timestamp` de `modules/io_modules.py`
         - `test_ajuste_afey.py` : Se prueba el ajuste no lineal con señales simuladas
         - `octave` : Scripts originales cuyos resultados se toman como referencia
 
