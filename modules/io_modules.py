@@ -51,6 +51,8 @@ def read_bin_dt(filename):
                     header.append(f.readline().rstrip())
             else:
                 print('El archivo no tiene encabezado')
+                # El encabezado aparecerá vacío
+                header = []
                 # Vuelvo al comienzo del archivo
                 f.seek(0, 0)
             # Continua leyendo los datos
