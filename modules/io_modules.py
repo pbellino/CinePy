@@ -185,6 +185,74 @@ def lee_fey(nombre):
     return vec_temp, mean_Y, std_Y, num_hist, tasas
 
 
+def read_timestamp(filename):
+    '''
+    Función para leer los archivoss grabados por el programa "Timestamping_3C"
+    (o alguna de sus versiones previas).
+
+    Cada dato es el tiempo en que llegó un pulso respecto al comienzo de la
+    adquisición.
+    El tiempo está medido en unidades de pulsos de 80Mhz (periodo de 12.5ns).
+    Esto es, si se registra t=2 significa que transcurrieron 12.5ns x 2 = 25ns.
+    Los archivos más viejos no tenían encabezado, mientras que los nuevos sí.
+    El formato en que está grabado es entero sin signo de 32 bits con
+    codificación big-endian.
+
+    Parameters
+    ----------
+
+    filename : string
+        Nombre del archivo que se quiere leer
+
+    Returns
+    -------
+
+    a : np.array con uint32
+        Datos leidos
+    header: list of strings
+        Encabezado el archivo
+
+    '''
+
+    # Tipo de dato: sin signo (por eso el 'u')
+    #               32 bits (por eso el '4')
+    #               'big-endian'(por eso el >)
+    # https://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html
+    dt = np.dtype('>u4')
+
+    # Puntos que quiero leer de datos (-1 son todos)
+    nread = -1
+
+    header = []
+    try:
+        with open(filename, 'rb') as f:
+            # Se fija si tiene encabezado
+            header.append(f.readline().rstrip())
+            if header[0].startswith(b'Nombre'):
+                print('El archivo tiene encabezado')
+                # Sigue leyendo el resto
+                for i in range(6):
+                    header.append(f.readline().rstrip())
+            else:
+                print('El archivo no tiene encabezado')
+                # El encabezado aparecerá vacío
+                header = []
+                # Vuelvo al comienzo del archivo
+                f.seek(0, 0)
+            # Continua leyendo los datos
+            a = np.fromfile(f, dtype=dt, count=nread)
+            # Se toma t=0 con el primer pulso
+            a -= a[0]
+        return a[1:], header
+    except IOError as err:
+        print('No se pudo leer el archivo: ' + filename)
+        raise err
+    except:
+        print('Se produjo un error inseperado al abrir/leer el archivo'
+              + filename)
+        sys.exit()
+
+
 if __name__ == '__main__':
 
     # Prueba read_bin_dt
