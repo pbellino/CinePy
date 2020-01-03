@@ -3,6 +3,15 @@ Tests
 
 Carpeta con scripts y datos de referencia para probar los nuevos programas en python
 
+Lectura de datos
+----------------
+
+  * `resultados_octave.dat`
+      Archivos con los datos leidos utilizando funciones en Octave/Matlab para los archivos generados por el programa `Intervaltime_MC`.
+
+  * `resultados_timestamp_octave.dat`
+      Archivos con los datos leidos utilizando funciones en Octave/Matlab para los archivos generados por el programa `Timestamping_3C`.
+
 Método de alfa-Feynman
 ----------------------
 
