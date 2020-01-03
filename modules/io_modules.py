@@ -245,7 +245,7 @@ def read_timestamp(filename):
             a = np.fromfile(f, dtype=dt, count=nread)
             # Se toma t=0 con el primer pulso
             a -= a[0]
-        return a[1:], header
+        return a, header
     except IOError as err:
         print('No se pudo leer el archivo: ' + filename)
         raise err
