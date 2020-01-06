@@ -5,6 +5,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import uncertainties as unc
 import seaborn as sns
 sns.set()
 
@@ -12,6 +13,7 @@ import sys
 sys.path.append('../')
 
 from modules.io_modules import read_timestamp
+from modules.estadistica import rate_from_timestamp
 
 plt.style.use('paper')
 
@@ -120,30 +122,38 @@ def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
     ax1.ticklabel_format(style='sci', axis='x', scilimits=(0, 0),
                          useMathText=True)
 
-    # TODO: mejorar esto
-    dt_mean = np.mean(tiempo_entre_pulsos)
-    dt_std = np.std(tiempo_entre_pulsos)/np.sqrt(len(tiempo_entre_pulsos))
-    print('Tasa de cuentas promedios:')
-    # Propagación lineal, buscar la forma correcta
-    print(str(1.0/dt_mean) + ' +/- ' + str(dt_std/dt_mean**2))
+    # Tasa de cuentas
+    _R, _R_std = rate_from_timestamp(tiempo_entre_pulsos)
+    R = unc.ufloat(_R, _R_std)
+    str_R = r'R = (${:1.2uL}$) cps'.format(R)
+    bbox_props = dict(boxstyle='Round', fc='w')
+    ax1.annotate(str_R, xy=(0.3, 0.8), bbox=bbox_props, size=15,
+                 xycoords='axes fraction')
+    fig1.savefig(nombre + '_hist.png')
+    # Imprime en pantalla
+    print('-' * 50)
+    print('Nombre: ' + nombre)
+    print('R = ' + str(R))
+    print('-' * 50)
     return None
 
 
 if __name__ == '__main__':
 
-    # ---------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # Parámetros de entrada
-    # ---------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # Archivos a leer
     nombres = [
               '../datos/medicion04.a.inter.D1.bin',
               '../datos/medicion04.a.inter.D2.bin',
               ]
-    # ---------------------------------------------------------------------------------
     unidad = 'tiempo'
     nbins = 10000
-    archivos = []
+    yscale = 'log'
+    # -------------------------------------------------------------------------
     # Para la leyenda del gráfico
+    archivos = []
     for nombre in nombres:
         archivos.append(nombre.rsplit('/')[-1])
 
@@ -154,7 +164,7 @@ if __name__ == '__main__':
         # Opciones para graficar
         parametros_histo = {'unidad': unidad,
                             'nbins': nbins,
-                            'yscale': 'log',
+                            'yscale': yscale,
                             'nombre': archivo,
                             }
         # Graficación
