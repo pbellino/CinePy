@@ -1,24 +1,58 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+""" Script para graficar histograma de tiempo entre pulsos """
+
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set()
 
 import sys
 sys.path.append('../')
 
 from modules.io_modules import read_timestamp
 
-import seaborn as sns
-sns.set()
 plt.style.use('paper')
 
 
 def genera_tiempos_entre_pulsos(nombres, unidad='pulsos', t_base=12.5e-9):
     """
-    TODO
-    unidades : 'pulsos', 'tiempo'
+    Calcula el tiempo entre pulsos para los datos especificados.
+
+    Lo calcula directamente cno numpy.diff(). Recordar que lo hace sobre los
+    datos sin corrección del roll-over y en uint32. Se aprovecha que la resta
+    en python hace un nuevo roll-over para mantenerse dentro de uint32.
+
+    Parámetros
+    ----------
+    nombres : lista de strings
+        Nombre de los archivos que se quieren leer
+
+    unidad : string, opcional
+        Se especifica las unidades para el tiempo
+        'pulsos' : (default) Unidades de pulsos de reloj utilizado
+        'tiempo' : segundos (utiliza el valor de `t_base`)
+
+    t_base: float, opcional
+        Periodo del reloj utilizado para contar. Para el sistema NI se
+        utiliza un reloj de 80MHz, por lo cual t_base=12.5e-9s.
+
+    Resultados
+    ----------
+    tiempo_entre_pulsos : list of numpy.ndarray
+        Cada elemento es la lista con tiempos entre pulsos.
+        De acuerdo a la unidad de tiempo seleccionada `unidad` el tipo de
+        dato será:
+            `unidad`='pulsos': uint32
+            `unidad'='tiempo': float64
+
+    unidad : string
+        Unidad utilizada para el tiempo. La misma para todos los archivos.
+        Se pone como salida para utilizarla en los gráficos.
+
     """
+
     tiempo_entre_pulsos = []
     for nombre in nombres:
         _data, _header = read_timestamp(nombre)
@@ -36,15 +70,41 @@ def genera_tiempos_entre_pulsos(nombres, unidad='pulsos', t_base=12.5e-9):
     return (tiempo_entre_pulsos, unidad)
 
 
-def grafica_histograma_interarrivals(tiempo_entre_pulsos, unidad='pulsos'):
+def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
     """
-    TODO
+    Grafica el histograma de tiempo entre pulsos
+
+    Parámetros
+    ----------
+    tiempo_entre_pulsos : numpy array
+        Vector con los tiempo entre pulsos
+
+    unidad : string
+        Unidad utilizada para `tiempo_entre_pulsos`
+
+    nbins : int
+        Cantidad de bines para el histograma
+
+    yscale : string
+        Escala para el eje y ('linear', 'log')
+
+    nombre : string
+        Nombre para la leyenda que identifica la curva
+
     """
-    aa, bb = np.histogram(tiempo_entre_pulsos, bins=1000, density=True)
+    if kargs is not None:
+        unidad = kargs.get('unidad', 'pulsos')
+        nbins = kargs.get('nbins', 1000)
+        yscale = kargs.get('yscale', 'linear')
+        nombre = kargs.get('nombre', 'Datos')
+
+    h_coun, h_bin = np.histogram(tiempo_entre_pulsos, bins=nbins, density=True)
     fig1, ax1 = plt.subplots(1, 1)
-    center_bin = bb[:-1] + np.diff(bb)
-    ax1.plot(center_bin, aa, '.')
-    ax1.set_yscale('log')
+    # Genero vector de bins centrados
+    center_bin = h_bin[:-1] + np.diff(h_bin)
+    ax1.plot(center_bin, h_coun, '.')
+    ax1.set_yscale(yscale)
+    # Asigno unidades a los bines
     if unidad == 'tiempo':
         xscale = r'Tiempo [s]'
     elif unidad == 'pulsos':
@@ -55,10 +115,15 @@ def grafica_histograma_interarrivals(tiempo_entre_pulsos, unidad='pulsos'):
     ax1.set_xlabel(xscale)
     ax1.set_ylabel(u'Densidad de probabilidad')
     ax1.set_title('Histograma de tiempo entre pulsos')
+    ax1.legend([nombre], loc='best')
     ax1.grid('True')
     ax1.ticklabel_format(style='sci', axis='x', scilimits=(0, 0),
                          useMathText=True)
-    plt.show()
+
+    # TODO: mejorar esto
+    dt_mean = np.mean(tiempo_entre_pulsos)
+    print('Tasa de cuentas promedios:')
+    print(1.0/dt_mean)
     return None
 
 
@@ -70,9 +135,27 @@ if __name__ == '__main__':
     # Archivos a leer
     nombres = [
               '../datos/medicion04.a.inter.D1.bin',
+              '../datos/medicion04.a.inter.D2.bin',
               ]
     # ---------------------------------------------------------------------------------
     unidad = 'tiempo'
-    tiempos, uni = genera_tiempos_entre_pulsos(nombres, unidad)
-    grafica_histograma_interarrivals(tiempos, uni)
-    # grafica_datos_agrupados(nombres)
+    nbins = 10000
+    archivos = []
+    # Para la leyenda del gráfico
+    for nombre in nombres:
+        archivos.append(nombre.rsplit('/')[-1])
+
+    # Se generan los tiempos entre pulsos
+    tiempos, unidad = genera_tiempos_entre_pulsos(nombres, unidad)
+    # Se grafican los histogramas
+    for tiempo, archivo in zip(tiempos, archivos):
+        # Opciones para graficar
+        parametros_histo = {'unidad': unidad,
+                            'nbins': nbins,
+                            'yscale': 'log',
+                            'nombre': archivo,
+                            }
+        # Graficación
+        grafica_histograma_interarrivals(tiempo, **parametros_histo)
+
+    plt.show()
