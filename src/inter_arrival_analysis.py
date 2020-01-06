@@ -53,6 +53,8 @@ def genera_tiempos_entre_pulsos(nombres, unidad='pulsos', t_base=12.5e-9):
         Unidad utilizada para el tiempo. La misma para todos los archivos.
         Se pone como salida para utilizarla en los gráficos.
 
+    Se graba el gráfico en un archivo llamado `nombre'_hist.png
+
     """
 
     tiempo_entre_pulsos = []
@@ -129,6 +131,7 @@ def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
     bbox_props = dict(boxstyle='Round', fc='w')
     ax1.annotate(str_R, xy=(0.3, 0.8), bbox=bbox_props, size=15,
                  xycoords='axes fraction')
+    # Graba el archivo
     fig1.savefig(nombre + '_hist.png')
     # Imprime en pantalla
     print('-' * 50)
