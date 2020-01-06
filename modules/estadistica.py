@@ -3,10 +3,11 @@
 
 import numpy as np
 
+
 def agrupa_datos(data, n_datos=1, dt=None):
-    ''' 
-    Agrupa los datos de data en n_datos 
-    
+    '''
+    Agrupa los datos de data en n_datos
+
     Parametros
     ----------
         data : numpy array
@@ -24,9 +25,9 @@ def agrupa_datos(data, n_datos=1, dt=None):
             Si se especificó dt se devuelve el dt agrupado
             (dt_agrupado = dt*n_datos)
     '''
-    
+
     data = np.array(data)
-    if n_datos==1:
+    if n_datos == 1:
         if dt is None:
             return data
         else:
@@ -44,7 +45,34 @@ def agrupa_datos(data, n_datos=1, dt=None):
         else:
             dt_agrupado = dt * n_datos
             print('Intervalo de adquisición agrupado: {} s'.format(dt_agrupado))
-            return datos_agrupados , dt_agrupado
+            return datos_agrupados, dt_agrupado
+
+
+def rate_from_timestamp(tiempo_entre_pulsos):
+    """
+    Estima la tasa de cuentas e incerteza a partir del tiempo entre pulsos
+
+    Parámetros
+    ----------
+        tiempo_entre_pulsos : numpy array
+            Vector con los tiempos entre pulsos. Cuidado con las unidades.
+
+    Resultados
+    ----------
+        R_mean : float
+            Tasa de cuentas promedio
+        R_std : float
+            Desviación estandar del promedio de la tasa de cuentas.
+            Se calcula con la fórmula de propagación de errores a primer órden.
+    """
+    # Promedio
+    _dt_mean = np.mean(tiempo_entre_pulsos)
+    R_mean = 1.0/_dt_mean
+    # Desvío
+    _dt_std = np.std(tiempo_entre_pulsos)/np.sqrt(len(tiempo_entre_pulsos))
+    # Fórmula de propagación de errores a primer orden
+    R_std = _dt_std / _dt_mean**2
+    return R_mean, R_std
 
 
 if __name__ == "__main__":
@@ -55,5 +83,3 @@ if __name__ == "__main__":
     print(b)
     c, c_dt = agrupa_datos(a, 2, 0.3)
     print(c, c_dt)
-
-
