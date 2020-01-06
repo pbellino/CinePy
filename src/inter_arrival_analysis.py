@@ -122,8 +122,10 @@ def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
 
     # TODO: mejorar esto
     dt_mean = np.mean(tiempo_entre_pulsos)
+    dt_std = np.std(tiempo_entre_pulsos)/np.sqrt(len(tiempo_entre_pulsos))
     print('Tasa de cuentas promedios:')
-    print(1.0/dt_mean)
+    # Propagación lineal, buscar la forma correcta
+    print(str(1.0/dt_mean) + ' +/- ' + str(dt_std/dt_mean**2))
     return None
 
 
