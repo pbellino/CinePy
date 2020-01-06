@@ -13,6 +13,7 @@ Contenido de la carpeta
         - `alfa_feynman.py` :  Procesa los datos con el método de alfa-Feynman
         - `grafica_adquisicion.py` :  Grafica los datos guardados por los programas de adquisición
         - `analisis_alfa_feynman.py` : Graficación y ajuste no lineal para las curvas de alfa-Feynman
+        - `inter_arrival_analysis.py` : Grafica histograma de tiempo entre pulsos
 
     * `datos/` 
         Carpeta donde estarán los datos en crudo obtenidos por los programas de adquisición
