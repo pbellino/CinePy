@@ -232,11 +232,13 @@ def read_timestamp(filename):
             header.append(f.readline().rstrip())
             if header[0].startswith(b'Nombre'):
                 print('El archivo tiene encabezado')
+                print('-' * 50)
                 # Sigue leyendo el resto
                 for i in range(6):
                     header.append(f.readline().rstrip())
             else:
                 print('El archivo no tiene encabezado')
+                print('-' * 50)
                 # El encabezado aparecerá vacío
                 header = []
                 # Vuelvo al comienzo del archivo
@@ -253,6 +255,20 @@ def read_timestamp(filename):
         print('Se produjo un error inseperado al abrir/leer el archivo'
               + filename)
         sys.exit()
+
+
+def read_timestamp_list(filenames):
+    lista_datos = []
+    lista_header = []
+    for filename in filenames:
+        _a, _header = read_timestamp(filename)
+        lista_datos.append(_a)
+        lista_header.append(_header)
+        print('Encabezado del archivo {}:'.format(filename))
+        for _line in _header:
+            print(_line)
+        print('-' * 50)
+    return lista_datos, lista_header
 
 
 if __name__ == '__main__':
