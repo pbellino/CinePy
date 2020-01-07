@@ -5,7 +5,7 @@
 Script para pre-procesar los datos de time-stamping para el método de a-Rossi.
 
 Lee los archivos y genera las historias pedidas.
-main() es la función principal.
+alfa_rossi_preprocesado() es la función principal.
 """
 
 import numpy as np
@@ -211,7 +211,7 @@ def inspeccion_historias_list(list_historias, tb=12.5e-9):
     return lista_pulsos_historia, lista_tiempos_historia
 
 
-def main(nombres, Nhist, tb):
+def alfa_rossi_preprocesado(nombres, Nhist, tb):
     """
     Función que genera las historias para todos los archivos leídos
 
@@ -267,7 +267,8 @@ if __name__ == '__main__':
     Nhist = 100
     tb = 12.5e-9
     # -------------------------------------------------------------------------
-    data_bloques, data_sin_ro, data_con_ro = main(nombres, Nhist, tb)
+    data_bloques, data_sin_ro, data_con_ro = \
+        alfa_rossi_preprocesado(nombres, Nhist, tb)
 
     fig1, ax1 = plt.subplots(1, 1)
     ax1.plot(data_con_ro[0], 'k.')
