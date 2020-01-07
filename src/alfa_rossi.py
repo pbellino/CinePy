@@ -1,75 +1,59 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" TODO """
+"""
+Script para pre-procesar los datos de time-stamping para el método de a-Rossi.
+
+Lee los archivos y genera las historias pedidas.
+main() es la función principal.
+"""
 
 import numpy as np
 import matplotlib.pyplot as plt
-import uncertainties as unc
 
 import sys
 sys.path.append('../')
 
-from modules.io_modules import read_timestamp
-from modules.estadistica import rate_from_timestamp
+from modules.io_modules import read_timestamp_list
 
 plt.style.use('paper')
 
 
-def genera_tiempos_entre_pulsos(nombres, unidad='pulsos', t_base=12.5e-9):
+def corrige_roll_over(datas_con_rollover):
     """
-    Calcula el tiempo entre pulsos para los datos especificados.
+    Corrige el roll-over en los datos adquiridos
 
-    Lo calcula directamente cno numpy.diff(). Recordar que lo hace sobre los
-    datos sin corrección del roll-over y en uint32. Se aprovecha que la resta
-    en python hace un nuevo roll-over para mantenerse dentro de uint32.
+    El roll-over se produce por la resolución finita del contador utilizado.
+    Esta corrección se basa en el casteo que hace python: al usar np.diff()
+    hace un roll-over para mantenerse en el tipo de dato original. Al usar
+    np.sumsum() pasa al siguiente tipo de datos más grande uint64.
 
     Parámetros
     ----------
-    nombres : lista de strings
-        Nombre de los archivos que se quieren leer
-
-    unidad : string, opcional
-        Se especifica las unidades para el tiempo
-        'pulsos' : (default) Unidades de pulsos de reloj utilizado
-        'tiempo' : segundos (utiliza el valor de `t_base`)
-
-    t_base: float, opcional
-        Periodo del reloj utilizado para contar. Para el sistema NI se
-        utiliza un reloj de 80MHz, por lo cual t_base=12.5e-9s.
+        datas_con_rollover : list of numpy.ndarray
+            Cada elemento de la lista son los datos leídos del archivo
 
     Resultados
     ----------
-    tiempo_entre_pulsos : list of numpy.ndarray
-        Cada elemento es la lista con tiempos entre pulsos.
-        De acuerdo a la unidad de tiempo seleccionada `unidad` el tipo de
-        dato será:
-            `unidad`='pulsos': uint32
-            `unidad'='tiempo': float64
-
-    unidad : string
-        Unidad utilizada para el tiempo. La misma para todos los archivos.
-        Se pone como salida para utilizarla en los gráficos.
-
-    Se graba el gráfico en un archivo llamado `nombre'_hist.png
+        data_sin_rollover : list of numpy.ndarray
+            Cada elemento son los datos con roll-over corregido
 
     """
+    data_sin_rollover = []
+    for i, data in enumerate(datas_con_rollover):
+        print('Corrigiendo roll-over del archivo [{}]'.format(i))
+        print('Tipo de dato inicial: {}'.format(data.dtype))
+        # Obtengo los tiempos entre pulsos
+        _dts = np.diff(data)
+        # Sumo todos los intervalos
+        _data_acum = np.cumsum(_dts)
+        # Agrego el primer punto como t=0
+        _data_acum = np.insert(_data_acum, 0, 0)
+        print('Tipo de dato final {}'.format(_data_acum.dtype))
+        print('-' * 50)
+        data_sin_rollover.append(_data_acum)
 
-    tiempo_entre_pulsos = []
-    for nombre in nombres:
-        _data, _header = read_timestamp(nombre)
-        _dts = np.diff(_data)
-        if unidad == 'tiempo':
-            print('Tiempo expresado en [s] con numpy.ndarray de float64')
-            _dts = np.float64(_dts*t_base)
-        elif unidad == 'pulsos':
-            pass
-        else:
-            print('Se especificó mal la unidades de tiempo')
-            print('Se toma `pulsos`')
-            unidad = 'pulsos'
-        tiempo_entre_pulsos.append(_dts)
-    return (tiempo_entre_pulsos, unidad)
+    return data_sin_rollover
 
 
 def separa_en_historias(time_stamped_data, N_historias):
@@ -126,6 +110,14 @@ def separa_en_historias(time_stamped_data, N_historias):
     return historias
 
 
+def separa_en_historias_lista(time_stamped_datas, N_historias):
+    """ Wrapper de `separa_en_historias` para ser aplicado en listas """
+    historias_list = []
+    for t_s_data in time_stamped_datas:
+        historias_list.append(separa_en_historias(t_s_data, N_historias))
+    return historias_list
+
+
 def convierte_dtype_historias(historias):
     """
     De ser posible, convierte al tipo de dato de menor tamaño posible
@@ -136,6 +128,7 @@ def convierte_dtype_historias(historias):
     # Asumo que todas las historias tienen el mismo tipo de datos
     # (vienen de un mismo numpy array)
     in_dtype = historias[0].dtype
+    print('Convirtiendo tipo de datos de las historias')
     print('Tipo de datos originales : {}'.format(in_dtype))
     # Máximo valor de cada historias
     _hist_max = []
@@ -155,12 +148,24 @@ def convierte_dtype_historias(historias):
     for historia in historias:
         new_historias.append(np.asarray(historia, dtype=_new_dtype))
     print('Tipo de dato convrtido: {}'.format(_new_dtype))
+    print('-' * 50)
+
     return new_historias
+
+
+def convierte_dtype_historias_lista(list_historias):
+    """ Wrapper de `convierte_dtype_historias` para aplicarlo en listas """
+
+    new_list_historias = []
+    for i, historias in enumerate(list_historias):
+        print("Archivo [{}]".format(i))
+        new_list_historias.append(convierte_dtype_historias(historias))
+    return new_list_historias
 
 
 def inspeccion_historias(historias, tb=12.5e-9):
     """
-    Verificar los datos separados en historias
+    Verifica los datos separados en historias
 
     Parámetros
     ---------
@@ -189,7 +194,64 @@ def inspeccion_historias(historias, tb=12.5e-9):
     _std_t = np.std(tiempos_historia) * tb
     print('Duración de cada historia: {} +/- {}'.format(_mean_t, _std_t))
     print('(Utilizando {} como unidad temporal)'.format(tb))
+    print('-' * 50)
     return pulsos_historia, tiempos_historia
+
+
+def inspeccion_historias_list(list_historias, tb=12.5e-9):
+    """ Wrapper de `inspeccion_historias` para aplicarlo en listas """
+
+    lista_pulsos_historia = []
+    lista_tiempos_historia = []
+    for i, historias in enumerate(list_historias):
+        print('Inspección del archivo [{}]'.format(i))
+        _pulsos, _tiempos = inspeccion_historias(historias, tb)
+        lista_pulsos_historia.append(_pulsos)
+        lista_tiempos_historia.append(_tiempos)
+    return lista_pulsos_historia, lista_tiempos_historia
+
+
+def main(nombres, Nhist, tb):
+    """
+    Función que genera las historias para todos los archivos leídos
+
+    Hace las correcciones del roll-over y busca el menor tipo de dato con que
+    pueden ser guardadas las historias.
+
+    Parámetros
+    ----------
+        nombres : list of strings
+            Nombres de los archivos con los datos de timestamping
+        Nhist : integer
+            Cantidad de historias
+        tb : float
+            Tiempo de duración de cada pulso de reloj
+
+    Resultados
+    ----------
+        data_historias : list of list of numpy.ndarray
+            Para cada archivo leido se genera una lista con las Nhist creadas.
+            Cada historia podrá tener formato uint32, uint64 o float64
+            dependiendo del tamaño.
+        data_sin_rollover : list of numpy.ndarray
+            Cada elemento son los datos leidos con el roll-over corregido.
+            Sólo está para debuggear.
+        data_con_rollover : list of numpy.ndarray
+            Cada elemento son los datos leidos directamente del archivo.
+            Sólo está para debuggear.
+    """
+    # Se leen los datos del archivo
+    data_con_rollover, _header = read_timestamp_list(nombres)
+    # Se corrige el roll-over
+    data_sin_rollover = corrige_roll_over(data_con_rollover)
+    # Separe el vector con los tiempos en historias
+    data_historias = separa_en_historias_lista(data_sin_rollover, Nhist)
+    # Busca el tipo de dato de menor tamaño
+    data_historias = convierte_dtype_historias_lista(data_historias)
+    # Para verificar cómo quedó todo (opcional)
+    inspeccion_historias_list(data_historias, tb)
+
+    return data_historias, data_sin_rollover, data_con_rollover
 
 
 if __name__ == '__main__':
@@ -200,37 +262,17 @@ if __name__ == '__main__':
     # Archivos a leer
     nombres = [
               '../datos/medicion04.a.inter.D1.bin',
-              # '../datos/medicion04.a.inter.D2.bin',
+              '../datos/medicion04.a.inter.D2.bin',
               ]
-    unidad = 'pulsos'
-    yscale = 'log'
+    Nhist = 100
+    tb = 12.5e-9
     # -------------------------------------------------------------------------
-
-    # Se generan los tiempos entre pulsos
-    tiempos, unidad = genera_tiempos_entre_pulsos(nombres, unidad)
-
-    _data, _header = read_timestamp(nombres[0])
-    _data_new = np.cumsum(tiempos[0])
-    _data_new = np.insert(_data_new, 0, 0)
-    print('-'*50)
-    print(type(_data_new[0]))
-    print(len(_data_new))
-    print(_data_new[0])
-    print(_data_new[-1])
-    print(_data_new[121122-1:121132-1])
-
-    # -------------------------------------------------------------------------
-    # Separe el vector con los tiempos en historias
-    _data_bloq = separa_en_historias(_data_new, 100)
-    # Busca el tipo de dato más pequeño
-    _data_bloq = convierte_dtype_historias(_data_bloq)
-
-    quit()
+    data_bloques, data_sin_ro, data_con_ro = main(nombres, Nhist, tb)
 
     fig1, ax1 = plt.subplots(1, 1)
-    ax1.plot(_data, 'k.')
-    for data in _data_bloq:
-        ax1.plot(data, 'r.')
-    pulsos_tot, tiempos_hist = inspeccion_historias(_data_bloq)
+    ax1.plot(data_con_ro[0], 'k.')
+    ax1.plot(data_sin_ro[0], 'r.')
+    for data in data_bloques[0]:
+        ax1.plot(data, 'b.')
 
     plt.show()
