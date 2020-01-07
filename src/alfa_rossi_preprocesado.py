@@ -250,6 +250,8 @@ def alfa_rossi_preprocesado(nombres, Nhist, tb):
     data_historias = convierte_dtype_historias_lista(data_historias)
     # Para verificar cómo quedó todo (opcional)
     inspeccion_historias_list(data_historias, tb)
+    print('Fin del pre-procesamiento')
+    print('-' * 50)
 
     return data_historias, data_sin_rollover, data_con_rollover
 
