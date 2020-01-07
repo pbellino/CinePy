@@ -144,7 +144,7 @@ def separa_en_historias(time_stamped_data, N_historias):
     Separa los datos de tiempo entre pulsos en historias.
 
     Lo hace considerando que cada historia tendrá (estadísticamente) la misma
-    duración temporal. 
+    duración temporal.
     Podría haberse separado por cantidad de pulsos.
 
     Parámetros
@@ -166,25 +166,26 @@ def separa_en_historias(time_stamped_data, N_historias):
     _t_historia = _t_maximo / N_historias
     # Cada historia pasa a estar caracterizado por un mismo número (0,1,...,99)
     _bloques = time_stamped_data // _t_historia
-    # Busca los índices en donde se cambian de historia (cambia el número con que
-    # están caracterizadas)
+    # Busca los índices en donde se cambian de historia (cambia el número con
+    # que están caracterizadas)
     _index_historias = np.where(_bloques[:-1] != _bloques[1:])[0]
     # Sumo uno para que sea más fácil aplicar el slice
     _index_historias += 1
     # Controla que haya pulsos en todas las historias
     # En un proceso estacionario debería suceder siempre
-    if _index_historias.size < N_historias-1 :
+    if _index_historias.size < N_historias - 1:
         print('Hay historias que no tienen pulsos. Revisar')
         quit()
     # Índices del comienzo de cada historia
     # (Se aagrega 0 al comienzo para definir la primer historia)
-    _index_start = np.insert(_index_historias, 0, 0)  
+    _index_start = np.insert(_index_historias, 0, 0)
     # Índices del final de cada historia
     # Se agrega al final el índice máximo que para definir la última historia)
-    _index_end = np.insert(_index_historias, _index_historias.size, time_stamped_data.size)
+    _index_end = np.insert(_index_historias, _index_historias.size,
+                           time_stamped_data.size)
     # Se construyen las historias en una lista
     historias = []
-    for start,end in zip(_index_start,_index_end):
+    for start, end in zip(_index_start, _index_end):
         # Todas comenzarán en t=0
         historia = time_stamped_data[start:end] - time_stamped_data[start]
         historias.append(historia)
@@ -212,7 +213,7 @@ if __name__ == '__main__':
     # Archivos a leer
     nombres = [
               '../datos/medicion04.a.inter.D1.bin',
-              #'../datos/medicion04.a.inter.D2.bin',
+              # '../datos/medicion04.a.inter.D2.bin',
               ]
     unidad = 'pulsos'
     nbins = 10000
@@ -228,7 +229,7 @@ if __name__ == '__main__':
 
     _data, _header = read_timestamp(nombres[0])
     _data_new = np.cumsum(tiempos[0])
-    _data_new=np.insert(_data_new, 0, 0)
+    _data_new = np.insert(_data_new, 0, 0)
     print('-'*50)
     print(type(_data_new[0]))
     print(len(_data_new))
@@ -247,7 +248,7 @@ if __name__ == '__main__':
     pulsos_tot, tiempos_hist = inspeccion_historias(_data_bloq)
     print(np.sum(pulsos_tot))
     tb = 12.5e-9
-    print(np.mean(tiempos_hist)*tb,np.std(tiempos_hist)*tb)
+    print(np.mean(tiempos_hist)*tb, np.std(tiempos_hist)*tb)
     print(_data_new[-1]*tb/100)
 
     plt.show()
