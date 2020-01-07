@@ -193,7 +193,7 @@ def separa_en_historias(time_stamped_data, N_historias):
     return historias
 
 
-def inspeccion_historias(historias):
+def inspeccion_historias(historias, tb=12.5e-9):
     """ Función para verificar los datos separados en historias """
 
     pulsos_historia = []    # Cantidad de pulsos en cada historia
@@ -201,6 +201,14 @@ def inspeccion_historias(historias):
     for historia in historias:
         pulsos_historia.append(historia.size)
         tiempos_historia.append(historia[-1])
+
+    _pul_tot = np.sum(pulsos_historia)
+    print('Pulsos totales : {}'.format(_pul_tot))
+
+    _mean_t = np.mean(tiempos_hist) * tb
+    _std_t = np.std(tiempos_hist) * tb
+    print('Duración de cada historia: {} +/- {}'.format(_mean_t, _std_t))
+    print('(Utilizando {} como unidad temporal)'.format(tb))
 
     return pulsos_historia, tiempos_historia
 
