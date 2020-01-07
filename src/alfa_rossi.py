@@ -72,73 +72,6 @@ def genera_tiempos_entre_pulsos(nombres, unidad='pulsos', t_base=12.5e-9):
     return (tiempo_entre_pulsos, unidad)
 
 
-def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
-    """
-    Grafica el histograma de tiempo entre pulsos
-
-    Parámetros
-    ----------
-    tiempo_entre_pulsos : numpy array
-        Vector con los tiempo entre pulsos
-
-    unidad : string
-        Unidad utilizada para `tiempo_entre_pulsos`
-
-    nbins : int
-        Cantidad de bines para el histograma
-
-    yscale : string
-        Escala para el eje y ('linear', 'log')
-
-    nombre : string
-        Nombre para la leyenda que identifica la curva
-
-    """
-    if kargs is not None:
-        unidad = kargs.get('unidad', 'pulsos')
-        nbins = kargs.get('nbins', 1000)
-        yscale = kargs.get('yscale', 'linear')
-        nombre = kargs.get('nombre', 'Datos')
-
-    h_coun, h_bin = np.histogram(tiempo_entre_pulsos, bins=nbins, density=True)
-    fig1, ax1 = plt.subplots(1, 1)
-    # Genero vector de bins centrados
-    center_bin = h_bin[:-1] + np.diff(h_bin)
-    ax1.plot(center_bin, h_coun, '.')
-    ax1.set_yscale(yscale)
-    # Asigno unidades a los bines
-    if unidad == 'tiempo':
-        xscale = r'Tiempo [s]'
-    elif unidad == 'pulsos':
-        xscale = r'Pulsos'
-    else:
-        print('No se reconoce la unidad temporal')
-        xscale = 'Desconocido'
-    ax1.set_xlabel(xscale)
-    ax1.set_ylabel(u'Densidad de probabilidad')
-    ax1.set_title('Histograma de tiempo entre pulsos')
-    ax1.legend([nombre], loc='best')
-    ax1.grid('True')
-    ax1.ticklabel_format(style='sci', axis='x', scilimits=(0, 0),
-                         useMathText=True)
-
-    # Tasa de cuentas
-    _R, _R_std = rate_from_timestamp(tiempo_entre_pulsos)
-    R = unc.ufloat(_R, _R_std)
-    str_R = r'R = (${:1.2uL}$) cps'.format(R)
-    bbox_props = dict(boxstyle='Round', fc='w')
-    ax1.annotate(str_R, xy=(0.3, 0.8), bbox=bbox_props, size=15,
-                 xycoords='axes fraction')
-    # Graba el archivo
-    fig1.savefig(nombre + '_hist.png')
-    # Imprime en pantalla
-    print('-' * 50)
-    print('Nombre: ' + nombre)
-    print('R = ' + str(R))
-    print('-' * 50)
-    return None
-
-
 def separa_en_historias(time_stamped_data, N_historias):
     """
     Separa los datos de tiempo entre pulsos en historias.
@@ -193,23 +126,69 @@ def separa_en_historias(time_stamped_data, N_historias):
     return historias
 
 
+def convierte_dtype_historias(historias):
+    """
+    De ser posible, convierte al tipo de dato de menor tamaño posible
+
+    Se asume que todas las historias tendrán el mismo dtype
+    """
+
+    # Asumo que todas las historias tienen el mismo tipo de datos
+    # (vienen de un mismo numpy array)
+    in_dtype = historias[0].dtype
+    print('Tipo de datos originales : {}'.format(in_dtype))
+    # Máximo valor de cada historias
+    _hist_max = []
+    for historia in historias:
+        _hist_max.append(historia[-1])
+    _hist_max = np.asarray(_hist_max)
+    # Fuerzo a que todas las historias tengan el mismo tipo de datos.
+    # Se podría optimizar relajando esta condición.
+    if all(_hist_max < 2**32):
+        _new_dtype = 'uint32'
+    elif all(_hist_max < 2**64):
+        _new_dtype = 'uint64'
+    else:
+        _new_dtype = 'float64'
+    # Se hace la conversión
+    new_historias = []
+    for historia in historias:
+        new_historias.append(np.asarray(historia, dtype=_new_dtype))
+    print('Tipo de dato convrtido: {}'.format(_new_dtype))
+    return new_historias
+
+
 def inspeccion_historias(historias, tb=12.5e-9):
-    """ Función para verificar los datos separados en historias """
+    """
+    Verificar los datos separados en historias
+
+    Parámetros
+    ---------
+        historias : list of numpy.ndarray
+        tb : double
+            Tiempo de cada pulso de reloj utilizado
+
+    Resultados
+    ----------
+        pulsos_historia : list
+            Cantidad de pulsos de cada historia
+        tiempos_historia : list
+            Duración de cada historia (utilizando tb para convertir)
+    """
 
     pulsos_historia = []    # Cantidad de pulsos en cada historia
     tiempos_historia = []   # Duranción de cada historia
     for historia in historias:
         pulsos_historia.append(historia.size)
         tiempos_historia.append(historia[-1])
-
+    # Cantidad total de pulsos
     _pul_tot = np.sum(pulsos_historia)
     print('Pulsos totales : {}'.format(_pul_tot))
-
-    _mean_t = np.mean(tiempos_hist) * tb
-    _std_t = np.std(tiempos_hist) * tb
+    # Duración de cada historia en unidades de tb
+    _mean_t = np.mean(tiempos_historia) * tb
+    _std_t = np.std(tiempos_historia) * tb
     print('Duración de cada historia: {} +/- {}'.format(_mean_t, _std_t))
     print('(Utilizando {} como unidad temporal)'.format(tb))
-
     return pulsos_historia, tiempos_historia
 
 
@@ -224,13 +203,8 @@ if __name__ == '__main__':
               # '../datos/medicion04.a.inter.D2.bin',
               ]
     unidad = 'pulsos'
-    nbins = 10000
     yscale = 'log'
     # -------------------------------------------------------------------------
-    # Para la leyenda del gráfico
-    archivos = []
-    for nombre in nombres:
-        archivos.append(nombre.rsplit('/')[-1])
 
     # Se generan los tiempos entre pulsos
     tiempos, unidad = genera_tiempos_entre_pulsos(nombres, unidad)
@@ -246,17 +220,17 @@ if __name__ == '__main__':
     print(_data_new[121122-1:121132-1])
 
     # -------------------------------------------------------------------------
+    # Separe el vector con los tiempos en historias
     _data_bloq = separa_en_historias(_data_new, 100)
-    print(type(_data_bloq[0][0]))
+    # Busca el tipo de dato más pequeño
+    _data_bloq = convierte_dtype_historias(_data_bloq)
+
+    quit()
 
     fig1, ax1 = plt.subplots(1, 1)
     ax1.plot(_data, 'k.')
     for data in _data_bloq:
         ax1.plot(data, 'r.')
     pulsos_tot, tiempos_hist = inspeccion_historias(_data_bloq)
-    print(np.sum(pulsos_tot))
-    tb = 12.5e-9
-    print(np.mean(tiempos_hist)*tb, np.std(tiempos_hist)*tb)
-    print(_data_new[-1]*tb/100)
 
     plt.show()
