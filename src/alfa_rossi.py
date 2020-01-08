@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import timeit
 
 from alfa_rossi_preprocesado import alfa_rossi_preprocesado
+from modules.estadistica import rate_from_timestamp
+
 import sys
 sys.path.append('../')
 
@@ -19,16 +21,61 @@ plt.style.use('paper')
 
 def arossi_una_historia_I(data, dt_s, dtmax_s, tb):
     """
-    TODO
-    dt, dtmax, tb en unidades de segundo
+    Aplica el método de a-Rossi (Tipo I) a una historia
+
+    En el código se convierten todos los tiempos a pulsos, mediante tb.
+
+    La función P(tau) de alfa-Rossi programada está normalizada con la tasa
+    de cuentas de la historia.
+
+    De todas maneras se puede trabajar con P_trigger que están los datos en
+    crudo obtenidos con cada trigger (P_historia es un promedio de ésta)
+
+    Muchas de las magnitudes calculadas en esta función podrían hacerse afuera,
+    pero ya que va a ser paralelizada, perferí poner todo acá.
+
+    En la carpeta /tests/ hay un script para verificar que haga lo correcto.
+
+    Parámetros
+    ----------
+        data : numpy array
+            Vector con los tiempos de llegada de pulsos. Originalmente
+            pensado para que sea una historia.
+        dt_s : double [segundos]
+            Duración de cada intervalo del histograma.
+        dtmax_s : double [segundos]
+            Tiempo total del histograma (N_bin = dtmax_s / dt_s)
+        tb : double [segundos]
+            Tiempo que dura cada pulso del contador
+
+    Resultados
+    ----------
+        P_historia : numpy array
+            P(tau) normalizada para la historia. La normalización utilizada
+            consiste en dividir las cuentas acumuladas de los histogramas para
+            cada trigger por:
+                1) La cantidad total de triggers `Ǹ_triggers` (np.mean)
+                2) El ancho de cada bin `dt_s`
+                3) La tasa de cuentas de la historia `R_historia[0]`
+            Con esta normalización, la parte no correlacionada vale uno.
+        R_historia : tupla (R_promedio, R_desvío)
+            Tasa de cuenta promedio y desvío en la historia. El desvío es sin
+            dividir por raiz(N)
+        N_triggers : int
+            Cantidad de pulsos que se utilizaron como triggers
+        P_trigger : list of list of numpy array
+            Son las cuentas directas obtenidas en cada trigger.
+            Están sin normalizar. Se utiliza para debuggear.
+            Quizá sirva para aplicar otros métodos de multiplicidad
+
     """
     # Es más cómodo trabajar en unidades de pulso
-    dt = np.uint64(dt_s / tb)
-    print('dt=', dt)
-    dtmax = np.uint64(dtmax_s / tb)
-    print('dtmax=', dtmax)
-    N_bin = np.uint64(dtmax/dt)
-    print('N_bin=', N_bin)
+    dt = np.int(dt_s / tb)
+    # print('dt=', dt)
+    dtmax = np.int(dtmax_s / tb)
+    # print('dtmax=', dtmax)
+    N_bin = np.int(dtmax/dt)
+    # print('N_bin=', N_bin)
     # Primero selecciona hasta qué indice se puede recorrer `data`
     t_tot_hist = data[-1]   # Tiempo total de la historia
     # Busca el último pulso que puede ser utilizado como trigger
@@ -36,37 +83,34 @@ def arossi_una_historia_I(data, dt_s, dtmax_s, tb):
     ind_max_hist = np.searchsorted(data, t_tot_hist - dtmax, side='right')
     # Creo el vector donde todos los pulsos servirán como triggers
     data_ok = data[:ind_max_hist]
+    # Cantidad de triggers en data_ok
     N_triggers = data_ok.size
-    print('Cantidad total de triggers', N_triggers)
-    print('last data_ok', data_ok[-1], 'en', ind_max_hist)
+    # Tasa de cuentas y desvío de la historia
+    R_historia = rate_from_timestamp(np.diff(data_ok)*tb)
 
     # Recorro todos los triggers
-    aaa = []
-    bbb = []
-    ccc = []
-    sump=0
-    for i, pulso in enumerate(data_ok):
+    P_trigger = []
+    for i, trigger in enumerate(data_ok):
         # Busco el bloque que voy a binear para este trigger
-        i_max = np.searchsorted(data, pulso + dtmax, side='right')
+        i_max = np.searchsorted(data, trigger + dtmax, side='right')
         # Construyo el bloque y fijo t=0 en el trigger
         data_bin = data[i:i_max] - data[i]
         # Cuento los pulsos en cada bin
         p_hist = np.bincount(data_bin // dt)
+        # Como np.bincount() cuenta al pulso del trigger, se lo resto
+        p_hist[0] -= 1
         # Como np.bincount binea sólo hasta np.amax()+1, completo con
         # ceros el resto de los bines (hasta llenar los N_bin)
-        n_pad = np.int64(N_bin-p_hist.size)
+        n_pad = np.int64(N_bin-p_hist.size)  # Cantidad de ceros que se agregan
         p_hist_completa = np.pad(p_hist, (0, n_pad), mode='constant')
-        sump = sump+p_hist_completa[0]
-        aaa.append([i, i_max])
-        bbb.append(data_bin)
-        ccc.append(p_hist_completa)
-    # Como np.bincount() cuenta al pulso de trigger, se lo resto
-    p_hist_completa[0] = p_hist_completa[0] - N_triggers
-    print('suma',sump)
-    # print(aaa[0:10])
-    # print(bbb[0:10])
-    # TODO: ver bien las salidas que se necesitan antes de seguir
-    return ccc
+        P_trigger.append(p_hist_completa)
+    P_trigger = np.asarray(P_trigger)
+    # Calculo la probabilidad normalizada (por dt del bin)
+    # Pero más importante: normalizada con la tasa de cuentas (para que la
+    # parte no correlacionada sea siempore igual a uno).
+    P_historia = np.mean(P_trigger, axis=0) / dt_s / R_historia[0]
+
+    return P_historia, R_historia, N_triggers, P_trigger
 
 
 if __name__ == '__main__':
@@ -88,21 +132,11 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     data_bloques, _, _ = alfa_rossi_preprocesado(nombres, Nhist, tb)
 
-    a = arossi_una_historia_I(data_bloques[0][0], dt_s, dtmax_s, tb)
-    a = np.asarray(a)
-    acum = np.sum(a, axis=0)
-    fig1, ax1 = plt.subplots(1,1)
-    ax1.plot(acum,'.')
+    a, _, _, _ = arossi_una_historia_I(data_bloques[0][99], dt_s, dtmax_s, tb)
+
+    fig1, ax1 = plt.subplots(1, 1)
+    ax1.plot(a, '.')
     plt.show()
     quit()
-    print(a)
-    for i in a:
-        print(i[-1])
 
-    # for blo in data_bloques[0]:
-    #     print(blo.size)
-    # x = data_bloques[0][0]
-    # print(x)
-
-    #print( timeit.timeit(sorted, number=500) )
-
+    # print( timeit.timeit(sorted, number=500) )
