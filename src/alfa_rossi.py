@@ -8,6 +8,7 @@ TODO
 import numpy as np
 import matplotlib.pyplot as plt
 import timeit
+import time
 
 from alfa_rossi_preprocesado import alfa_rossi_preprocesado
 from modules.estadistica import rate_from_timestamp
@@ -113,6 +114,17 @@ def arossi_una_historia_I(data, dt_s, dtmax_s, tb):
     return P_historia, R_historia, N_triggers, P_trigger
 
 
+def arossi_historias_undet(data_bloques_undet, dt_s, dtmax_s, tb):
+    """
+    TODO
+    """
+
+    for data in data_bloques_undet:
+        a = arossi_una_historia_I(data, dt_s, dtmax_s, tb)
+
+    return a
+
+
 if __name__ == '__main__':
 
     # -------------------------------------------------------------------------
@@ -129,14 +141,27 @@ if __name__ == '__main__':
     tb = 12.5e-9
     dt_s = 0.5e-3
     dtmax_s = 50e-3
+
+    # -------------------------------------------------------------------------
+    # Para probar
     # -------------------------------------------------------------------------
     data_bloques, _, _ = alfa_rossi_preprocesado(nombres, Nhist, tb)
+    t0 = time.time()
+    a = arossi_historias_undet(data_bloques[0], dt_s, dtmax_s, tb)
+    tf = time.time()
+    print('Tiempo: {} s'.format(tf-t0))
 
+    # -------------------------------------------------------------------------
+    # Para probar arossi_una_historia_I
+    # -------------------------------------------------------------------------
+    """
+    data_bloques, _, _ = alfa_rossi_preprocesado(nombres, Nhist, tb)
     a, _, _, _ = arossi_una_historia_I(data_bloques[0][99], dt_s, dtmax_s, tb)
 
     fig1, ax1 = plt.subplots(1, 1)
     ax1.plot(a, '.')
     plt.show()
-    quit()
 
     # print( timeit.timeit(sorted, number=500) )
+    """
+    # -------------------------------------------------------------------------
