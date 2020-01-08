@@ -31,3 +31,10 @@ Se utilizaron los parámetros:
   Máximo intervalo temporal = 50e-3 s
 
 
+Método de alfa-Rossi
+--------------------
+
+  * `resultados_historia_arossi.dat`
+      Archivo algunos de los datos procesados en Octave/Matlab. Contiene información de la función P(tau) sin procesar para algunos triggers (los primeros, ya que no se trabajaba con historias).
+
+
