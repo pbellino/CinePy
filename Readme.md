@@ -4,7 +4,7 @@ Cinética en Python
 Programas para procesar datos de cinética de reactores.
 
 
-Se comienza tratando de reproducir lo obtenido con octave cuando se procesan los datos con el método de alfa-Feynman.
+Se comienza tratando de reproducir lo obtenido con octave cuando se procesan los datos con el método de alfa-Feynman y alfa-Rossi.
 
 Contenido de la carpeta
 -----------------------
@@ -14,6 +14,8 @@ Contenido de la carpeta
         - `grafica_adquisicion.py` :  Grafica los datos guardados por los programas de adquisición
         - `analisis_alfa_feynman.py` : Graficación y ajuste no lineal para las curvas de alfa-Feynman
         - `inter_arrival_analysis.py` : Grafica histograma de tiempo entre pulsos
+        - `alfa_rossi_preprocesado.py` : Lee archivo de tiempo entre pulsos y devuelve las historias por separado.
+        - `alfa_rossi.py` : Procesa todas las historias en el método de alfa-Rossi
 
     * `datos/` 
         Carpeta donde estarán los datos en crudo obtenidos por los programas de adquisición
@@ -32,5 +34,6 @@ Contenido de la carpeta
         - `test_read_bin_dt.py` : Script para probar la función de lectura de datos `read_bin_dt` de `modules/io_modules.py`
         - `test_read_timestamp.py`: Script para probal la función de lectura de datos `read_timestamp` de `modules/io_modules.py`
         - `test_ajuste_afey.py` : Se prueba el ajuste no lineal con señales simuladas
+        - `test_arossi_una_historia_I.py` : Se prueba el procesamiento de una historia con el método de alfa-Rossi
         - `octave` : Scripts originales cuyos resultados se toman como referencia
 
