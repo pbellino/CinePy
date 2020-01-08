@@ -7,6 +7,8 @@ TODO
 
 import numpy as np
 import matplotlib.pyplot as plt
+import multiprocessing as mp
+import itertools
 import timeit
 import time
 
@@ -15,7 +17,6 @@ from modules.estadistica import rate_from_timestamp
 
 import sys
 sys.path.append('../')
-
 
 plt.style.use('paper')
 
@@ -114,15 +115,33 @@ def arossi_una_historia_I(data, dt_s, dtmax_s, tb):
     return P_historia, R_historia, N_triggers, P_trigger
 
 
+def arossi_serial(data_bloques_undet, dt_s, dtmax_s, tb):
+    """ Función en serie, sólo para debugg """
+    a = []
+    for data in data_bloques_undet:
+        a.append(arossi_una_historia_I(data, dt_s, dtmax_s, tb))
+    return a
+
+
+def wrapper_arossi_una_historia_I(arg_tupla):
+    """ Wrapper de `arossi_una_historia_I` usada al paralelizar. """
+    data, dt_s, dtmax_s, tb = arg_tupla
+    return arossi_una_historia_I(data, dt_s, dtmax_s, tb)
+
+
 def arossi_historias_undet(data_bloques_undet, dt_s, dtmax_s, tb):
     """
     TODO
     """
+    # Cantidad de procesadores disponibles
+    num_proc = mp.cpu_count()
+    pool = mp.Pool(processes=num_proc)
+    print('Se utilizan {} procesos'.format(num_proc))
+    # Construyo el argumento del wrapper en forma de tupla
+    argumentos_wrapper = zip(data_bloques_undet, itertools.repeat(dt_s),
+                             itertools.repeat(dtmax_s), itertools.repeat(tb))
 
-    for data in data_bloques_undet:
-        a = arossi_una_historia_I(data, dt_s, dtmax_s, tb)
-
-    return a
+    return pool.map(wrapper_arossi_una_historia_I, argumentos_wrapper)
 
 
 if __name__ == '__main__':
@@ -146,11 +165,24 @@ if __name__ == '__main__':
     # Para probar
     # -------------------------------------------------------------------------
     data_bloques, _, _ = alfa_rossi_preprocesado(nombres, Nhist, tb)
-    t0 = time.time()
-    a = arossi_historias_undet(data_bloques[0], dt_s, dtmax_s, tb)
-    tf = time.time()
-    print('Tiempo: {} s'.format(tf-t0))
 
+    # En serie
+    """
+    t0 = time.time()
+    a_s = arossi_serial(data_bloques[0], dt_s, dtmax_s, tb)
+    tf = time.time()
+    print('Tiempo serie: {} s'.format(tf-t0))
+    """
+
+    # En paralelo
+    t0 = time.time()
+    a_p = arossi_historias_undet(data_bloques[0], dt_s, dtmax_s, tb)
+    tf = time.time()
+    print('Tiempo paralelo: {} s'.format(tf-t0))
+    print(a_p[50][0])
+    a_p = np.asarray(a_p)
+    print(a_p[50][0])
+    print(a_p[:, 1])
     # -------------------------------------------------------------------------
     # Para probar arossi_una_historia_I
     # -------------------------------------------------------------------------
