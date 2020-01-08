@@ -74,13 +74,13 @@ if refe1 != dt:
 if refe2 != N_bin:
     print('No coinciden los N_bin')
     quit()
-if all(refe4 != leido_1):
+if any(refe4 != leido_1):
     print('El trigger #1 no coincide')
     quit()
-if all(refe5 != leido_26):
+if any(refe5 != leido_26):
     print('El trigger #26 no coincide')
     quit()
-if all(refe6 != leido_77):
+if any(refe6 != leido_77):
     print('El trigger #77 no coincide')
     quit()
 print('Todas las comparaciones resultaron correctas')
