@@ -37,7 +37,7 @@ data_bloques, _, _ = alfa_rossi_preprocesado(nombres, Nhist, tb)
 
 # Selecciono el primer archivo y la primer historia
 data = data_bloques[0][0]
-historia_1 = arossi_una_historia_I(data, dt_s, dtmax_s, tb)
+_, _, _, historia_1 = arossi_una_historia_I(data, dt_s, dtmax_s, tb)
 
 # Se lee el trigger #1
 leido_1 = historia_1[0]
