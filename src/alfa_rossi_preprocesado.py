@@ -81,8 +81,15 @@ def separa_en_historias(time_stamped_data, N_historias):
     # Tiempo que durará cada historia (estadísticamente, pues no necesariamente
     # habrá un pulso al tiempo calculado
     _t_historia = _t_maximo / N_historias
-    # Cada historia pasa a estar caracterizado por un mismo número (0,1,...,99)
+    # Cada historia pasa a estar caracterizado por un mismo número
+    # (0, 1, ..., N_historias -1)
     _bloques = time_stamped_data // _t_historia
+    # El último pulso crea una historia espúrea (a veces por errores de
+    # redondeo no aparece)
+    if int(_bloques[-1]) == N_historias:
+        print('*** [separa_en_historias()]: Se eliminna el último pulso '
+              + 'para evitar una historia extra')
+        _bloques = np.delete(_bloques, -1)
     # Busca los índices en donde se cambian de historia (cambia el número con
     # que están caracterizadas)
     _index_historias = np.where(_bloques[:-1] != _bloques[1:])[0]
@@ -181,18 +188,24 @@ def inspeccion_historias(historias, tb=12.5e-9):
             Duración de cada historia (utilizando tb para convertir)
     """
 
+    print('Cantidad de historias: {}'.format(len(historias)))
     pulsos_historia = []    # Cantidad de pulsos en cada historia
     tiempos_historia = []   # Duranción de cada historia
+    tasa_historia = []      # Tasa de cuentas de cada historia
     for historia in historias:
         pulsos_historia.append(historia.size)
         tiempos_historia.append(historia[-1])
+        tasa_historia.append(historia.size / historia[-1])
     # Cantidad total de pulsos
     _pul_tot = np.sum(pulsos_historia)
     print('Pulsos totales : {}'.format(_pul_tot))
     # Duración de cada historia en unidades de tb
     _mean_t = np.mean(tiempos_historia) * tb
     _std_t = np.std(tiempos_historia) * tb
+    _mean_R = np.mean(tasa_historia) / tb
+    _std_R = np.std(tasa_historia) / tb
     print('Duración de cada historia: {} +/- {}'.format(_mean_t, _std_t))
+    print('Tasa de cada historia: {} +/- {}'.format(_mean_R, _std_R))
     print('(Utilizando {} como unidad temporal)'.format(tb))
     print('-' * 50)
     return pulsos_historia, tiempos_historia
