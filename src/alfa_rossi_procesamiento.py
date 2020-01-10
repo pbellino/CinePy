@@ -15,7 +15,7 @@ import multiprocessing as mp
 import itertools
 import time
 
-from alfa_rossi_preprocesado import alfa_rossi_preprocesado
+from alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
 from modules.estadistica import rate_from_timestamp
 
 import sys
@@ -265,7 +265,7 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     # Para probar `arossi_historias()'
     # -------------------------------------------------------------------------
-    data_bloq, _, _ = alfa_rossi_preprocesado(nombres, Nhist, tb)
+    data_bloq, _, _ = alfa_rossi_preprocesamiento(nombres, Nhist, tb)
     # En serie
     """
     t0 = time.time()
