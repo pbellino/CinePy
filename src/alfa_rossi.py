@@ -3,6 +3,10 @@
 
 """
 TODO
+
+TODO: Puede tene problemas de memoria para ciertos parámetros dt y dtmax. Para
+aplicaciones en reactores no sucede, quizá para otras aplicaciones haya que
+optimizar el manejo de memoria.
 """
 
 import numpy as np
