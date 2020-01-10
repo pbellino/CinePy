@@ -17,8 +17,8 @@ import sys
 sys.path.append('../')
 sys.path.append('../src')
 
-from src.alfa_rossi_preprocesado import alfa_rossi_preprocesado
-from src.alfa_rossi import arossi_una_historia_I
+from src.alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
+from src.alfa_rossi_procesamiento import arossi_una_historia_I
 
 archivo = 'medicion04.a.inter.D1.bin'
 nombres = ['../datos/' + archivo]
@@ -33,7 +33,7 @@ dtmax = np.int(dtmax_s / tb)
 N_bin = np.int(dtmax_s / dt_s)
 
 # Se lee archvo y generan las historias
-data_bloques, _, _ = alfa_rossi_preprocesado(nombres, Nhist, tb)
+data_bloques, _, _ = alfa_rossi_preprocesamiento(nombres, Nhist, tb)
 
 # Selecciono el primer archivo y la primer historia
 data = data_bloques[0][0]
