@@ -144,8 +144,12 @@ def convierte_dtype_historias(historias):
     _hist_max = np.asarray(_hist_max)
     # Fuerzo a que todas las historias tengan el mismo tipo de datos.
     # Se podría optimizar relajando esta condición.
+    if all(_hist_max < 2**32 / 2 - 1):
+        _new_dtype = 'int32'
     if all(_hist_max < 2**32):
         _new_dtype = 'uint32'
+    if all(_hist_max < 2**64 / 2 - 1):
+        _new_dtype = 'int64'
     elif all(_hist_max < 2**64):
         _new_dtype = 'uint64'
     else:
@@ -279,7 +283,7 @@ if __name__ == '__main__':
               '../datos/medicion04.a.inter.D1.bin',
               '../datos/medicion04.a.inter.D2.bin',
               ]
-    Nhist = 100
+    Nhist = 200
     tb = 12.5e-9
     # -------------------------------------------------------------------------
     data_bloques, data_sin_ro, data_con_ro = \
