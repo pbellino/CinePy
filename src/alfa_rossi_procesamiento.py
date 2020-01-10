@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import multiprocessing as mp
 import itertools
 import time
+import os
 
 from alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
 from modules.estadistica import rate_from_timestamp
@@ -197,10 +198,7 @@ def arossi_inspecciona_resultados(resultados, nombres, N_hist, dt_s, dtmax_s):
     # Nombres para identificar archivos
     nombres_lab = []
     for nombre in nombres:
-        if '/' not in nombre:
-            nombres_lab.append(nombre)
-        else:
-            nombres_lab.append(nombre.rsplit('/')[-1])
+        nombres_lab.append(os.path.split(nombre)[-1])
 
     # Gráficos de triggers y tasa de cuentas para cada historia
     fig1, axs = plt.subplots(2, 1, sharex='col')
