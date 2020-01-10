@@ -75,8 +75,8 @@ def arossi_una_historia_I(data, dt_s, dtmax_s, tb):
                 3) La tasa de cuentas de la historia `R_historia[0]`
             Con esta normalización, la parte no correlacionada vale uno.
         R_historia : tupla (R_promedio, R_desvío)
-            Tasa de cuenta promedio y desvío en la historia. El desvío es sin
-            dividir por raiz(N)
+            Tasa de cuenta promedio y desvío del promedio en la historia
+            (está dividida por raiz(N)).
         N_triggers : int
             Cantidad de pulsos que se utilizaron como triggers
         P_trigger : list of list of numpy array
