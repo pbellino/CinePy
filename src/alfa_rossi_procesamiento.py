@@ -2,11 +2,21 @@
 # -*- coding: utf-8 -*-
 
 """
-TODO
+Script para procesar los datos con el método de alfa-Rossi
+
+La función principal es `arossi_historias()`
+
+Toma la salida de la función `alfa_rossi_preprocesamiento()` que está en
+el script `alfa_rossi_preprocesamiento.py`.
 
 TODO: Puede tene problemas de memoria para ciertos parámetros dt y dtmax. Para
 aplicaciones en reactores no sucede, quizá para otras aplicaciones haya que
 optimizar el manejo de memoria.
+
+OJO: La función numpy.bincount() parace tener un bug cuando trabaja con uint64.
+Trata de castear a in64 y no puede. Trabajando con un tb=12.5e-9s, el límite
+rondaría los 3600 años. Pero si se llegara a reducir mucho el tb podría
+molestar. Suena bastante improbable igual.
 """
 
 import numpy as np
