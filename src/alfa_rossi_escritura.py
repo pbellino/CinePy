@@ -2,11 +2,16 @@
 # -*- coding: utf-8 -*-
 
 """
-TODO
+Escribe los resultados del procesamiento con el método de alfa-Rossi.
+
+Genera el archivo [nombre]_ros_dat con todas las historias.
+Genera el archivo [nombre].ros con el promedio entre historias.
+
+Toma os resultados provenientes de `alfa_rossi_procesamiento()` que está en el
+script `alfa_rossi_procesamiento.py`.
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 import os
 import datetime
 
@@ -15,65 +20,6 @@ from alfa_rossi_procesamiento import arossi_historias
 
 import sys
 sys.path.append('../')
-
-
-def arossi_inspecciona_resultados(resultados, nombres, N_hist, dt_s, dtmax_s):
-    """
-    Grafica los resultados obtenidos con `arossi_historias`
-
-    Los parámetros de entrada son los mismos que en arossi_historias.
-
-    """
-
-    # Nombres para identificar archivos
-    nombres_lab = []
-    for nombre in nombres:
-        if '/' not in nombre:
-            nombres_lab.append(nombre)
-        else:
-            nombres_lab.append(nombre.rsplit('/')[-1])
-
-    # Gráficos de triggers y tasa de cuentas para cada historia
-    fig1, axs = plt.subplots(2, 1, sharex='col')
-    # Vector con los números de historias
-    hist = np.linspace(1, N_hist, N_hist, dtype=int)
-    # Grafico todos los archivos
-    for i, resultado in enumerate(resultados):
-        R = np.asarray(list(resultado[:, 1]))
-        axs[0].errorbar(hist, R[:, 0], yerr=R[:, 1], fmt='.', elinewidth=0.5,
-                        lw=0, label=nombres_lab[i])
-        Trig = resultado[:, 2]
-        axs[1].plot(hist, Trig, '.', label=nombres_lab[i])
-
-    axs[0].set_ylabel('Tasa de cuentas [cps]')
-    axs[1].set_ylabel('# triggers')
-    axs[1].set_xlabel('Historias')
-
-    for ax in axs:
-        ax.grid(True)
-        ax.legend(loc='best')
-
-    # Gráfico de la curva de alfa-Rossi
-    # Vector temporal
-    tau = np.linspace(0, dtmax_s, int(dtmax_s / dt_s), endpoint=False)
-    # Lo hago centrado en el bin
-    tau += dt_s / 2
-    fig2, ax1 = plt.subplots(1, 1)
-    # Grafico todos los archivos leidos en el mismo gráfico
-    for i, resultado in enumerate(resultados):
-        historias = resultado[:, 0]
-        P_mean = np.mean(historias)
-        P_std = np.std(historias) / np.sqrt(N_hist)
-        ax1.errorbar(tau, P_mean, yerr=P_std, fmt='.', elinewidth=0.5,
-                     lw=0, label=nombres_lab[i])
-
-    ax1.set_xlabel(r'Tiempo [s]')
-    ax1.set_ylabel(r'P($\tau$)')
-    ax1.grid(True)
-    ax1.legend(loc='best')
-    plt.show()
-
-    return None
 
 
 def genera_encabezado(nombre, Nhist, dt_s, dtmax_s, tb, *args, **kargs):
@@ -102,10 +48,33 @@ def genera_encabezado(nombre, Nhist, dt_s, dtmax_s, tb, *args, **kargs):
     return encabezado
 
 
+def genera_camino_archivo(nombre, tipo):
+    """ Genera camino del archivo de datos dado el nombre leído """
+    # Directorio donde se guardarán
+    directorio = 'resultados_arossi'
+    if not os.path.exists(directorio):
+        os.makedirs(directorio)
+
+    # Me quedo sólo con el nombre
+    _solo_nombre = os.path.split(nombre)[-1]
+    # Quita la extensión
+    _nom_sinext = _solo_nombre.rsplit('.', 1)[0]
+    # Escribe camino
+    if tipo == 'completo':
+        camino = os.path.join(directorio, _nom_sinext + '_ros.dat')
+    elif tipo == 'promedio':
+        camino = os.path.join(directorio, _nom_sinext + '.ros')
+    return camino
+
+
 def escribe_datos_completos(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
                             *args, **kargs):
     """
-    TODO
+    Escribe los P(tau) de cada historia e información de parámetros utilizados
+
+    El nombre del arhivo que escribe es [nombre]_ros.dat, donde [nombre] es
+    basa en el parámetro de entrada `nombres` sin la extensión. El archivo se
+    crea dentro de la carpeta `./resultados_arossi/`.
 
     El tau está centrado en el bin.
 
@@ -113,30 +82,18 @@ def escribe_datos_completos(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
     por raiz(N)).
 
     """
-    def _genera_camino_archivo(nombre):
-        """ Genera camino del archivo de datos dado el nombre leído """
-        # Directorio donde se guardarán
-        directorio = 'resultados_arossi'
-        if not os.path.exists(directorio):
-            os.makedirs(directorio)
-
-        # Me quedo sólo con el nombre
-        _solo_nombre = os.path.split(nombre)[-1]
-        # Quita la extensión
-        _nom_sinext = _solo_nombre.rsplit('.', 1)[0]
-        # Escribe camino
-        camino = os.path.join(directorio, _nom_sinext + '_ros.dat')
-        return camino
 
     extras = ''  # Para agregar algo más en un futuro
     # Se escribe iterando en los archivos (detectores)
     for nombre, resultado in zip(nombres, resultados):
         header = genera_encabezado(nombre, Nhist, dt_s, dtmax_s, tb, extras)
-        camino = _genera_camino_archivo(nombre)
+        camino = genera_camino_archivo(nombre, 'completo')
         with open(camino, 'w') as f:
+            f.write('# Archivo con P(tau) de todas las historias\n')
+            f.write('#\n')
             for line in header:
                 f.write(line + '\n')
-            R = np.asarray(list(resultado[:, 1]))
+        R = np.asarray(list(resultado[:, 1]))
         with open(camino, 'a') as f:
             f.write('# Tasa de cuentas promedio en cada historia [cps] \n')
             f.write('# historia_#1   ....    historia_#N_hist \n')
@@ -157,15 +114,71 @@ def escribe_datos_completos(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
             f.write('\n# Tau centrado [s] y función P(tau) normalizada para '
                     'cada historia \n')
             f.write('# tau [s] P(tau)_#1   ...   P(tau)_#N_hist \n')
+        # Vector temporal
+        tau = np.linspace(0, dtmax_s, int(dtmax_s / dt_s), endpoint=False)
+        tau += dt_s / 2  # Centrado en el bin
+        _hist = np.transpose(list(np.asarray(resultado[:, 0])))
+        _tod = np.column_stack((tau, _hist))
         with open(camino, 'ab') as f:
-            # Vector temporal
-            tau = np.linspace(0, dtmax_s, int(dtmax_s / dt_s), endpoint=False)
-            tau += dt_s / 2  # Centrado en el bin
-            _hist = np.transpose(list(np.asarray(resultado[:, 0])))
-            _tod = np.column_stack((tau, _hist))
             np.savetxt(f, _tod, fmt='%1.6e')
         print('Se grabó el archivo "' + camino + '" con todas las historias')
         print('-'*50)
+    return None
+
+
+def escribe_datos_promedio(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
+                           *args, **kargs):
+    """
+    Escribe el P(tau) promedio e información de parámetros utilizados
+
+    El nombre del arhivo que escribe es [nombre].ros, donde [nombre] es
+    basa en el parámetro de entrada `nombres` sin la extensión. El archivo se
+    crea dentro de la carpeta `./resultados_arossi/`.
+
+    """
+
+    extras = ''  # Para agregar algo más en un futuro
+    # Se escribe iterando en los archivos (detectores)
+    for nombre, resultado in zip(nombres, resultados):
+        header = genera_encabezado(nombre, Nhist, dt_s, dtmax_s, tb, extras)
+        camino = genera_camino_archivo(nombre, 'promedio')
+        with open(camino, 'w') as f:
+            f.write('# Archivo con P(tau) promediada entre las historias\n')
+            f.write('#\n')
+            for line in header:
+                f.write(line + '\n')
+        R = np.asarray(list(resultado[:, 1]))
+        # Sólo me interesan los promedios
+        R = R[:, 0]
+        R_mean = np.mean(R)
+        R_std = np.std(R) / np.sqrt(R.size)
+        with open(camino, 'a') as f:
+            f.write('# Tasa de cuentas promedio [cps] \n')
+            f.write('{:1.6e}\n'.format(R_mean))
+            f.write('# Desvío estándar del promedio [cps] \n')
+            f.write('{:1.6e}\n'.format(R_std))
+            f.write('# Tau centrado [s]    <P(tau)>    std(<P(tau)>) \n')
+        # Vector temporal
+        tau = np.linspace(0, dtmax_s, int(dtmax_s / dt_s), endpoint=False)
+        tau += dt_s / 2  # Centrado en el bin
+        # Todas las historias
+        _historias = resultado[:, 0]
+        P_mean = np.mean(_historias)
+        P_std = np.std(_historias) / np.sqrt(Nhist)
+        # Agrupa en columnas
+        _es = np.column_stack((tau, P_mean, P_std))
+        with open(camino, 'ab') as f:
+            np.savetxt(f, _es, fmt='%1.6e')
+        print('Se grabó el archivo "' + camino + '" con el promedio')
+        print('-'*50)
+    return None
+
+
+def escribe_ambos(resultados, nombres, Nhist, dt_s, dtmax_s, tb, *args,
+                  **kargs):
+    """ Escribe los dos archivos a la vez (historias y promedio) """
+    escribe_datos_completos(resultados, nombres, Nhist, dt_s, dtmax_s, tb)
+    escribe_datos_promedio(resultados, nombres, Nhist, dt_s, dtmax_s, tb)
     return None
 
 
@@ -192,4 +205,4 @@ if __name__ == '__main__':
     # Procesamiento
     resultados = arossi_historias(data_bloq, dt_s, dtmax_s, tb)
     # Escritura
-    escribe_datos_completos(resultados, nombres, Nhist, dt_s, dtmax_s, tb)
+    escribe_ambos(resultados, nombres, Nhist, dt_s, dtmax_s, tb)
