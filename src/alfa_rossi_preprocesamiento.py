@@ -10,11 +10,13 @@ alfa_rossi_preprocesamiento() es la función principal.
 
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 import sys
 sys.path.append('../')
 
 from modules.io_modules import read_timestamp_list
+from modules.estadistica import timestamp_to_timewindow
 
 plt.style.use('paper')
 
@@ -54,6 +56,44 @@ def corrige_roll_over(datas_con_rollover):
         data_sin_rollover.append(_data_acum)
 
     return data_sin_rollover
+
+
+def grafica_mediciones_cuentas(nombres, dt_s, tb=12.5e-9):
+    """
+    Grafica las tasas de cuentas para los archivos con timestamping
+
+    Parámetros
+    ----------
+        nombres : list of strings
+            Nombres de los archivos que se quieren graficar
+        dt_s: float  [segundos]
+            Duración del intervalo en donde se cuentan los pulsos
+        tb : float [segundos]
+            Tiempo del reloj que se utilizó para el timestamping
+    """
+    dt_s = np.float64(dt_s)
+    # Se leen los datos del archivo
+    data_con_rollover, _ = read_timestamp_list(nombres)
+    # Se corrige el roll-over
+    datos = corrige_roll_over(data_con_rollover)
+    datos_binned, t = timestamp_to_timewindow(datos, dt_s, 'segundos',
+                                              'segundos', tb)
+
+    # Graficación
+    fig1, ax1 = plt.subplots(1, 1)
+    for datos, nombre in zip(datos_binned, nombres):
+        _lab_str = os.path.split(nombre)[-1]
+        ax1.plot(t, datos, label=_lab_str)
+
+    ax1.set_xlabel('Tiempo [s]')
+    if dt_s == 1.0:
+        ax1.set_ylabel('Cuentas [cps]')
+    else:
+        ax1.set_ylabel('Cuentas por dt [1/s]')
+    ax1.grid(True)
+    ax1.legend(loc='best')
+    plt.show()
+    return None
 
 
 def separa_en_historias(time_stamped_data, N_historias):
@@ -285,6 +325,9 @@ if __name__ == '__main__':
               ]
     Nhist = 200
     tb = 12.5e-9
+    # -------------------------------------------------------------------------
+    grafica_mediciones_cuentas(nombres, 1.0, tb=12.5e-9)
+
     # -------------------------------------------------------------------------
     data_bloques, data_sin_ro, data_con_ro = \
         alfa_rossi_preprocesamiento(nombres, Nhist, tb)
