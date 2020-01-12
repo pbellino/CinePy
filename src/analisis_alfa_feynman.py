@@ -38,7 +38,7 @@ def grafica_historias_afey(nombre):
 
     """
 
-    vec_t, historias, _ = lee_historias_completas(nombre)
+    vec_t, historias, _, _ = lee_historias_completas(nombre)
 
     fig = plt.figure(1)
     ax = fig.add_subplot(1, 1, 1)
