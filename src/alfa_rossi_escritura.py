@@ -37,13 +37,16 @@ def genera_encabezado(nombre, Nhist, dt_s, dtmax_s, tb, *args, **kargs):
     encabezado.append('#')
     encabezado.append('# Tipo de procesamiento: alfa-Rossi Tipo I')
     encabezado.append('#')
-    encabezado.append('# Duración del bin (dt): {:.2E} s'.format(dt_s))
-    encabezado.append('# Máximo bin analizado (dt_max): '
-                      + '{:.2E} s'.format(dtmax_s))
-    encabezado.append('# Puntos analizados por trigger: {}'.format(
-                                                          int(dtmax_s / dt_s)))
-    encabezado.append('# Tiempo base del contador: {:.2E} s'.format(tb))
-    encabezado.append('# Número de historias (N_hist): {}'.format(Nhist))
+    encabezado.append('# Duración del bin (dt) [s]')
+    encabezado.append('{:1.4E}'.format(dt_s))
+    encabezado.append('# Máximo bin analizado (dt_max) [s]')
+    encabezado.append('{:.4E}'.format(dtmax_s))
+    encabezado.append('# Puntos analizados por trigger')
+    encabezado.append('{}'.format(int(dtmax_s / dt_s)))
+    encabezado.append('# Tiempo base del contador [s]')
+    encabezado.append('{:.4E}'.format(tb))
+    encabezado.append('# Número de historias (N_hist)')
+    encabezado.append('{}'.format(Nhist))
     encabezado.append('# ' + '-'*50)
     return encabezado
 
