@@ -4,7 +4,7 @@
 """
 Script para procesar los datos con el método de alfa-Rossi
 
-La función principal es `arossi_historias()`
+La función principal es `alfa_rossi_procesamiento()`
 
 Toma la salida de la función `alfa_rossi_preprocesamiento()` que está en
 el script `alfa_rossi_preprocesamiento.py`.
@@ -145,7 +145,7 @@ def wrapper_arossi_una_historia_I(arg_tupla):
     return arossi_una_historia_I(data, dt_s, dtmax_s, tb)
 
 
-def arossi_historias(data_bloques, dt_s, dtmax_s, tb):
+def alfa_rossi_procesamiento(data_bloques, dt_s, dtmax_s, tb):
     """
     Procesamiento de alfa-Rossi para todos los detectores.
 
@@ -285,7 +285,7 @@ if __name__ == '__main__':
 
     # En paralelo
     t0 = time.time()
-    resultados = arossi_historias(data_bloq, dt_s, dtmax_s, tb)
+    resultados = alfa_rossi_procesamiento(data_bloq, dt_s, dtmax_s, tb)
     tf = time.time()
     print('Tiempo paralelo: {} s'.format(tf-t0))
 

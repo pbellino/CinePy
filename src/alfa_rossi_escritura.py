@@ -16,7 +16,7 @@ import os
 import datetime
 
 from alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
-from alfa_rossi_procesamiento import arossi_historias
+from alfa_rossi_procesamiento import alfa_rossi_procesamiento
 
 import sys
 sys.path.append('../')
@@ -203,6 +203,6 @@ if __name__ == '__main__':
     # Preprocesamiento
     data_bloq, _, _ = alfa_rossi_preprocesamiento(nombres, Nhist, tb)
     # Procesamiento
-    resultados = arossi_historias(data_bloq, dt_s, dtmax_s, tb)
+    resultados = alfa_rossi_procesamiento(data_bloq, dt_s, dtmax_s, tb)
     # Escritura
     escribe_ambos(resultados, nombres, Nhist, dt_s, dtmax_s, tb)
