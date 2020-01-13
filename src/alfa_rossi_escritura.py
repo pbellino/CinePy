@@ -9,6 +9,13 @@ Genera el archivo [nombre].ros con el promedio entre historias.
 
 Toma os resultados provenientes de `alfa_rossi_procesamiento()` que está en el
 script `alfa_rossi_procesamiento.py`.
+
+Nota: Las funciones de escritura tienen entre sus argumentos a la lista de
+tuplas `resultados`. El cuarto elemento de la tupla contiene la información
+de las cuentas en bruto para cada trigger de cada historia. Por ahora no se
+utiliza, pero si más adelante es necesario para calcular multiplicidades, se
+podrá utilizar fácilmente (ver función arossi_una_historia_I() en
+`alfa_rossi_procesamiento.py`.
 """
 
 import numpy as np
