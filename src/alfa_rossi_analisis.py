@@ -112,11 +112,12 @@ def arossi_grafica_promedio(nombres):
             print('{} : {}'.format(key,  parametros.get(key)))
 
         # Graficación
-        label_str = os.path.split(nombre)
+        label_str = os.path.split(nombre)[-1]
         ax.errorbar(tau, P_mean, yerr=P_std, label=label_str, fmt='-.', lw=0.5,
                     elinewidth=0.5, marker='.')
         ax.set_xlabel('Tiempo [s]')
         ax.set_ylabel(r'P($\tau$)')
+        ax.legend(loc='best')
         fig.tight_layout()
         print('-'*80)
 
