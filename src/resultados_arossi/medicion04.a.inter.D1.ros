@@ -2,7 +2,7 @@
 #
 # Nombre del archivo procesado: medicion04.a.inter.D1.bin
 #
-# Fecha de procesamiento: 12-01-2020 21:24
+# Fecha de procesamiento: 13-01-2020 09:09
 #
 # Tipo de procesamiento: alfa-Rossi Tipo I
 #
@@ -19,8 +19,12 @@
 # --------------------------------------------------
 # Tasa de cuentas promedio [cps] 
 1.730815e+02
-# Desvío estándar del promedio [cps] 
+# Desvío estándar de la tasa de cuentas [cps] 
 3.474777e-01
+# Cantidad de triggers promedio 
+60789.4
+# Desvío estándar de la cantidad de triggers 
+121.958
 # Tau centrado [s]    <P(tau)>    std(<P(tau)>) 
 2.500000e-04 1.577548e+00 9.450504e-03
 7.500000e-04 1.372399e+00 7.692274e-03
