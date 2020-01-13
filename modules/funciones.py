@@ -8,6 +8,11 @@ Funciones utilizadas para relizar ajustes de datos experimentales
 import numpy as np
 
 
+# ----------------------------------------------------------------------------
+# Funciones de ajuste para alfa-Feynman
+# ----------------------------------------------------------------------------
+
+
 def func_aux(x):
     """ Función auxiliar para construir las funciones de alfa-Feynman """
     return 1 - (1 - np.exp(-x)) / x
@@ -94,6 +99,7 @@ def alfa_feynman_nldtime(tau, alfa, amplitud, t_dead, amplitud_dead):
                       * func_aux(alfa*(tau-t_dead)))
     return Y
 
+
 def alfa_feynman_lin_dead_time_lin_delayed(tau, alfa, amplitud, offset, slope):
     """
     Función del método de alfa-Feynman con tiempo muerto y retardados
@@ -115,6 +121,55 @@ def alfa_feynman_lin_dead_time_lin_delayed(tau, alfa, amplitud, offset, slope):
             of Nuc. Sci. and Tech.  vol 36,  No 8,  653-660, 1999)
     """
     return alfa_feynman(tau, alfa, amplitud) - offset + slope * tau
+
+
+# ----------------------------------------------------------------------------
+# Funciones de ajuste para alfa-Rossi
+# ----------------------------------------------------------------------------
+
+def arossi_1exp(tau, alfa, amplitud, uno):
+    """
+    Función del método de alfa-Rossi teórica
+
+    No tiene ninguna corrección.
+
+    P(tau) = amplitud * exp(-alfa*tau) + uno
+
+    donde:
+        amplitud = epsilon*Diven/(alfa^2 Lambda^2)
+        alfa = - ($-beta) / Lambda* [1/s]
+        uno  = 1
+
+    `uno` se lo deja como parámetro de ajusta para corroborar que haya
+    consistencia. Debe ser igual a la unidad porque se ajusta la probabilidad
+    normalizada con la tasa de cuentas. Si no se normalizara la función, esto
+    sería equivalente a ajustar la tasa de cuentas (cuando en verdad se la
+    puede estimar de forma directa por otros métodos).
+
+    """
+    return amplitud * np.exp(-alfa*tau) + uno
+
+
+def arossi_2exp(tau, alfa_1, amplitud_1, alfa_2, amplitud_2, uno):
+    """
+    Función del método de alfa-Rossi teórica
+
+    No tiene ninguna corrección.
+
+    P(tau) = amplitud_1 * exp(-alfa_1*tau)
+           + amplitud_2 * exp(-alfa_2*tau) + uno
+
+
+    `uno` se lo deja como parámetro de ajusta para corroborar que haya
+    consistencia. Debe ser igual a la unidad porque se ajusta la probabilidad
+    normalizada con la tasa de cuentas. Si no se normalizara la función, esto
+    sería equivalente a ajustar la tasa de cuentas (cuando en verdad se la
+    puede estimar de forma directa por otros métodos).
+
+    """
+    P = amplitud_1 * np.exp(-alfa_1*tau) + amplitud_2 * np.exp(-alfa_2*tau) \
+        + uno
+    return P
 
 
 if __name__ == '__main__':
