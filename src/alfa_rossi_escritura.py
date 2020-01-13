@@ -101,18 +101,18 @@ def escribe_datos_completos(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
             f.write('# Tasa de cuentas promedio en cada historia [cps] \n')
             f.write('# historia_#1   ....    historia_#N_hist \n')
         with open(camino, 'ab') as f:
-            np.savetxt(f, R[:, 0], fmt='%1.6e', newline='\t')
+            np.savetxt(f, R[:, 0], fmt='%1.6e', newline=' ')
         with open(camino, 'a') as f:
             f.write('\n# Desvío estándar del promedio de la tasa de cuentas ' +
                     'de cada historia [cps] \n')
             f.write('# historia_#1   ....    historia_#N_hist \n')
         with open(camino, 'ab') as f:
-            np.savetxt(f, R[:, 1], fmt='%1.6e', newline='\t')
+            np.savetxt(f, R[:, 1], fmt='%1.6e', newline=' ')
         with open(camino, 'a') as f:
             f.write('\n# Cantidad de triggers de cada historia \n')
             f.write('# triggers_#1   ...   triggers_#N_hist \n')
         with open(camino, 'ab') as f:
-            np.savetxt(f, resultado[:, 2], fmt='%u', newline='\t')
+            np.savetxt(f, resultado[:, 2], fmt='%u', newline=' ')
         with open(camino, 'a') as f:
             f.write('\n# Tau centrado [s] y función P(tau) normalizada para '
                     'cada historia \n')
