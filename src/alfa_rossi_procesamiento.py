@@ -21,6 +21,7 @@ molestar. Suena bastante improbable igual.
 
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 import multiprocessing as mp
 import itertools
 import time
@@ -32,6 +33,7 @@ from modules.estadistica import rate_from_timestamp
 import sys
 sys.path.append('../')
 
+sns.set()
 plt.style.use('paper')
 
 
