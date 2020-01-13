@@ -11,6 +11,8 @@ alfa_rossi_preprocesamiento() es la función principal.
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import seaborn as sns
+sns.set()
 
 import sys
 sys.path.append('../')
@@ -332,10 +334,16 @@ if __name__ == '__main__':
     data_bloques, data_sin_ro, data_con_ro = \
         alfa_rossi_preprocesamiento(nombres, Nhist, tb)
 
-    fig1, ax1 = plt.subplots(1, 1)
-    ax1.plot(data_con_ro[0], 'k.')
-    ax1.plot(data_sin_ro[0], 'r.')
-    for data in data_bloques[0]:
-        ax1.plot(data, 'b.')
-
+    figs = {}
+    for idx, nombre in enumerate(nombres):
+        figs[idx], ax1 = plt.subplots(1, 1)
+        ax1.plot(data_con_ro[idx], 'k.', label='Sin corrección roll-over')
+        ax1.plot(data_sin_ro[idx], 'r.', label='Con corrección roll-over')
+        for j, data in enumerate(data_bloques[idx]):
+            ax1.plot(data, '-', label=('' if j == 0 else '_') + 'Historias')
+        ax1.set_xlabel('Índices')
+        ax1.set_ylabel('Tiempo [pulsos de contador]')
+        ax1.set_title(os.path.split(nombre)[-1])
+        ax1.grid(True)
+        ax1.legend(loc='best')
     plt.show()
