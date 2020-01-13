@@ -237,10 +237,21 @@ def arossi_inspecciona_resultados(resultados, nombres, N_hist, dt_s, dtmax_s):
     tau = np.linspace(0, dtmax_s, int(dtmax_s / dt_s), endpoint=False)
     # Lo hago centrado en el bin
     tau += dt_s / 2
-    fig2, ax1 = plt.subplots(1, 1)
-    # Grafico todos los archivos leidos en el mismo gráfico
+    fig3, ax1 = plt.subplots(1, 1)
+    # Grafica todos los archivos leidos en el mismo gráfico
     for i, resultado in enumerate(resultados):
         historias = resultado[:, 0]
+        # Grafica todas las historias
+        fig2, ax0 = plt.subplots(1, 1)
+        ax0.plot(tau, np.asarray(list((historias))).transpose(),
+                 lw=0.5, marker='.', label='Historias')
+        ax0.set_xlabel(r'TIempo [s]')
+        ax0.set_ylabel(r'P($\tau$)')
+        handles, labels = ax0.get_legend_handles_labels()
+        ax0.legend([handles[0]], [labels[0]], loc='best')
+        ax0.set_title(nombres_lab[i])
+        fig2.tight_layout()
+        # Grafica el promedio entre historias
         P_mean = np.mean(historias)
         P_std = np.std(historias) / np.sqrt(N_hist)
         ax1.errorbar(tau, P_mean, yerr=P_std, fmt='.', elinewidth=0.5,
@@ -248,8 +259,11 @@ def arossi_inspecciona_resultados(resultados, nombres, N_hist, dt_s, dtmax_s):
 
     ax1.set_xlabel(r'Tiempo [s]')
     ax1.set_ylabel(r'P($\tau$)')
+    ax1.set_title(r'Curvas promediadas entre historias')
     ax1.grid(True)
     ax1.legend(loc='best')
+    fig3.tight_layout()
+
     plt.show()
 
     return None
