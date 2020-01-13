@@ -155,11 +155,18 @@ def escribe_datos_promedio(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
         R = R[:, 0]
         R_mean = np.mean(R)
         R_std = np.std(R) / np.sqrt(R.size)
+        N_trig = resultado[:, 2]
+        N_trig_mean = np.mean(N_trig)
+        N_trig_std = np.std(N_trig) / np.sqrt(N_trig.size)
         with open(camino, 'a') as f:
             f.write('# Tasa de cuentas promedio [cps] \n')
             f.write('{:1.6e}\n'.format(R_mean))
-            f.write('# Desvío estándar del promedio [cps] \n')
+            f.write('# Desvío estándar de la tasa de cuentas [cps] \n')
             f.write('{:1.6e}\n'.format(R_std))
+            f.write('# Cantidad de triggers promedio \n')
+            f.write('{:1.6}\n'.format(N_trig_mean))
+            f.write('# Desvío estándar de la cantidad de triggers \n')
+            f.write('{:1.6}\n'.format(N_trig_std))
             f.write('# Tau centrado [s]    <P(tau)>    std(<P(tau)>) \n')
         # Vector temporal
         tau = np.linspace(0, dtmax_s, int(dtmax_s / dt_s), endpoint=False)
