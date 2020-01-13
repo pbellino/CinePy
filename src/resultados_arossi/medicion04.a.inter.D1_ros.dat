@@ -1,24 +1,31 @@
+# Archivo con P(tau) de todas las historias
+#
 # Nombre del archivo procesado: medicion04.a.inter.D1.bin
 #
-# Fecha de procesamiento: 10-01-2020 17:28
+# Fecha de procesamiento: 12-01-2020 21:24
 #
 # Tipo de procesamiento: alfa-Rossi Tipo I
 #
-# Duración del bin (dt): 5.00E-04 s
-# Máximo bin analizado (dt_max): 5.00E-02 s
-# Puntos analizados por trigger: 100
-# Tiempo base del contador: 1.25E-08 s
-# Número de historias (N_hist): 5
+# Duración del bin (dt) [s]
+5.0000E-04
+# Máximo bin analizado (dt_max) [s]
+5.0000E-02
+# Puntos analizados por trigger
+100
+# Tiempo base del contador [s]
+1.2500E-08
+# Número de historias (N_hist)
+5
 # --------------------------------------------------
 # Tasa de cuentas promedio en cada historia [cps] 
 # historia_#1   ....    historia_#N_hist 
-1.733228e+02	1.737292e+02	1.716889e+02	1.738205e+02	1.728464e+02	
+1.733228e+02 1.737292e+02 1.716889e+02 1.738205e+02 1.728464e+02 
 # Desvío estándar del promedio de la tasa de cuentas de cada historia [cps] 
 # historia_#1   ....    historia_#N_hist 
-7.805520e-01	7.874319e-01	7.807719e-01	7.872700e-01	7.755649e-01	
+7.805520e-01 7.874319e-01 7.807719e-01 7.872700e-01 7.755649e-01 
 # Cantidad de triggers de cada historia 
 # triggers_#1   ...   triggers_#N_hist 
-60874	61017	60301	61049	60706	
+60874 61017 60301 61049 60706 
 # Tau centrado [s] y función P(tau) normalizada para cada historia 
 # tau [s] P(tau)_#1   ...   P(tau)_#N_hist 
 2.500000e-04 1.583190e+00 1.595218e+00 1.562251e+00 1.602025e+00 1.545058e+00
