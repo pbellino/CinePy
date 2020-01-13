@@ -43,7 +43,11 @@ Contenido de la carpeta
 
 
 TODO: 
+----
       - Análisis espectral a partir de los datos de time-stamping y de ventanas temporales.
+
       - Análisis de alfa-Feynman a partir de los datos de timestamping.
+
       - Análisis de muchos archivos.
+
       - Propagación de errores y obtención de parámetros cineticos.
