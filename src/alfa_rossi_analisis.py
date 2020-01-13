@@ -20,28 +20,54 @@ from alfa_rossi_lectura import arossi_lee_historias_completas, \
 plt.style.use('paper')
 
 
-def arossi_grafica_historias(nombre):
+def arossi_grafica_historias(nombres):
     """
-    TODO
+    Grafica todas las historias de los archivos indicados.
+
+    Son los archivos grabados con escribe_historias_completas().
+
+    Parámetros
+    ----------
+        nombres : (list of) strings
+            Camino completo del archivo *_ros.dat que contiene los datos de
+            todas las historias. PUede ser sólo un string o una lista.
+
+    Resultados
+    ----------
+        figs : (list of) fig handler
+            Referencia a cada figura. Si `nombres` era una lista, entonces figs
+            también lo será. Permite modificar parámetros fuera de la función.
     """
-    # Lectrua del archivo
-    print('Se lee el archivo : {}'.format(nombre))
-    historias, tau, parametros = arossi_lee_historias_completas(nombre)
 
-    for key in parametros.keys():
-        print('{} : {}'.format(key,  parametros.get(key)))
+    if isinstance(nombres, list):
+        _es_lista = True
+    else:
+        _es_lista = False
+        nombres = [nombres]
 
-    # Graficación
-    fig, ax = plt.subplots(1, 1)
-    ax.plot(tau, historias, marker='.', label='Historias')
-    ax.set_xlabel('Tiempo [s]')
-    ax.set_ylabel(r'P($\tau$)')
-    handles, labels = ax.get_legend_handles_labels()
-    ax.legend([handles[0]], [labels[0]], loc='best')
-    ax.set_title(os.path.split(nombre)[-1])
-    fig.tight_layout()
+    figs = []
+    for nombre in nombres:
+        # Lectrua del archivo
+        print('Se lee el archivo : {}'.format(nombre))
+        historias, tau, parametros = arossi_lee_historias_completas(nombre)
 
-    return fig
+        for key in parametros.keys():
+            print('{} : {}'.format(key,  parametros.get(key)))
+
+        # Graficación
+        fig, ax = plt.subplots(1, 1)
+        ax.plot(tau, historias, marker='.', label='Historias')
+        ax.set_xlabel('Tiempo [s]')
+        ax.set_ylabel(r'P($\tau$)')
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend([handles[0]], [labels[0]], loc='best')
+        ax.set_title(os.path.split(nombre)[-1])
+        fig.tight_layout()
+        figs.append(fig)
+
+    if not _es_lista:
+        figs = figs[0]
+    return figs
 
 
 if __name__ == '__main__':
@@ -50,9 +76,11 @@ if __name__ == '__main__':
     # Parámetros de entrada
     # -------------------------------------------------------------------------
     # Archivos a leer
-    nombre = './resultados_arossi/medicion04.a.inter.D1_ros.dat'
+    nombres = ['./resultados_arossi/medicion04.a.inter.D1_ros.dat',
+               './resultados_arossi/medicion04.a.inter.D2_ros.dat']
     # -------------------------------------------------------------------------
+    figs = arossi_grafica_historias(nombres)
 
-    fig1 = arossi_grafica_historias(nombre)
+    figs[1].axes[0].set_xlabel('Nuevo nombre')
 
     plt.show()
