@@ -10,9 +10,9 @@ Contenido de la carpeta
 -----------------------
 
     * `src/` 
-        - `alfa_feynman.py` :  Procesa los datos con el método de alfa-Feynman
-        - `grafica_adquisicion.py` :  Grafica los datos guardados por los programas de adquisición
-        - `analisis_alfa_feynman.py` : Graficación y ajuste no lineal para las curvas de alfa-Feynman
+        - `alfa_feynman_procesamiento.py` :  Procesa los datos con el método de alfa-Feynman
+        - `alfa_feynman_grafica_adquisicion.py` :  Grafica los datos guardados por los programas de adquisición
+        - `alfa_feynman_analisis.py` : Graficación y ajuste no lineal para las curvas de alfa-Feynman
         - `inter_arrival_analysis.py` : Grafica histograma de tiempo entre pulsos
         - `alfa_rossi_preprocesamiento.py` : Lee archivo de tiempo entre pulsos y devuelve las historias por separado.
         - `alfa_rossi_procesamiento.py` : Procesa todas las historias en el método de alfa-Rossi.
