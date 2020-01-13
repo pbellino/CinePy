@@ -18,6 +18,7 @@ Contenido de la carpeta
         - `alfa_rossi_procesamiento.py` : Procesa todas las historias en el método de alfa-Rossi.
         - `alfa_rossi_escritura.py` : Escribe los resultados del procesamiento en archivos.
         - `alfa_rossi_lectura.py` : Lee los datos escritos del procesamiento.
+        - `alfa_rossi_analisis.py` : Grafica los datos escritos por el procesamiento. Hace ajustes teóricos a las curvas medidas.
 
     * `datos/` 
         Carpeta donde estarán los datos en crudo obtenidos por los programas de adquisición
@@ -31,6 +32,7 @@ Contenido de la carpeta
     * `modules/`
         - `io_modules.py` : Módulo con funciones relacionadas con lectura/escritura de archivos
         - `estadistica.py` : Módulo con funciones estadísticas
+        - `funciones.py` : Módulo con las funciones teóricas que se utilizan en los ajustes.
 
     * `tests/`
         - `test_read_bin_dt.py` : Script para probar la función de lectura de datos `read_bin_dt` de `modules/io_modules.py`
@@ -39,3 +41,9 @@ Contenido de la carpeta
         - `test_arossi_una_historia_I.py` : Se prueba el procesamiento de una historia con el método de alfa-Rossi
         - `octave` : Scripts originales cuyos resultados se toman como referencia
 
+
+TODO: 
+      - Análisis espectral a partir de los datos de time-stamping y de ventanas temporales.
+      - Análisis de alfa-Feynman a partir de los datos de timestamping.
+      - Análisis de muchos archivos.
+      - Propagación de errores y obtención de parámetros cineticos.
