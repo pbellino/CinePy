@@ -32,14 +32,14 @@ def arossi_lee_historias_completas(nombre):
 
     Parametros
     ----------
-        nombre: string
+        nombre : string
             Camino y nombre del archivo a leer (*_ros.dat)
 
     Resultados
     ----------
-        historias: numpy ndarray
+        historias : numpy ndarray
             Array en 2D donde cada columna es una de las historias calculadas
-        tau: numpy array
+        tau : numpy array
             Vector temporal con los tau (bines centrados)
         parametros_dic : dictionary
             Diccionario con el resto de los parámetros leidos.
@@ -108,14 +108,16 @@ def arossi_lee_historias_promedio(nombre):
 
     Parametros
     ----------
-        nombre: string
+        nombre : string
             Camino y nombre del archivo a leer (*_ros.dat)
 
     Resultados
     ----------
-        historias: numpy ndarray
-            Array en 2D donde cada columna es una de las historias calculadas
-        tau: numpy array
+        P_tau_mean : numpy array
+           Curva promedio de la probabilidad P(tau) de alfa-Rossi
+        P_tau_std : numpy array
+           Desvío estándar de la probabilidad promedio P(tau) de alfa-Rossi
+        tau : numpy array
             Vector temporal con los tau (bines centrados)
         parametros_dic : dictionary
             Diccionario con el resto de los parámetros leidos.
@@ -127,6 +129,8 @@ def arossi_lee_historias_promedio(nombre):
                 'N_trigg' : Cantidad de triggers en cada historia (numpy array)
                 'R_mean' : Tasa de cuentas en cada historia (numpy array)
                 'R_std' : Desvío del promedio en cada historia (numpy array)
+                'N_trig_mean' : Cantidad de triggers promedio
+                'N_trig_std' : Desvío de la cantidad de triggers promedio
 
     """
 
@@ -145,43 +149,54 @@ def arossi_lee_historias_promedio(nombre):
                 elif line.startswith('# Número de historias'):
                     N_hist = np.uint32(next(f).rstrip())
                 elif line.startswith('# Tasa de cuentas'):
-                    next(f)
-                    R_mean = np.float64(next(f).rstrip().split(' '))
-                elif line.startswith('# Desvío estándar del promedio'):
-                    next(f)
-                    R_std = np.float64(next(f).rstrip().split(' '))
-                elif line.startswith('# Cantidad de triggers'):
-                    next(f)
-                    N_trigg = np.uint32(next(f).rstrip().split(' '))
+                    R_mean = np.float64(next(f).rstrip())
+                elif line.startswith('# Desvío estándar de la tasa'):
+                    R_std = np.float64(next(f).rstrip())
+                elif line.startswith('# Cantidad de triggers promedio'):
+                    N_trig_mean = np.float64(next(f).rstrip())
+                elif line.startswith('# Desvío estándar de la cantidad de'):
+                    N_trig_std = np.float64(next(f).rstrip())
                     break
             parametros_dic = {'dt': dt, 'dt_max': dt_max, 'N_bins': N_bins,
-                              'tb': tb, 'N_hist': N_hist, 'N_trigg': N_trigg,
-                              'R_mean': R_mean, 'R_std': R_std}
+                              'tb': tb, 'N_hist': N_hist, 'R_mean': R_mean,
+                              'R_std': R_std, 'N_trig_mean': N_trig_mean,
+                              'N_trig_std': N_trig_std}
             # Se leen todas las historias
-            _data = np.loadtxt(nombre, skiprows=30)
+            _data = np.loadtxt(nombre, skiprows=28)
             tau = _data[:, 0]
-            historias = _data[:, 1:]
+            P_tau_mean = _data[:, 1]
+            P_tau_std = _data[:, 2]
     except IOError as err:
         print('No se pudo leer el archivo: ' + nombre)
         raise err
         sys.exit()
 
-    return historias, tau, parametros_dic
+    return P_tau_mean, P_tau_std, tau, parametros_dic
 
 
 if __name__ == '__main__':
 
     # -------------------------------------------------------------------------
-    # Parámetros de entrada
-    # -------------------------------------------------------------------------
+    # Prueba arossi_lee_historias_completas()
+    #
+    """
     # Archivo a leer
-    nombre = './resultados_arossi/medicion04.a.inter.D1_ros.dat'
+    nombre = './resultados_arossi/medicion04.a.inter.D1_cov.ros'
 
     historias, tau, param_dic = arossi_lee_historias_completas(nombre)
-    keys = ['dt', 'dt_max', 'N_bins', 'tb', 'N_hist']
     for key in param_dic.keys():
         print('{}: {}'.format(key, param_dic.get(key)))
     print(tau)
     print(historias)
+    """
 
     # -------------------------------------------------------------------------
+    # Prueba arossi_lee_historias_promedio()
+    #
+    # Archivo a leer
+    nombre = './resultados_arossi/medicion04.a.inter.D1.ros'
+
+    P, P_std, tau, param_dic = arossi_lee_historias_promedio(nombre)
+    for key in param_dic.keys():
+        print('{}: {}'.format(key, param_dic.get(key)))
+    print(np.column_stack((tau, P, P_std)))
