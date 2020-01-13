@@ -16,7 +16,8 @@ Contenido de la carpeta
         - `inter_arrival_analysis.py` : Grafica histograma de tiempo entre pulsos
         - `alfa_rossi_preprocesamiento.py` : Lee archivo de tiempo entre pulsos y devuelve las historias por separado.
         - `alfa_rossi_procesamiento.py` : Procesa todas las historias en el método de alfa-Rossi.
-        - `alfa_rossi_escritura.py^ : Escribe los resultados del procesamiento en archivos.
+        - `alfa_rossi_escritura.py` : Escribe los resultados del procesamiento en archivos.
+        - `alfa_rossi_lectura.py` : Lee los datos escritos del procesamiento.
 
     * `datos/` 
         Carpeta donde estarán los datos en crudo obtenidos por los programas de adquisición
