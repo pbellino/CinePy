@@ -2,14 +2,11 @@
 # -*- coding: utf-8 -*-
 
 """
-TODO
-Escribe los resultados del procesamiento con el método de alfa-Rossi.
+Lee los archivos escritos con los datos del procesamiento con alfa-Rossi.
 
-Genera el archivo [nombre]_ros_dat con todas las historias.
-Genera el archivo [nombre].ros con el promedio entre historias.
+Lee el archivo [nombre]_ros_dat con todas las historias.
+Lee el archivo [nombre].ros con el promedio entre historias.
 
-Toma os resultados provenientes de `alfa_rossi_procesamiento()` que está en el
-script `alfa_rossi_procesamiento.py`.
 """
 
 import numpy as np
@@ -95,7 +92,6 @@ def arossi_lee_historias_completas(nombre):
 
 def arossi_lee_historias_promedio(nombre):
     """
-    TODO
     Lee el archivo que contiene a todas el promedio de historias de alfa-Rossi
 
     El archivo que lee fue escrito con `escribe_datos_promedio()' en el script
@@ -104,7 +100,7 @@ def arossi_lee_historias_promedio(nombre):
     Busca los datos en función de la línea anterior que lo describe (es
     búsqueda literal). Salvo las historias.
 
-    El promedio se lee con numpy.loadtxt() salteando las líneas anteriores.
+    Los promedios se leen con numpy.loadtxt() salteando las líneas anteriores.
 
     Parametros
     ----------
