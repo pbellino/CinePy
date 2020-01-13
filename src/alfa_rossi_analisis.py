@@ -2,21 +2,30 @@
 # -*- coding: utf-8 -*-
 
 """
-TODO
+Grafica las curvas P(tau) para cada historia y la del promeio.
+
+Ajuste no lineal de la curva P(tau) promedio
+
+TODO: Falta organizar cómo se almacenan los resultados del ajuste. Falta hacer
+que se ajusten una lista de curvas. Falta propagar errores para obtener el
+resto de los parámetros cinéticos (usar paquete uncertainties).
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+from lmfit import Minimizer, Parameters, report_fit
+from scipy.stats import norm
 import seaborn as sns
-sns.set()
 
 import sys
 sys.path.append('../')
 
 from alfa_rossi_lectura import arossi_lee_historias_completas, \
                                arossi_lee_historias_promedio
+from modules.funciones import arossi_1exp, arossi_2exp
 
+sns.set()
 plt.style.use('paper')
 
 
@@ -114,14 +123,150 @@ def arossi_grafica_promedio(nombres):
     return fig
 
 
+def arossi_ajuste_1exp(tau, P, P_std):
+    """
+    Ajusta de P(tau) con una exponencial
+    """
+    def residual(params, tau, data=None, sigma=None):
+        parvals = params.valuesdict()
+        alfa = parvals['alfa']
+        amplitud = parvals['amplitud']
+        uno = parvals['uno']
+
+        model = arossi_1exp(tau, alfa, amplitud, uno)
+
+        if data is None:
+            return model
+        if sigma is None:
+            return model-data
+        return (model - data) / sigma
+
+    # Se definen parámetros del ajuste
+    params = Parameters()
+    params.add('alfa', value=200.0, min=0.0)
+    params.add('amplitud', value=1.0, min=0.0)
+    params.add('uno', value=1.0, min=0.0)
+    # Se define la minimización
+    minimi = Minimizer(residual, params,
+                       fcn_args=(tau,),
+                       fcn_kws={'data': P, 'sigma': P_std}
+                       )
+    result = minimi.minimize(method='leastsq')
+    report_fit(result)
+
+    best_fit = P + result.residual * P_std
+
+    fig, (ax0, ax1) = plt.subplots(2, sharex=True,
+                                   gridspec_kw={'height_ratios': [3, 1]},
+                                   )
+
+    ax0.errorbar(tau, P, yerr=P_std, fmt='k.', elinewidth=1,
+                 label='measurement')
+    ax0.plot(tau, best_fit, 'r', zorder=3, label='fit')
+    ax0.set_ylabel(r'P($\tau$)')
+    # Invierte orden de las leyendas
+    handles, labels = ax0.get_legend_handles_labels()
+    ax0.legend(handles[::-1], labels[::-1], loc='best')
+    # Gráfico de los residuos del ajuste
+    ax1.plot(tau, result.residual, 'k.')
+    ax1.set_xlabel(r'$\tau$ [s]')
+    ax1.set_ylabel(r'Residuals')
+    fig.subplots_adjust(hspace=0.1)
+
+    # Gráfico del histograma de los residuos
+    fig2, ax1 = plt.subplots(1, 1)
+    ax1.hist(result.residual, bins=20, density=True, label='Residuals')
+    res_mean = np.mean(result.residual)
+    res_std = np.std(result.residual)
+    x = np.linspace(norm.ppf(0.0001), norm.ppf(0.999), 500)
+    ax1.plot(x, norm.pdf(x, loc=res_mean, scale=res_std), 'r-', lw=5,
+             alpha=0.6, label='Normal pdf')
+    # Invierte orden de las leyendas
+    handles, labels = ax1.get_legend_handles_labels()
+    ax1.legend(handles[::-1], labels[::-1], loc='best')
+
+    return None
+
+
+def arossi_ajuste_2exp(tau, P, P_std):
+    """
+    Ajusta de P(tau) con dos exponenciales
+    """
+    def residual(params, tau, data=None, sigma=None):
+        parvals = params.valuesdict()
+        alfa_1 = parvals['alfa_1']
+        amplitud_1 = parvals['amplitud_1']
+        alfa_2 = parvals['alfa_2']
+        amplitud_2 = parvals['amplitud_2']
+        uno = parvals['uno']
+
+        model = arossi_2exp(tau, alfa_1, amplitud_1, alfa_2, amplitud_2, uno)
+
+        if data is None:
+            return model
+        if sigma is None:
+            return model-data
+        return (model - data) / sigma
+
+    # Se definen parámetros del ajuste
+    params = Parameters()
+    params.add('alfa_1', value=200.0, min=0.0)
+    params.add('amplitud_1', value=1.0, min=0.0)
+    params.add('alfa_2', value=800.0, min=0.0)
+    params.add('amplitud_2', value=1.0, min=0.0)
+    params.add('uno', value=1.0, min=0.0)
+    # Se define la minimización
+    minimi = Minimizer(residual, params,
+                       fcn_args=(tau,),
+                       fcn_kws={'data': P, 'sigma': P_std}
+                       )
+    result = minimi.minimize(method='leastsq')
+    report_fit(result)
+
+    best_fit = P + result.residual * P_std
+
+    fig, (ax0, ax1) = plt.subplots(2, sharex=True,
+                                   gridspec_kw={'height_ratios': [3, 1]},
+                                   )
+
+    ax0.errorbar(tau, P, yerr=P_std, fmt='k.', elinewidth=1,
+                 label='measurement')
+    ax0.plot(tau, best_fit, 'r', zorder=3, label='fit')
+    ax0.set_ylabel(r'P($\tau$)')
+    # Invierte orden de las leyendas
+    handles, labels = ax0.get_legend_handles_labels()
+    ax0.legend(handles[::-1], labels[::-1], loc='best')
+    # Gráfico de los residuos del ajuste
+    ax1.plot(tau, result.residual, 'k.')
+    ax1.set_xlabel(r'$\tau$ [s]')
+    ax1.set_ylabel(r'Residuals')
+    fig.subplots_adjust(hspace=0.1)
+
+    # Gráfico del histograma de los residuos
+    fig2, ax1 = plt.subplots(1, 1)
+    ax1.hist(result.residual, bins=20, density=True, label='Residuals')
+    res_mean = np.mean(result.residual)
+    res_std = np.std(result.residual)
+    x = np.linspace(norm.ppf(0.0001), norm.ppf(0.999), 500)
+    ax1.plot(x, norm.pdf(x, loc=res_mean, scale=res_std), 'r-', lw=5,
+             alpha=0.6, label='Normal pdf')
+    # Invierte orden de las leyendas
+    handles, labels = ax1.get_legend_handles_labels()
+    ax1.legend(handles[::-1], labels[::-1], loc='best')
+
+    return None
+
+
 if __name__ == '__main__':
 
     # -------------------------------------------------------------------------
     # Gráfico de historias
     # -------------------------------------------------------------------------
     # Archivos a leer
+
     nombres = ['./resultados_arossi/medicion04.a.inter.D1_ros.dat',
-               './resultados_arossi/medicion04.a.inter.D2_ros.dat']
+               './resultados_arossi/medicion04.a.inter.D2_ros.dat',
+               ]
 
     figs = arossi_grafica_historias(nombres)
 
@@ -132,8 +277,18 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     # Archivos a leer
     nombres = ['./resultados_arossi/medicion04.a.inter.D1.ros',
-               './resultados_arossi/medicion04.a.inter.D2.ros']
+               './resultados_arossi/medicion04.a.inter.D2.ros',
+               ]
 
     figs = arossi_grafica_promedio(nombres)
 
+    # -------------------------------------------------------------------------
+    # Ajuste de la curva
+    # -------------------------------------------------------------------------
+    # Archivos a leer
+    nombres = './resultados_arossi/medicion04.a.inter.D1.ros'
+
+    P, P_std, tau, parametros = arossi_lee_historias_promedio(nombres)
+    arossi_ajuste_1exp(tau, P, P_std)
+    # arossi_ajuste_1exp(tau[2:], P[2:], P_std[2:])
     plt.show()
