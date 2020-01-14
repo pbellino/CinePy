@@ -508,8 +508,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.49497475"
-     inkscape:cx="587.62466"
-     inkscape:cy="385.86347"
+     inkscape:cx="392.03512"
+     inkscape:cy="368.94603"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -861,7 +861,7 @@
            y="199.14116"
            x="18.361551"
            id="tspan23733-0-6-4-7"
-           sodipodi:role="line">[nombre]_cov.ros</tspan></text>
+           sodipodi:role="line">[nombre]_ros.dat</tspan></text>
       <g
          transform="matrix(0.96210607,0,0,0.96210607,-531.32537,-39.560231)"
          inkscape:label="emblem-documents"
@@ -1765,5 +1765,37 @@
          class="warning"
          inkscape:connector-curvature="0" />
     </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:6.3499999px;line-height:0.40000001;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="88.347267"
+       y="242.90404"
+       id="text23735-2-7-8-3-6-3-36"><tspan
+         sodipodi:role="line"
+         x="88.347267"
+         y="242.90404"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333311px;line-height:0.89999998;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan32378-3">P(tau) por</tspan><tspan
+         sodipodi:role="line"
+         x="88.347267"
+         y="246.71404"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333311px;line-height:0.89999998;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan318">historias</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:6.3499999px;line-height:0.40000001;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="136.4782"
+       y="242.90404"
+       id="text23735-2-7-8-3-6-3-36-5"><tspan
+         sodipodi:role="line"
+         x="136.4782"
+         y="242.90404"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333311px;line-height:0.89999998;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan343">P(tau)</tspan><tspan
+         sodipodi:role="line"
+         x="136.4782"
+         y="246.71404"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333311px;line-height:0.89999998;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';text-align:center;text-anchor:middle;stroke-width:0.26458332"
+         id="tspan347">promedio</tspan></text>
   </g>
 </svg>
