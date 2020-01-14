@@ -315,6 +315,53 @@ def alfa_rossi_preprocesamiento(nombres, Nhist, tb):
     return data_historias, data_sin_rollover, data_con_rollover
 
 
+def grafica_timestamping(nombres, data_con_ro, data_sin_ro, data_bloques):
+    """
+    Grafica los datos de timestamping luego del reprocesamiento
+
+    Parámetros
+    ----------
+        nombres : (list of) strings
+            Nombres de los archivos que se quieren leer
+        data_con_ro : numpy array
+            Datos originales presente en el archivo
+        data_sin_ro : numpy array
+            Datos con conrrección del roll-over
+        data_bloques : list of numpy array
+            Datos de timestamping separados por historias
+
+    Resultados
+    ----------
+        figs : figures handles
+            Para seguir editando los gráficos. Notar que habría que cambiar
+            el órden del plt.show().
+    """
+    if isinstance(nombres, list):
+        _es_lista = True
+    else:
+        _es_lista = False
+        nombres = [nombres]
+
+    figs = {}
+    for idx, nombre in enumerate(nombres):
+        figs[idx], ax1 = plt.subplots(1, 1)
+        ax1.plot(data_con_ro[idx], 'k.', label='Sin corrección roll-over')
+        ax1.plot(data_sin_ro[idx], 'r.', label='Con corrección roll-over')
+        for j, data in enumerate(data_bloques[idx]):
+            ax1.plot(data, '-', label=('' if j == 0 else '_') + 'Historias')
+        ax1.set_xlabel('Índices')
+        ax1.set_ylabel('Tiempo [pulsos de contador]')
+        ax1.set_title(os.path.split(nombre)[-1])
+        ax1.grid(True)
+        ax1.legend(loc='best')
+
+    if not _es_lista:
+        figs = figs[0]
+
+    plt.show()
+    return figs
+
+
 if __name__ == '__main__':
 
     # -------------------------------------------------------------------------
@@ -334,16 +381,5 @@ if __name__ == '__main__':
     data_bloques, data_sin_ro, data_con_ro = \
         alfa_rossi_preprocesamiento(nombres, Nhist, tb)
 
-    figs = {}
-    for idx, nombre in enumerate(nombres):
-        figs[idx], ax1 = plt.subplots(1, 1)
-        ax1.plot(data_con_ro[idx], 'k.', label='Sin corrección roll-over')
-        ax1.plot(data_sin_ro[idx], 'r.', label='Con corrección roll-over')
-        for j, data in enumerate(data_bloques[idx]):
-            ax1.plot(data, '-', label=('' if j == 0 else '_') + 'Historias')
-        ax1.set_xlabel('Índices')
-        ax1.set_ylabel('Tiempo [pulsos de contador]')
-        ax1.set_title(os.path.split(nombre)[-1])
-        ax1.grid(True)
-        ax1.legend(loc='best')
-    plt.show()
+    fig = grafica_timestamping(nombres, data_con_ro, data_sin_ro, data_bloques)
+    #

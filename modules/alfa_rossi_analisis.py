@@ -21,8 +21,8 @@ import seaborn as sns
 import sys
 sys.path.append('../')
 
-from alfa_rossi_lectura import arossi_lee_historias_completas, \
-                               arossi_lee_historias_promedio
+from modules.alfa_rossi_lectura import arossi_lee_historias_completas, \
+                                       arossi_lee_historias_promedio
 from modules.funciones import arossi_1exp, arossi_2exp
 
 sns.set()
@@ -265,8 +265,8 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     # Archivos a leer
 
-    nombres = ['./resultados_arossi/medicion04.a.inter.D1_ros.dat',
-               './resultados_arossi/medicion04.a.inter.D2_ros.dat',
+    nombres = ['../src/resultados_arossi/medicion04.a.inter.D1_ros.dat',
+               '../src/resultados_arossi/medicion04.a.inter.D2_ros.dat',
                ]
 
     figs = arossi_grafica_historias(nombres)
@@ -277,8 +277,8 @@ if __name__ == '__main__':
     # Gráfico de promedio
     # -------------------------------------------------------------------------
     # Archivos a leer
-    nombres = ['./resultados_arossi/medicion04.a.inter.D1.ros',
-               './resultados_arossi/medicion04.a.inter.D2.ros',
+    nombres = ['../src/resultados_arossi/medicion04.a.inter.D1.ros',
+               '../src/resultados_arossi/medicion04.a.inter.D2.ros',
                ]
 
     figs = arossi_grafica_promedio(nombres)
@@ -287,7 +287,7 @@ if __name__ == '__main__':
     # Ajuste de la curva
     # -------------------------------------------------------------------------
     # Archivos a leer
-    nombres = './resultados_arossi/medicion04.a.inter.D1.ros'
+    nombres = '../src/resultados_arossi/medicion04.a.inter.D1.ros'
 
     P, P_std, tau, parametros = arossi_lee_historias_promedio(nombres)
     arossi_ajuste_1exp(tau, P, P_std)

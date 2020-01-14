@@ -22,11 +22,11 @@ import numpy as np
 import os
 import datetime
 
-from alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
-from alfa_rossi_procesamiento import alfa_rossi_procesamiento
-
 import sys
 sys.path.append('../')
+
+from modules.alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
+from modules.alfa_rossi_procesamiento import alfa_rossi_procesamiento
 
 
 def genera_encabezado(nombre, Nhist, dt_s, dtmax_s, tb, *args, **kargs):
@@ -58,12 +58,11 @@ def genera_encabezado(nombre, Nhist, dt_s, dtmax_s, tb, *args, **kargs):
     return encabezado
 
 
-def genera_camino_archivo(nombre, tipo):
+def genera_camino_archivo(nombre, tipo, nom_carpeta):
     """ Genera camino del archivo de datos dado el nombre leído """
-    # Directorio donde se guardarán
-    directorio = 'resultados_arossi'
-    if not os.path.exists(directorio):
-        os.makedirs(directorio)
+
+    if not os.path.exists(nom_carpeta):
+        os.makedirs(nom_carpeta)
 
     # Me quedo sólo con el nombre
     _solo_nombre = os.path.split(nombre)[-1]
@@ -71,20 +70,20 @@ def genera_camino_archivo(nombre, tipo):
     _nom_sinext = _solo_nombre.rsplit('.', 1)[0]
     # Escribe camino
     if tipo == 'completo':
-        camino = os.path.join(directorio, _nom_sinext + '_ros.dat')
+        camino = os.path.join(nom_carpeta, _nom_sinext + '_ros.dat')
     elif tipo == 'promedio':
-        camino = os.path.join(directorio, _nom_sinext + '.ros')
+        camino = os.path.join(nom_carpeta, _nom_sinext + '.ros')
     return camino
 
 
 def escribe_datos_completos(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
-                            *args, **kargs):
+                            nom_carpeta, *args, **kargs):
     """
     Escribe los P(tau) de cada historia e información de parámetros utilizados
 
     El nombre del arhivo que escribe es [nombre]_ros.dat, donde [nombre] es
     basa en el parámetro de entrada `nombres` sin la extensión. El archivo se
-    crea dentro de la carpeta `./resultados_arossi/`.
+    crea dentro de la carpeta `./nom_carpeta/`.
 
     El tau está centrado en el bin.
 
@@ -97,7 +96,7 @@ def escribe_datos_completos(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
     # Se escribe iterando en los archivos (detectores)
     for nombre, resultado in zip(nombres, resultados):
         header = genera_encabezado(nombre, Nhist, dt_s, dtmax_s, tb, extras)
-        camino = genera_camino_archivo(nombre, 'completo')
+        camino = genera_camino_archivo(nombre, 'completo', nom_carpeta)
         with open(camino, 'w') as f:
             f.write('# Archivo con P(tau) de todas las historias\n')
             f.write('#\n')
@@ -137,13 +136,13 @@ def escribe_datos_completos(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
 
 
 def escribe_datos_promedio(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
-                           *args, **kargs):
+                           nom_carpeta, *args, **kargs):
     """
     Escribe el P(tau) promedio e información de parámetros utilizados
 
     El nombre del arhivo que escribe es [nombre].ros, donde [nombre] es
     basa en el parámetro de entrada `nombres` sin la extensión. El archivo se
-    crea dentro de la carpeta `./resultados_arossi/`.
+    crea dentro de la carpeta `./nom_carpeta/`.
 
     """
 
@@ -151,7 +150,7 @@ def escribe_datos_promedio(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
     # Se escribe iterando en los archivos (detectores)
     for nombre, resultado in zip(nombres, resultados):
         header = genera_encabezado(nombre, Nhist, dt_s, dtmax_s, tb, extras)
-        camino = genera_camino_archivo(nombre, 'promedio')
+        camino = genera_camino_archivo(nombre, 'promedio', nom_carpeta)
         with open(camino, 'w') as f:
             f.write('# Archivo con P(tau) promediada entre las historias\n')
             f.write('#\n')
@@ -193,9 +192,22 @@ def escribe_datos_promedio(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
 
 def escribe_ambos(resultados, nombres, Nhist, dt_s, dtmax_s, tb, *args,
                   **kargs):
-    """ Escribe los dos archivos a la vez (historias y promedio) """
-    escribe_datos_completos(resultados, nombres, Nhist, dt_s, dtmax_s, tb)
-    escribe_datos_promedio(resultados, nombres, Nhist, dt_s, dtmax_s, tb)
+    """
+    Escribe los dos archivos a la vez (historias y promedio)
+
+    Opcionalmente se puede ingresar un keyword argument:
+
+        'carpeta' : nombre de la carpeta donde se escribirán los datos
+                    (relativa al directorio de donde sea llamada). El valor
+                    por default es 'resultados_arossi'.
+    """
+    if kargs is not None:
+        nom_carpeta = kargs.get('carpeta', 'resultados_arossi')
+
+    escribe_datos_completos(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
+                            nom_carpeta)
+    escribe_datos_promedio(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
+                           nom_carpeta)
     return None
 
 
@@ -222,4 +234,5 @@ if __name__ == '__main__':
     # Procesamiento
     resultados = alfa_rossi_procesamiento(data_bloq, dt_s, dtmax_s, tb)
     # Escritura
-    escribe_ambos(resultados, nombres, Nhist, dt_s, dtmax_s, tb)
+    escribe_ambos(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
+                  carpeta='resultados_arossi')
