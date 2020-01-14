@@ -508,10 +508,10 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.9899495"
-     inkscape:cx="769.14735"
+     inkscape:cx="283.75657"
      inkscape:cy="460.21106"
      inkscape:document-units="mm"
-     inkscape:current-layer="g336"
+     inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1366"
      inkscape:window-height="739"
@@ -1564,7 +1564,7 @@
            style="font-size:3.88055563px;text-align:center;text-anchor:middle;stroke-width:0.26458332"
            y="206.3903"
            x="47.404598"
-           sodipodi:role="line">donde ser ejecuta</tspan></text>
+           sodipodi:role="line">donde se ejecuta</tspan></text>
       <g
          transform="matrix(0.49844417,0,0,0.49844417,32.433223,-49.736506)"
          inkscape:label="user-info"
@@ -1693,7 +1693,7 @@
            style="font-size:3.88055563px;text-align:center;text-anchor:middle;stroke-width:0.26458332"
            y="230.03909"
            x="33.388504"
-           sodipodi:role="line">sobrescritos sin avisar</tspan></text>
+           sodipodi:role="line">sobreescritos sin avisar</tspan></text>
       <g
          transform="matrix(0.49844417,0,0,0.49844417,18.946297,-26.616896)"
          inkscape:label="user-info"
