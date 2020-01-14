@@ -14,11 +14,8 @@ Contenido de la carpeta
         - `alfa_feynman_grafica_adquisicion.py` :  Grafica los datos guardados por los programas de adquisición
         - `alfa_feynman_analisis.py` : Graficación y ajuste no lineal para las curvas de alfa-Feynman
         - `inter_arrival_analysis.py` : Grafica histograma de tiempo entre pulsos
-        - `alfa_rossi_preprocesamiento.py` : Lee archivo de tiempo entre pulsos y devuelve las historias por separado.
-        - `alfa_rossi_procesamiento.py` : Procesa todas las historias en el método de alfa-Rossi.
-        - `alfa_rossi_escritura.py` : Escribe los resultados del procesamiento en archivos.
-        - `alfa_rossi_lectura.py` : Lee los datos escritos del procesamiento.
-        - `alfa_rossi_analisis.py` : Grafica los datos escritos por el procesamiento. Hace ajustes teóricos a las curvas medidas.
+        - `arossi_procesamiento.py` : Lee el archivo de timestamping, aplica el método de alfa-Rossi y escribe los resultados.
+        _ `arossi_analisis.py` : Lee los archivos escritos por `arossi_procesamiento.py`, grafica los resultados y hace los ajustes de las curvas.
 
     * `datos/` 
         Carpeta donde estarán los datos en crudo obtenidos por los programas de adquisición
@@ -32,7 +29,14 @@ Contenido de la carpeta
     * `modules/`
         - `io_modules.py` : Módulo con funciones relacionadas con lectura/escritura de archivos
         - `estadistica.py` : Módulo con funciones estadísticas
-        - `funciones.py` : Módulo con las funciones teóricas que se utilizan en los ajustes.
+ 
+        - `alfa_rossi_preprocesamiento.py` : Lee archivo de tiempo entre pulsos y devuelve las historias por separado.
+        - `alfa_rossi_procesamiento.py` : Procesa todas las historias en el método de alfa-Rossi.
+        - `alfa_rossi_escritura.py` : Escribe los resultados del procesamiento en archivos.
+        - `alfa_rossi_lectura.py` : Lee los datos escritos del procesamiento.
+        - `alfa_rossi_analisis.py` : Grafica los datos escritos por el procesamiento. Hace ajustes teóricos a las curvas medidas.
+
+       - `funciones.py` : Módulo con las funciones teóricas que se utilizan en los ajustes.
 
     * `tests/`
         - `test_read_bin_dt.py` : Script para probar la función de lectura de datos `read_bin_dt` de `modules/io_modules.py`
