@@ -15,10 +15,9 @@ triggers de la primer historia obtenida en python.
 import numpy as np
 import sys
 sys.path.append('../')
-sys.path.append('../src')
 
-from src.alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
-from src.alfa_rossi_procesamiento import arossi_una_historia_I
+from modules.alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
+from modules.alfa_rossi_procesamiento import arossi_una_historia_I
 
 archivo = 'medicion04.a.inter.D1.bin'
 nombres = ['../datos/' + archivo]
