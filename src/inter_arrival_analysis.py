@@ -57,6 +57,11 @@ def genera_tiempos_entre_pulsos(nombres, unidad='pulsos', t_base=12.5e-9):
 
     """
 
+    if isinstance(nombres, list):
+        _es_lista = True
+    else:
+        _es_lista = False
+        nombres = [nombres]
     tiempo_entre_pulsos = []
     for nombre in nombres:
         _data, _header = read_timestamp(nombre)
@@ -71,7 +76,9 @@ def genera_tiempos_entre_pulsos(nombres, unidad='pulsos', t_base=12.5e-9):
             print('Se toma `pulsos`')
             unidad = 'pulsos'
         tiempo_entre_pulsos.append(_dts)
-    return (tiempo_entre_pulsos, unidad)
+    if not _es_lista:
+        tiempo_entre_pulsos = tiempo_entre_pulsos[0]
+    return tiempo_entre_pulsos, unidad
 
 
 def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
@@ -83,20 +90,23 @@ def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
         tiempo_entre_pulsos : numpy array
             Vector con los tiempo entre pulsos
 
-        unidad : string
+        unidad : string ('pulsos')
             Unidad utilizada para `tiempo_entre_pulsos`
 
-        nbins : int
-            Cantidad de bines para el histograma
+        nbins : int (1000)
+            Cantidad de bines para el histograma. También puede ser un array
+            con las posiciones de los bines
 
-        yscale : string
+        yscale : string ('linear')
             Escala para el eje y ('linear', 'log')
 
-        nombre : string
+        nombre : string ('Datos')
             Nombre para la leyenda que identifica la curva
 
-        anota : boolean
+        anota : boolean ('True')
             Escribe o no la tasa de cuetnas en el gráfico
+        tb : float
+            Tiempo del reloj que se utilizó para contar los pulsos
 
     Resultados
     ----------
@@ -109,6 +119,7 @@ def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
         yscale = kargs.get('yscale', 'linear')
         nombre = kargs.get('nombre', 'Datos')
         anota = kargs.get('anota', True)
+        tb = kargs.get('tb', None)
 
     h_coun, h_bin = np.histogram(tiempo_entre_pulsos, bins=nbins, density=True)
     fig, ax1 = plt.subplots(1, 1)
@@ -138,7 +149,15 @@ def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
     fig.tight_layout()
 
     # Tasa de cuentas
-    _R, _R_std = rate_from_timestamp(tiempo_entre_pulsos)
+    if unidad == 'pulsos':
+        if tb is None:
+            print('Falta indicar el tiempo del reloj para calcular la tasa')
+            print('Se toma tb=1')
+            tb = 1
+        _tiempo_segundos = tiempo_entre_pulsos * tb
+    else:
+        _tiempo_segundos = tiempo_entre_pulsos
+    _R, _R_std = rate_from_timestamp(_tiempo_segundos)
     R = unc.ufloat(_R, _R_std)
     str_R = r'R = (${:1.2uL}$) cps'.format(R)
     if anota:
