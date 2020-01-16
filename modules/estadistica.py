@@ -121,17 +121,13 @@ def timestamp_to_timewindow(datos, dt, units_in, units_out, tb):
         else:
             print('No se puede aplicar binncount(), buscar otra forma')
             quit()
+        # Cantidad de bines que se generan
+        _Nbin = np.uint64(dato[-1] // dt)
         # Tiempo máximo exacto que voy a tomar respecto al dt_in
         t_exacto = (dato[-1] // dt) * dt
         # Índice del tiempo exacto
         i_exacto = np.searchsorted(dato, t_exacto, side='left')
-        _bines = np.bincount(dato[0:i_exacto] // dt)
-        # Cantidad de bines que se generan
-        _Nbin = dato[-1] // dt
-        # Cantidad de ceros que tengo que agregar por culpa de binncount()
-        _npad = np.int(_Nbin - _bines.size)
-        # Se agregan los ceros que neceste hasta completar los _Nbin
-        _bines = np.pad(_bines, (0, _npad), mode='constant')
+        _bines = np.bincount(dato[0:i_exacto] // dt, minlength=_Nbin)
         if units_out == 'segundos':
             _bines = _bines / dt / tb
         datos_binned.append(_bines)
