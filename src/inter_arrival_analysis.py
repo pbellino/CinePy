@@ -105,7 +105,7 @@ def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
 
         anota : boolean ('True')
             Escribe o no la tasa de cuetnas en el gráfico
-        tb : float
+        tb : float [segundos]
             Tiempo del reloj que se utilizó para contar los pulsos
 
     Resultados
@@ -184,7 +184,7 @@ if __name__ == '__main__':
               '../datos/medicion04.a.inter.D1.bin',
               '../datos/medicion04.a.inter.D2.bin',
               ]
-    unidad = 'tiempo'
+    unidad = 'pulsos'
     nbins = 10000
     yscale = 'log'
     # -------------------------------------------------------------------------
@@ -202,6 +202,7 @@ if __name__ == '__main__':
                             'nbins': nbins,
                             'yscale': yscale,
                             'nombre': archivo,
+                            'tb': 12.5e-9,
                             }
         # Graficación
         grafica_histograma_interarrivals(tiempo, **parametros_histo)
