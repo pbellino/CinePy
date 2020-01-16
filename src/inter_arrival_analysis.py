@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """ Script para graficar histograma de tiempo entre pulsos """
@@ -80,20 +80,27 @@ def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
 
     Parámetros
     ----------
-    tiempo_entre_pulsos : numpy array
-        Vector con los tiempo entre pulsos
+        tiempo_entre_pulsos : numpy array
+            Vector con los tiempo entre pulsos
 
-    unidad : string
-        Unidad utilizada para `tiempo_entre_pulsos`
+        unidad : string
+            Unidad utilizada para `tiempo_entre_pulsos`
 
-    nbins : int
-        Cantidad de bines para el histograma
+        nbins : int
+            Cantidad de bines para el histograma
 
-    yscale : string
-        Escala para el eje y ('linear', 'log')
+        yscale : string
+            Escala para el eje y ('linear', 'log')
 
-    nombre : string
-        Nombre para la leyenda que identifica la curva
+        nombre : string
+            Nombre para la leyenda que identifica la curva
+
+        anota : boolean
+            Escribe o no la tasa de cuetnas en el gráfico
+
+    Resultados
+    ----------
+        fig : figure handler
 
     """
     if kargs is not None:
@@ -101,9 +108,10 @@ def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
         nbins = kargs.get('nbins', 1000)
         yscale = kargs.get('yscale', 'linear')
         nombre = kargs.get('nombre', 'Datos')
+        anota = kargs.get('anota', True)
 
     h_coun, h_bin = np.histogram(tiempo_entre_pulsos, bins=nbins, density=True)
-    fig1, ax1 = plt.subplots(1, 1)
+    fig, ax1 = plt.subplots(1, 1)
     # Genero vector de bins centrados
     center_bin = h_bin[:-1] + np.diff(h_bin)
     ax1.plot(center_bin, h_coun, '.')
@@ -124,21 +132,27 @@ def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
     ax1.ticklabel_format(style='sci', axis='x', scilimits=(0, 0),
                          useMathText=True)
 
+    if yscale is not 'log':
+        ax1.ticklabel_format(style='sci', axis='y', scilimits=(0, 0),
+                             useMathText=True)
+    fig.tight_layout()
+
     # Tasa de cuentas
     _R, _R_std = rate_from_timestamp(tiempo_entre_pulsos)
     R = unc.ufloat(_R, _R_std)
     str_R = r'R = (${:1.2uL}$) cps'.format(R)
-    bbox_props = dict(boxstyle='Round', fc='w')
-    ax1.annotate(str_R, xy=(0.3, 0.8), bbox=bbox_props, size=15,
-                 xycoords='axes fraction')
+    if anota:
+        bbox_props = dict(boxstyle='Round', fc='w')
+        ax1.annotate(str_R, xy=(0.3, 0.8), bbox=bbox_props, size=15,
+                     xycoords='axes fraction')
     # Graba el archivo
-    fig1.savefig(nombre + '_hist.png')
+    fig.savefig(nombre + '_hist.png')
     # Imprime en pantalla
     print('-' * 50)
     print('Nombre: ' + nombre)
     print('R = ' + str(R))
     print('-' * 50)
-    return None
+    return fig
 
 
 if __name__ == '__main__':
