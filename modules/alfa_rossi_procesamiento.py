@@ -116,14 +116,10 @@ def arossi_una_historia_I(data, dt_s, dtmax_s, tb):
         # Construyo el bloque y fijo t=0 en el trigger
         data_bin = data[i:i_max] - data[i]
         # Cuento los pulsos en cada bin
-        p_hist = np.bincount(data_bin // dt)
+        p_hist = np.bincount(data_bin // dt, minlength=N_bin)
         # Como np.bincount() cuenta al pulso del trigger, se lo resto
         p_hist[0] -= 1
-        # Como np.bincount binea sólo hasta np.amax()+1, completo con
-        # ceros el resto de los bines (hasta llenar los N_bin)
-        n_pad = np.int(N_bin - p_hist.size)  # Cantidad de ceros que se agregan
-        p_hist_completa = np.pad(p_hist, (0, n_pad), mode='constant')
-        P_trigger.append(p_hist_completa)
+        P_trigger.append(p_hist)
     P_trigger = np.asarray(P_trigger)
     # Calculo la probabilidad normalizada (por dt del bin)
     # Pero más importante: normalizada con la tasa de cuentas (para que la
