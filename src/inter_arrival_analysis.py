@@ -91,7 +91,7 @@ def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
             Vector con los tiempo entre pulsos
 
         unidad : string ('pulsos')
-            Unidad utilizada para `tiempo_entre_pulsos`
+            Unidad utilizada para `tiempo_entre_pulsos` ('tiempo' o 'pulsos')
 
         nbins : int (1000)
             Cantidad de bines para el histograma. También puede ser un array
@@ -120,12 +120,17 @@ def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
         nombre = kargs.get('nombre', 'Datos')
         anota = kargs.get('anota', True)
         tb = kargs.get('tb', None)
+        fig = kargs.get('fig', None)
 
     h_coun, h_bin = np.histogram(tiempo_entre_pulsos, bins=nbins, density=True)
-    fig, ax1 = plt.subplots(1, 1)
+    if fig is not None:
+        ax1 = fig.axes[0]
+    else:
+        fig, ax1 = plt.subplots(1, 1)
+
     # Genero vector de bins centrados
     center_bin = h_bin[:-1] + np.diff(h_bin)
-    ax1.plot(center_bin, h_coun, '.')
+    ax1.plot(center_bin, h_coun, '.', label=nombre)
     ax1.set_yscale(yscale)
     # Asigno unidades a los bines
     if unidad == 'tiempo':
@@ -138,7 +143,7 @@ def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
     ax1.set_xlabel(xscale)
     ax1.set_ylabel(u'Densidad de probabilidad')
     ax1.set_title('Histograma de tiempo entre pulsos')
-    ax1.legend([nombre], loc='best')
+    ax1.legend(loc='best')
     ax1.grid('True')
     ax1.ticklabel_format(style='sci', axis='x', scilimits=(0, 0),
                          useMathText=True)
@@ -165,7 +170,7 @@ def grafica_histograma_interarrivals(tiempo_entre_pulsos, *args, **kargs):
         ax1.annotate(str_R, xy=(0.3, 0.8), bbox=bbox_props, size=15,
                      xycoords='axes fraction')
     # Graba el archivo
-    fig.savefig(nombre + '_hist.png')
+    # fig.savefig(nombre + '_hist.png')
     # Imprime en pantalla
     print('-' * 50)
     print('Nombre: ' + nombre)
