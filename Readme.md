@@ -13,9 +13,11 @@ Contenido de la carpeta
         - `alfa_feynman_procesamiento.py` :  Procesa los datos con el método de alfa-Feynman
         - `alfa_feynman_grafica_adquisicion.py` :  Grafica los datos guardados por los programas de adquisición
         - `alfa_feynman_analisis.py` : Graficación y ajuste no lineal para las curvas de alfa-Feynman
-        - `inter_arrival_analysis.py` : Grafica histograma de tiempo entre pulsos
         - `arossi_procesamiento.py` : Lee el archivo de timestamping, aplica el método de alfa-Rossi y escribe los resultados.
         _ `arossi_analisis.py` : Lee los archivos escritos por `arossi_procesamiento.py`, grafica los resultados y hace los ajustes de las curvas.
+        - `inter_arrival_analysis.py` : Grafica histograma de tiempo entre pulsos
+        - `dead_time_analysis.py` : Analiza y simula tiempos muertos en las mediciones con timestamping.
+        - `inter_arrival_analysis_ipynb` : Notebook de prueba para los análisis que se hacen en `dead_time_analysis.py`
 
     * `datos/` 
         Carpeta donde estarán los datos en crudo obtenidos por los programas de adquisición
@@ -35,8 +37,9 @@ Contenido de la carpeta
         - `alfa_rossi_escritura.py` : Escribe los resultados del procesamiento en archivos.
         - `alfa_rossi_lectura.py` : Lee los datos escritos del procesamiento.
         - `alfa_rossi_analisis.py` : Grafica los datos escritos por el procesamiento. Hace ajustes teóricos a las curvas medidas.
+        - `funciones.py` : Módulo con las funciones teóricas que se utilizan en los ajustes.
+        - `flag_np_deadtime.pyx` : Función en cython en la cual se basa la simulación del tiempo muerto no-paralizable. Se debe compilar para generar el .so que debe ubicarse en esta misma carpeta.
 
-       - `funciones.py` : Módulo con las funciones teóricas que se utilizan en los ajustes.
 
     * `tests/`
         - `test_read_bin_dt.py` : Script para probar la función de lectura de datos `read_bin_dt` de `modules/io_modules.py`
