@@ -43,6 +43,12 @@ def corrige_roll_over(datas_con_rollover):
             Cada elemento son los datos con roll-over corregido
 
     """
+    if not isinstance(datas_con_rollover, list):
+        _es_lista = False
+        datas_con_rollover = [datas_con_rollover]
+    else:
+        _es_lista = True
+
     data_sin_rollover = []
     for i, data in enumerate(datas_con_rollover):
         print('Corrigiendo roll-over del archivo [{}]'.format(i))
@@ -57,6 +63,8 @@ def corrige_roll_over(datas_con_rollover):
         print('-' * 50)
         data_sin_rollover.append(_data_acum)
 
+    if not _es_lista:
+        data_sin_rollover = data_sin_rollover[0]
     return data_sin_rollover
 
 
