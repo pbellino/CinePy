@@ -184,7 +184,7 @@ def separa_en_historias_lista(time_stamped_datas, N_historias):
 
 def convierte_dtype_historias(historias):
     """
-    De ser posible, convierte al tipo de dato de menor tamaño posible
+    Convierte al tipo de dato de menor tamaño posible
 
     Se asume que todas las historias tendrán el mismo dtype
     """
