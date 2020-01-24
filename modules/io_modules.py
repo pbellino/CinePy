@@ -271,6 +271,19 @@ def read_timestamp_list(filenames):
     return lista_datos, lista_header
 
 
+def read_timestamp_list_ascii(filenames):
+    """
+    Función para leer un archivo de timestamping en formato ascii.
+
+    Se asume que no tiene encabezado.
+    """
+
+    data = []
+    for filename in filenames:
+        data.append(np.loadtxt(filename))
+    return data
+
+
 if __name__ == '__main__':
 
     # Prueba read_bin_dt
