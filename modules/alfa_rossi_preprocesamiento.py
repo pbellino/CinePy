@@ -17,8 +17,9 @@ sns.set()
 import sys
 sys.path.append('../')
 
-from modules.io_modules import read_timestamp_list
+from modules.io_modules import read_timestamp_list, read_timestamp_list_ascii
 from modules.estadistica import timestamp_to_timewindow
+
 
 plt.style.use('paper')
 
@@ -68,7 +69,7 @@ def corrige_roll_over(datas_con_rollover):
     return data_sin_rollover
 
 
-def grafica_mediciones_cuentas(nombres, dt_s, tb=12.5e-9):
+def grafica_mediciones_cuentas(nombres, dt_s, tb=12.5e-9, tipo='binario'):
     """
     Grafica las tasas de cuentas para los archivos con timestamping
 
@@ -80,12 +81,18 @@ def grafica_mediciones_cuentas(nombres, dt_s, tb=12.5e-9):
             Duración del intervalo en donde se cuentan los pulsos
         tb : float [segundos]
             Tiempo del reloj que se utilizó para el timestamping
+        formato_datos : string, opcional ('binario', 'ascii')
+            Formato en que están escritos los datos en los archivos
+
     """
     dt_s = np.float64(dt_s)
-    # Se leen los datos del archivo
-    data_con_rollover, _ = read_timestamp_list(nombres)
-    # Se corrige el roll-over
-    datos = corrige_roll_over(data_con_rollover)
+    if tipo == 'binario':
+        # Se leen los datos del archivo
+        data_con_rollover, _ = read_timestamp_list(nombres)
+        # Se corrige el roll-over
+        datos = corrige_roll_over(data_con_rollover)
+    elif tipo == 'ascii':
+        datos = read_timestamp_list_ascii(nombres)
     datos_binned, t = timestamp_to_timewindow(datos, dt_s, 'segundos',
                                               'segundos', tb)
 
@@ -278,7 +285,7 @@ def inspeccion_historias_list(list_historias, tb=12.5e-9):
     return lista_pulsos_historia, lista_tiempos_historia
 
 
-def alfa_rossi_preprocesamiento(nombres, Nhist, tb):
+def alfa_rossi_preprocesamiento(nombres, Nhist, tb, *args, **kargs):
     """
     Función que genera las historias para todos los archivos leídos
 
@@ -292,7 +299,12 @@ def alfa_rossi_preprocesamiento(nombres, Nhist, tb):
         Nhist : integer
             Cantidad de historias
         tb : float
-            Tiempo de duración de cada pulso de reloj
+            Tiempo de duración de cada pulso de reloj. Equivalentemente, es
+            el factor que convierte a los datos en segundos. Puede ser tb=1
+            cuando se trabaja con datos en ascii (asumiendo que están en s)
+        formato_datos : string, opcional ('binario', 'ascii')
+            Para distinguir si se leen archivos  en binario (mediciones) o
+            en ascii (simulaciones)
 
     Resultados
     ----------
@@ -307,14 +319,28 @@ def alfa_rossi_preprocesamiento(nombres, Nhist, tb):
             Cada elemento son los datos leidos directamente del archivo.
             Sólo está para debuggear.
     """
-    # Se leen los datos del archivo
-    data_con_rollover, _header = read_timestamp_list(nombres)
-    # Se corrige el roll-over
-    data_sin_rollover = corrige_roll_over(data_con_rollover)
-    # Separe el vector con los tiempos en historias
-    data_historias = separa_en_historias_lista(data_sin_rollover, Nhist)
-    # Busca el tipo de dato de menor tamaño
-    data_historias = convierte_dtype_historias_lista(data_historias)
+    if kargs is not None:
+        formato_datos = kargs.get('formato_datos', 'binario')
+
+    if formato_datos == 'binario':
+        # Se leen los datos del archivo binario
+        data_con_rollover, _header = read_timestamp_list(nombres)
+        # Se corrige el roll-over
+        data_sin_rollover = corrige_roll_over(data_con_rollover)
+        # Separe el vector con los tiempos en historias
+        data_historias = separa_en_historias_lista(data_sin_rollover, Nhist)
+        # Busca el tipo de dato de menor tamaño
+        data_historias = convierte_dtype_historias_lista(data_historias)
+    elif formato_datos == 'ascii':
+        data_con_rollover = []  # En este caso no existe
+        # Se leen los datos del archivo en ascii
+        data_sin_rollover = read_timestamp_list_ascii(nombres)
+        # Separe el vector con los tiempos en historias
+        data_historias = separa_en_historias_lista(data_sin_rollover, Nhist)
+    else:
+        print('Formato de dato especificado no disponible')
+        quit()
+
     # Para verificar cómo quedó todo (opcional)
     inspeccion_historias_list(data_historias, tb)
     print('Fin del pre-procesamiento')
@@ -323,7 +349,8 @@ def alfa_rossi_preprocesamiento(nombres, Nhist, tb):
     return data_historias, data_sin_rollover, data_con_rollover
 
 
-def grafica_timestamping(nombres, data_con_ro, data_sin_ro, data_bloques):
+def grafica_timestamping(nombres, data_con_ro, data_sin_ro, data_bloques,
+                         tipo):
     """
     Grafica los datos de timestamping luego del reprocesamiento
 
@@ -337,6 +364,9 @@ def grafica_timestamping(nombres, data_con_ro, data_sin_ro, data_bloques):
             Datos con conrrección del roll-over
         data_bloques : list of numpy array
             Datos de timestamping separados por historias
+        tipo : string, opcional ('binario', 'ascii')
+            Formato en que están escritos los datos en los archivos
+
 
     Resultados
     ----------
@@ -351,17 +381,34 @@ def grafica_timestamping(nombres, data_con_ro, data_sin_ro, data_bloques):
         nombres = [nombres]
 
     figs = {}
-    for idx, nombre in enumerate(nombres):
-        figs[idx], ax1 = plt.subplots(1, 1)
-        ax1.plot(data_con_ro[idx], 'k.', label='Sin corrección roll-over')
-        ax1.plot(data_sin_ro[idx], 'r.', label='Con corrección roll-over')
-        for j, data in enumerate(data_bloques[idx]):
-            ax1.plot(data, '-', label=('' if j == 0 else '_') + 'Historias')
-        ax1.set_xlabel('Índices')
-        ax1.set_ylabel('Tiempo [pulsos de contador]')
-        ax1.set_title(os.path.split(nombre)[-1])
-        ax1.grid(True)
-        ax1.legend(loc='best')
+    if tipo == 'binario':
+        for idx, nombre in enumerate(nombres):
+            figs[idx], ax1 = plt.subplots(1, 1)
+            ax1.plot(data_con_ro[idx], 'k.', label='Sin corrección roll-over')
+            ax1.plot(data_sin_ro[idx], 'r.', label='Con corrección roll-over')
+            for j, data in enumerate(data_bloques[idx]):
+                ax1.plot(data, '-', label=('' if j == 0 else '_')
+                         + 'Historias')
+            ax1.set_xlabel('Índices')
+            ax1.set_ylabel('Tiempo [pulsos de contador]')
+            ax1.set_title(os.path.split(nombre)[-1])
+            ax1.grid(True)
+            ax1.legend(loc='best')
+    elif tipo == 'ascii':
+        for idx, nombre in enumerate(nombres):
+            figs[idx], ax1 = plt.subplots(1, 1)
+            ax1.plot(data_sin_ro[idx], 'k.', label='Datos originales')
+            for j, data in enumerate(data_bloques[idx]):
+                ax1.plot(data, '-', label=('' if j == 0 else '_')
+                         + 'Historias')
+            ax1.set_xlabel('Índices')
+            ax1.set_ylabel('Tiempo [s]')
+            ax1.set_title(os.path.split(nombre)[-1])
+            ax1.grid(True)
+            ax1.legend(loc='best')
+    else:
+        print('Formato de dato especificado no disponible')
+        quit()
 
     if not _es_lista:
         figs = figs[0]
@@ -377,17 +424,21 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     # Archivos a leer
     nombres = [
-              '../datos/medicion04.a.inter.D1.bin',
-              '../datos/medicion04.a.inter.D2.bin',
+               '../datos/medicion04.a.inter.D1.bin',
+               '../datos/medicion04.a.inter.D2.bin',
+               # '../datos/medicion04.a.inter.D1.txt',
               ]
+    tipo = 'binario'
     Nhist = 200
-    tb = 12.5e-9
+    if tipo == 'binario':
+        tb = 12.5e-9
+    elif tipo == 'ascii':
+        tb = 1.0
     # -------------------------------------------------------------------------
-    grafica_mediciones_cuentas(nombres, 1.0, tb=12.5e-9)
-
+    grafica_mediciones_cuentas(nombres, 1.0, tb, tipo)
     # -------------------------------------------------------------------------
     data_bloques, data_sin_ro, data_con_ro = \
-        alfa_rossi_preprocesamiento(nombres, Nhist, tb)
-
-    fig = grafica_timestamping(nombres, data_con_ro, data_sin_ro, data_bloques)
+        alfa_rossi_preprocesamiento(nombres, Nhist, tb, formato_datos=tipo)
+    fig = grafica_timestamping(nombres, data_con_ro, data_sin_ro,
+                               data_bloques, tipo)
     #
