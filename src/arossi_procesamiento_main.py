@@ -33,12 +33,16 @@ if __name__ == '__main__':
     nombres = [
                '../datos/medicion04.a.inter.D1.bin',
                '../datos/medicion04.a.inter.D2.bin',
+               # '../datos/medicion04.a.inter.D1.txt',
               ]
-    tipo = 'binario'
+    tipo = 'ascii'
     # Cantidad de historias
     Nhist = 200
-    # Tiempo base del contador [s]
-    tb = 12.5e-9
+    # Tiempo base del contador, o factor para convertir a segundos [s]
+    if tipo == 'binario':
+        tb = 12.5e-9
+    elif tipo == 'ascii':
+        tb = 1
     # Duración de cada bin (discretización del tau) [s]
     dt_s = 0.5e-3
     # Máximo bin analizado (mayor tau) [s]
