@@ -27,11 +27,11 @@ import itertools
 import time
 import os
 
-from modules.alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
-from modules.estadistica import rate_from_timestamp
-
 import sys
 sys.path.append('../')
+
+from modules.alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
+from modules.estadistica import rate_from_timestamp
 
 sns.set()
 plt.style.use('paper')
@@ -88,11 +88,11 @@ def arossi_una_historia_I(data, dt_s, dtmax_s, tb):
 
     """
     # Es más cómodo trabajar en unidades de pulso
-    dt = np.int(dt_s / tb)
+    dt = np.float(dt_s / tb)
     # print('dt=', dt)
-    dtmax = np.int(dtmax_s / tb)
+    dtmax = np.float64(dtmax_s / tb)
     # print('dtmax=', dtmax)
-    N_bin = np.int(dtmax/dt)
+    N_bin = np.int(dtmax / dt)
     # print('N_bin=', N_bin)
     # Primero selecciona hasta qué indice se puede recorrer `data`
     t_tot_hist = data[-1]   # Tiempo total de la historia
@@ -114,9 +114,10 @@ def arossi_una_historia_I(data, dt_s, dtmax_s, tb):
         # pulso en dtmax sea contado como un bin extra
         i_max = np.searchsorted(data, trigger + dtmax, side='left')
         # Construyo el bloque y fijo t=0 en el trigger
-        data_bin = data[i:i_max] - data[i]
+        data_bin = (data[i:i_max] - data[i]) // dt
         # Cuento los pulsos en cada bin
-        p_hist = np.bincount(data_bin // dt, minlength=N_bin)
+        # Debo forzar 'int64' porque a veces hay problemas (bug)
+        p_hist = np.bincount(data_bin.astype('int64'), minlength=N_bin)
         # Como np.bincount() cuenta al pulso del trigger, se lo resto
         p_hist[0] -= 1
         P_trigger.append(p_hist)
@@ -272,20 +273,27 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     # Archivos a leer
     nombres = [
-               '../datos/medicion04.a.inter.D1.bin',
-               '../datos/medicion04.a.inter.D2.bin',
+               # '../datos/medicion04.a.inter.D1.bin',
+               # '../datos/medicion04.a.inter.D2.bin',
+               '../datos/medicion04.a.inter.D1.txt',
               ]
+    tipo = 'ascii'
     # Cantidad de historias
     Nhist = 200
     # Tiempo base del contador [s]
-    tb = 12.5e-9
+    if tipo == 'binario':
+        tb = 12.5e-9
+    elif tipo == 'ascii':
+        tb = 1.0
+    # Tiempos en segundos
     dt_s = 0.5e-3
     dtmax_s = 50e-3
 
     # -------------------------------------------------------------------------
     # Para probar `arossi_historias()'
     # -------------------------------------------------------------------------
-    data_bloq, _, _ = alfa_rossi_preprocesamiento(nombres, Nhist, tb)
+    data_bloq, _, _ = alfa_rossi_preprocesamiento(nombres, Nhist, tb,
+                                                  formato_datos=tipo)
     # En serie
     """
     t0 = time.time()
