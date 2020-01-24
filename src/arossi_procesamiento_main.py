@@ -35,7 +35,7 @@ if __name__ == '__main__':
                '../datos/medicion04.a.inter.D2.bin',
                # '../datos/medicion04.a.inter.D1.txt',
               ]
-    tipo = 'ascii'
+    tipo = 'binario'
     # Cantidad de historias
     Nhist = 200
     # Tiempo base del contador, o factor para convertir a segundos [s]
