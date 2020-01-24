@@ -34,6 +34,7 @@ if __name__ == '__main__':
                '../datos/medicion04.a.inter.D1.bin',
                '../datos/medicion04.a.inter.D2.bin',
               ]
+    tipo = 'binario'
     # Cantidad de historias
     Nhist = 200
     # Tiempo base del contador [s]
@@ -50,12 +51,12 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     #
     # ---- Graficación la tasa de cuentas de los arhivos .bin (OPCIONAL)
-    grafica_mediciones_cuentas(nombres, 1.0, tb)
+    grafica_mediciones_cuentas(nombres, 1.0, tb, tipo)
     # ---- Corrección de roll-over y separación en historias (OBLIGATORIO)
     data_bloq, data_sin_rol, data_con_rol = \
-        alfa_rossi_preprocesamiento(nombres, Nhist, tb)
+        alfa_rossi_preprocesamiento(nombres, Nhist, tb, formato_datos=tipo)
     # ---- Grafica los datos de timestamping (OPCIONAL)
-    grafica_timestamping(nombres, data_con_rol, data_sin_rol, data_bloq)
+    grafica_timestamping(nombres, data_con_rol, data_sin_rol, data_bloq, tipo)
     #
     # -------------------------------------------------------------------------
     # Procesamiento
