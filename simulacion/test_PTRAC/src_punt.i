@@ -29,11 +29,14 @@ c de tiempo sólo llega a los milisegundos. Es necesario
 c escribir en formato binario (file=bin) para tener la
 c resolución completa del tiempo.
 c
-PTRAC buffer=1000 file=bin write=all event=src,bnk,ter type=n max=2e9
+PTRAC buffer=1000 file=asc write=all event=src,bnk,ter type=n max=2e9
 c ***************************************************
 c ***************************************************
 MODE n
-CUT:n 1e100 0.0 0 0
+c Conviene poner el t_maximo como el tiempo de la medición
+c Debe coincidir con el tiempo máximo en que se muestrea
+c la fuente.
+CUT:n 100.0e8 J 0
 NPS 5
 PRINT
 

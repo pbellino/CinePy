@@ -30,8 +30,8 @@
   | WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.                            !
   +-----------------------------------------------------------------------+
   
-1mcnp     version 6     ld=02/20/18                     01/23/20 16:47:00 
- *************************************************************************                 probid =  01/23/20 16:47:00 
+1mcnp     version 6     ld=02/20/18                     01/24/20 12:04:11 
+ *************************************************************************                 probid =  01/24/20 12:04:11 
  i=src_punt.i o=src_punt_bin.out ptrac=ptrac_bin
 
  
@@ -71,10 +71,13 @@
         33-       c ***************************************************
         34-       c ***************************************************
         35-       MODE n
-        36-       CUT:n 1e100 0.0 0 0
-        37-       NPS 5
-        38-       PRINT
-        39-       
+        36-       c Conviene poner el t_maximo como el tiempo de la medici  n
+        37-       c Debe coincidir con el tiempo m  ximo en que se muestrea
+        38-       c la fuente.
+        39-       CUT:n 100.0e8 J 0
+        40-       NPS 5
+        41-       PRINT
+        42-       
 
  ***************************************************
  * Random Number Generator  =                    1 *
@@ -351,7 +354,7 @@
 
  ***********************************************************************************************************************
 
- dump no.    1 on file runtpf     nps =           0     coll =              0     ctm =        0.00   nrn =             
+ dump no.    1 on file runtpg     nps =           0     coll =              0     ctm =        0.00   nrn =             
     0
 
           1 warning message so far.
@@ -370,12 +373,12 @@
 1problem summary                                   source particle weight for summary table normalization =           16.00
 
       run terminated when           5  particle histories were done.
-+                                                                                                    01/23/20 16:47:00 
++                                                                                                    01/24/20 12:04:11 
 
- =====>      26.87 M histories/hr    (based on wall-clock time in mcrun)
+ =====>      27.48 M histories/hr    (based on wall-clock time in mcrun)
 
 
-      Fuente quasi-puntual de Cf252 inmersa en esfera de B10     probid =  01/23/20 16:47:00 
+      Fuente quasi-puntual de Cf252 inmersa en esfera de B10     probid =  01/24/20 12:04:11 
 
  neutron creation    tracks      weight        energy            neutron loss        tracks      weight        energy
                                  (per source particle)                                           (per source particle)
@@ -401,7 +404,7 @@
      total               16    1.0000E+00    1.3553E+00              total               16    1.0000E+00    1.3553E+00
 
    number of neutrons banked                      11        average time of (shakes)              cutoffs
-   neutron tracks per source particle     1.0000E+00          escape            0.0000E+00          tco   1.0000+100
+   neutron tracks per source particle     1.0000E+00          escape            0.0000E+00          tco   1.0000E+10
    neutron collisions per source particle 4.9375E+00          capture           4.9834E+09          eco   0.0000E+00
    total neutron collisions                       79          capture or escape 4.9834E+09          wc1   0.0000E+00
    net multiplication              1.0000E+00 0.0000          any termination   4.9834E+09          wc2   0.0000E+00
@@ -585,7 +588,7 @@
 
  ***********************************************************************************************************************
 
- dump no.    2 on file runtpf     nps =           5     coll =             79     ctm =        0.00   nrn =             
+ dump no.    2 on file runtpg     nps =           5     coll =             79     ctm =        0.00   nrn =             
   623
  binary file ptrac_bin written with           32 events
                               from            5 histories.
@@ -597,4 +600,4 @@
 
  computer time =    0.00 minutes
 
- mcnp     version 6     02/20/18                     01/23/20 16:47:00                     probid =  01/23/20 16:47:00 
+ mcnp     version 6     02/20/18                     01/24/20 12:04:11                     probid =  01/24/20 12:04:11 
