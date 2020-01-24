@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-""" TODO """
+""" Simulación de tiempos muertos a partir de datos de timestamping """
 
 import numpy as np
 import matplotlib.pyplot as plt
