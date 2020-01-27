@@ -31,9 +31,9 @@ def genera_tallies(archivo_tallies, def_tallies, *args, **kargs):
     print('Distribución de a-Rossi con {} bins'.format(N_bins))
 
     with open(archivo_tallies, 'w') as f:
-        f.write('c' + '-'*40 + '\n')
+        f.write('c ' + '-'*40 + '\n')
         f.write('c Definición de las tallies con GATE\n')
-        f.write('c' + '-'*40 + '\n')
+        f.write('c ' + '-'*40 + '\n')
         for i, pd_gate in enumerate(pd_gates):
             f.write('FC{:03d}8 Capturas en He3 - PD={:.2e}s GW={:.1e}s\n'.format(i, pd_gate/1e8, gate_width/1e8))
             f.write('F{:03d}8:n {}\n'.format(i, celdas_detector))
@@ -41,7 +41,7 @@ def genera_tallies(archivo_tallies, def_tallies, *args, **kargs):
                                                            gate_width))
             f.write('c\n')
         f.write('c Fin de las tallies con gate\n')
-        f.write('c' + '-'*40 + '\n')
+        f.write('c ' + '-'*40 + '\n')
     print('Se generó el archivo de tallies: ' + archivo_tallies)
     return None
 
@@ -76,10 +76,10 @@ if __name__ == '__main__':
     nombre_archivo_completo = 'test_F8_RAD.i'
 
     def_tallies = {
-                   'id_det': 2003,
+                   'id_det': '5010 3006',
                    'celdas_detector': '102',
-                   'gate_width': 2e-6,
-                   'gate_maxim': 1e-5,
+                   'gate_width': 1e-10,
+                   'gate_maxim': 1e-9,
                    }
 
     genera_tallies(nombre_archivo_tallies, def_tallies)

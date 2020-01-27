@@ -19,7 +19,7 @@ c Fuente puntual, debe ubicarse en una celda con un
 c nucleido que posea datos de fisiones espontáneas
 c Se lo distribuye uniformemente en el tiempo
 c
-SDEF  par=SF  pos= 0 0 0  tme=d1
+SDEF  par=SF  pos= 0 0 0 tme=d1
 SI1  0    100.0e8    $ Durante 100 segundos
 SP1  0    1
 c ***************************************************
@@ -28,7 +28,7 @@ c Conviene poner el t_maximo como el tiempo de la medición
 c Debe coincidir con el tiempo máximo en que se muestrea
 c la fuente
 CUT:n 100.0e8 J 0 0
-F8:n 102
+c CUT:n 100.0e8 
 NPS 5
 PRINT
 c ***************************************************
