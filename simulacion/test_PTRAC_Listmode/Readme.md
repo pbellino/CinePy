@@ -46,5 +46,9 @@ Para usar "event=CAP" hay dos opciones:
 	1) Modificar el fuente de ptrac.F90 para aumentar la precisión y sumarle el tiempo de fuente (obligaría a recompilar MCNP)
 	2) Tratar de leer el archivo binario. Para corregir el tiempo de fuente, se muestrea una distribución exponencial de
 	   acuerdo a la actividad de la fuente y se corrige en el post-procesamiento.
+	3) Quizá ninguna de las anteriores. Al guardar el tiempo desde el evento de fuente, la resolución numérica no es tan importante.
+
+En ambos basos es interesante que al poder ratrear el evento de fuente de cada pulso capturado, es posible eliminar a mano las coincidencias
+accidentales. 
 
 
