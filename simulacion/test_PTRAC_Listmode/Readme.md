@@ -36,6 +36,8 @@ El archivo ASCII tiene resolución temporal de los ms.
 
 EL tiempo se cuenta desde el evento de fuente, se debe corregir.
 
+Tampoco parece distinguir el nucleído que genera la captura.
+
 
 Conclusiones (parciales)
 ------------------------
