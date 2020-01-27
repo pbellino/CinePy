@@ -44,6 +44,7 @@ Usar "event=TER" y tener cuidado en que sólo se escriban eventos que dejen señ
 
 Para usar "event=CAP" hay dos opciones:
 	1) Modificar el fuente de ptrac.F90 para aumentar la precisión y sumarle el tiempo de fuente (obligaría a recompilar MCNP)
-	2) Tratar de leer el archivo binario. Tratar de sacar información sobre el tiempo de la fuente y corregir.
+	2) Tratar de leer el archivo binario. Para corregir el tiempo de fuente, se muestrea una distribución exponencial de
+	   acuerdo a la actividad de la fuente y se corrige en el post-procesamiento.
 
 
