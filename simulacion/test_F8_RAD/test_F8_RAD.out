@@ -30,13 +30,13 @@
   | WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.                            !
   +-----------------------------------------------------------------------+
   
-1mcnp     version 6     ld=02/20/18                     01/28/20 10:25:42 
- *************************************************************************                 probid =  01/28/20 10:25:42 
- i=test_F8_RAD.i
+1mcnp     version 6     ld=02/20/18                     01/28/20 13:48:22 
+ *************************************************************************                 probid =  01/28/20 13:48:22 
+ i=test_F8_RAD.i o=test
 
  
   comment.  Physics models disabled.
-         1-       Fuente quasi-puntual de Cf252 inmersa en esfera de B10
+         1-       fuente quasi-puntual de Cf252 inmersa en esfera de B10
          2-       c
          3-       c
          4-       c
@@ -47,8 +47,8 @@
          9-       1000 SO  0.0001       $ Esfera para fuente
         10-       1001 SO  2.50         $ Esfera para detector
         11-       
-        12-       M1    98252    1      $ Cf252
-        13-       M2    5010     0.5    $ B10
+        12-       m1    98252    1      $ Cf252
+        13-       m2    5010     0.5    $ B10
         14-             3006     0.5    $ Li6
         15-       c ***************************************************
         16-       c FUENTE
@@ -57,74 +57,77 @@
         19-       c nucleido que posea datos de fisiones espont  neas
         20-       c Se lo distribuye uniformemente en el tiempo
         21-       c
-        22-       SDEF  par=SF  pos= 0 0 0 tme=d1
-        23-       SI1  0    100.0e8    $ Durante 100 segundos
-        24-       SP1  0    1
+        22-       sdef  par=SF  pos= 0 0 0 tme=d1
+        23-       si1  0    100.0e8    $ Durante 100 segundos
+        24-       sp1  0    1
         25-       c ***************************************************
-        26-       MODE n
+        26-       mode n
         27-       c Conviene poner el t_maximo como el tiempo de la medici  n
         28-       c Debe coincidir con el tiempo m  ximo en que se muestrea
         29-       c la fuente
-        30-       CUT:n 100.0e8 J 0 0
+        30-       cut:n 100.0e8 J 0 0
         31-       c CUT:n 100.0e8
-        32-       NPS 5
-        33-       PRINT
+        32-       nps 5
+        33-       print
         34-       c ***************************************************
         35-       c PTRAC para debuggear
         36-       c ***************************************************
         37-       c Recordar asociar el tally con capturas totales sin GATE
         38-       c
-        39-       PTRAC buffer=1000 file=asc write=all tally=0008 event=cap value=0 type=n max=2e9 filter=102,icl
+        39-       ptrac buffer=1000 file=asc write=all tally=0008 event=cap value=0 type=n max=2e9 filter=102,icl
         40-       c
-        41-       c ----------------------------------------
-        42-       c Definici  n de las tallies con GATE
-        43-       c ----------------------------------------
-        44-       FC0008 Capturas en He3 - Sin GATE
-        45-       F0008:n 102
-        46-       FT0008 CAP 5010 3006
-        47-       c
-        48-       FC0018 Capturas en He3 - PD=0.00e+00s GW=1.0e-10s
-        49-       F0018:n 102
-        50-       FT0018 CAP 5010 3006 GATE 0.0 0.01
-        51-       c
-        52-       FC0028 Capturas en He3 - PD=1.00e-10s GW=1.0e-10s
-        53-       F0028:n 102
-        54-       FT0028 CAP 5010 3006 GATE 0.01 0.01
-        55-       c
-        56-       FC0038 Capturas en He3 - PD=2.00e-10s GW=1.0e-10s
-        57-       F0038:n 102
-        58-       FT0038 CAP 5010 3006 GATE 0.02 0.01
-        59-       c
-        60-       FC0048 Capturas en He3 - PD=3.00e-10s GW=1.0e-10s
-        61-       F0048:n 102
-        62-       FT0048 CAP 5010 3006 GATE 0.03 0.01
-        63-       c
-        64-       FC0058 Capturas en He3 - PD=4.00e-10s GW=1.0e-10s
-        65-       F0058:n 102
-        66-       FT0058 CAP 5010 3006 GATE 0.04 0.01
-        67-       c
-        68-       FC0068 Capturas en He3 - PD=5.00e-10s GW=1.0e-10s
-        69-       F0068:n 102
-        70-       FT0068 CAP 5010 3006 GATE 0.05 0.01
-        71-       c
-        72-       FC0078 Capturas en He3 - PD=6.00e-10s GW=1.0e-10s
-        73-       F0078:n 102
-        74-       FT0078 CAP 5010 3006 GATE 0.06 0.01
-        75-       c
-        76-       FC0088 Capturas en He3 - PD=7.00e-10s GW=1.0e-10s
-        77-       F0088:n 102
-        78-       FT0088 CAP 5010 3006 GATE 0.07 0.01
-        79-       c
-        80-       FC0098 Capturas en He3 - PD=8.00e-10s GW=1.0e-10s
-        81-       F0098:n 102
-        82-       FT0098 CAP 5010 3006 GATE 0.08 0.01
-        83-       c
-        84-       FC0108 Capturas en He3 - PD=9.00e-10s GW=1.0e-10s
-        85-       F0108:n 102
-        86-       FT0108 CAP 5010 3006 GATE 0.09 0.01
-        87-       c
-        88-       c Fin de las tallies con gate
-        89-       c ----------------------------------------
+        41-       read file=solo_tallies
+****************************** begin read **************************************
+        42-       c ----------------------------------------
+        43-       c Definici  n de las tallies con GATE
+        44-       c ----------------------------------------
+        45-       fc0008 Capturas en He3 - Sin GATE
+        46-       f0008:n 102
+        47-       ft0008 CAP 5010 3006
+        48-       c
+        49-       fc0018 Capturas en He3 - PD=0.00e+00s GW=1.0e-10s
+        50-       f0018:n 102
+        51-       ft0018 CAP 5010 3006 GATE 0.0 0.01
+        52-       c
+        53-       fc0028 Capturas en He3 - PD=1.00e-10s GW=1.0e-10s
+        54-       f0028:n 102
+        55-       ft0028 CAP 5010 3006 GATE 0.01 0.01
+        56-       c
+        57-       fc0038 Capturas en He3 - PD=2.00e-10s GW=1.0e-10s
+        58-       f0038:n 102
+        59-       ft0038 CAP 5010 3006 GATE 0.02 0.01
+        60-       c
+        61-       fc0048 Capturas en He3 - PD=3.00e-10s GW=1.0e-10s
+        62-       f0048:n 102
+        63-       ft0048 CAP 5010 3006 GATE 0.03 0.01
+        64-       c
+        65-       fc0058 Capturas en He3 - PD=4.00e-10s GW=1.0e-10s
+        66-       f0058:n 102
+        67-       ft0058 CAP 5010 3006 GATE 0.04 0.01
+        68-       c
+        69-       fc0068 Capturas en He3 - PD=5.00e-10s GW=1.0e-10s
+        70-       f0068:n 102
+        71-       ft0068 CAP 5010 3006 GATE 0.05 0.01
+        72-       c
+        73-       fc0078 Capturas en He3 - PD=6.00e-10s GW=1.0e-10s
+        74-       f0078:n 102
+        75-       ft0078 CAP 5010 3006 GATE 0.06 0.01
+        76-       c
+        77-       fc0088 Capturas en He3 - PD=7.00e-10s GW=1.0e-10s
+        78-       f0088:n 102
+        79-       ft0088 CAP 5010 3006 GATE 0.07 0.01
+        80-       c
+        81-       fc0098 Capturas en He3 - PD=8.00e-10s GW=1.0e-10s
+        82-       f0098:n 102
+        83-       ft0098 CAP 5010 3006 GATE 0.08 0.01
+        84-       c
+        85-       fc0108 Capturas en He3 - PD=9.00e-10s GW=1.0e-10s
+        86-       f0108:n 102
+        87-       ft0108 CAP 5010 3006 GATE 0.09 0.01
+        88-       c
+        89-       c Fin de las tallies con gate
+        90-       c ----------------------------------------
+****************************** end read ****************************************
 
  ***************************************************
  * Random Number Generator  =                    1 *
@@ -1400,13 +1403,13 @@
 
  ***********************************************************************************************************************
 
- dump no.    1 on file runtpe     nps =           0     coll =              0     ctm =        0.00   nrn =             
+ dump no.    1 on file runtpf     nps =           0     coll =              0     ctm =        0.00   nrn =             
     0
 
           1 warning message so far.
 1starting mcrun.      cp0 =  0.00                                                                       print table 110
 
-      Fuente quasi-puntual de Cf252 inmersa en esfera de B10                          
+      fuente quasi-puntual de Cf252 inmersa en esfera de B10                          
 
 
      nps    x          y          z          cell       surf     u          v          w        energy     weight      time
@@ -1419,12 +1422,12 @@
 1problem summary                                   source particle weight for summary table normalization =           16.00
 
       run terminated when           5  particle histories were done.
-+                                                                                                    01/28/20 10:25:43 
++                                                                                                    01/28/20 13:48:22 
 
- =====>      26.37 M histories/hr    (based on wall-clock time in mcrun)
+ =====>      26.28 M histories/hr    (based on wall-clock time in mcrun)
 
 
-      Fuente quasi-puntual de Cf252 inmersa en esfera de B10     probid =  01/28/20 10:25:42 
+      fuente quasi-puntual de Cf252 inmersa en esfera de B10     probid =  01/28/20 13:48:22 
 
  neutron creation    tracks      weight        energy            neutron loss        tracks      weight        energy
                                  (per source particle)                                           (per source particle)
@@ -1784,7 +1787,7 @@
  captures =  0         14          0      0.00000E+00      2.80000E+00      8.75000E-01      0.2347
 
 
- ascii  file ptrac written with           16 events
+ ascii  file ptrad written with           16 events
                               from            5 histories.
 
 
@@ -1993,13 +1996,13 @@
       relative error                  4.38864E-01             2.02706E-01                    -0.538113
       variance of the variance        2.14366E-01             5.52119E-02                    -0.742441
       shifted center                  9.54625E-01             1.43911E+00                     0.507516
-      figure of merit                 8.02895E+05             3.76347E+06                     3.687371
+      figure of merit                 7.80760E+05             3.65971E+06                     3.687371
 
  there is not enough information in the largest  history scores (usually less than 500 scores) for a reliable estimate of the slope.
  the history score probability density function appears to have an unsampled region at the largest  history scores:
  please examine. see print table 161.
 
- fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (2.474E+06)*( 5.697E-01)**2 = (2.474E+06)*(3.245E-01) = 8.029E+05
+ fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (2.406E+06)*( 5.697E-01)**2 = (2.406E+06)*(3.245E-01) = 7.808E+05
 
 1unnormed tally density for tally 8          nonzero tally mean(m) = 2.800E+00   nps = 5                     print table 161
 
@@ -2174,12 +2177,12 @@
       relative error                  9.68246E-01             5.77350E-01                    -0.403715
       variance of the variance        8.16667E-01             8.33333E-02                    -0.897959
       shifted center                  8.98438E-02             1.38889E-01                     0.545894
-      figure of merit                 1.64948E+05             4.63918E+05                     1.812500
+      figure of merit                 1.60401E+05             4.51128E+05                     1.812500
 
  there is not enough information in the largest  history scores (usually less than 500 scores) for a reliable estimate of the slope.
  the large score tail of the empirical history score probability density function appears to have no unsampled regions.
 
- fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (2.474E+06)*( 2.582E-01)**2 = (2.474E+06)*(6.667E-02) = 1.649E+05
+ fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (2.406E+06)*( 2.582E-01)**2 = (2.406E+06)*(6.667E-02) = 1.604E+05
  print table 161 cannot be done for this tally because all tallies were between 1.00000E+00 and 1.25893E+00 which is one tally bin.
 
 1tally       28        nps =           5
@@ -2313,12 +2316,12 @@
       relative error                  6.61438E-01             4.08248E-01                    -0.382787
       variance of the variance        3.21429E-01             3.21429E-01                     0.000000
       shifted center                  1.48438E-01             2.07837E-01                     0.400167
-      figure of merit                 3.53461E+05             9.27835E+05                     1.625000
+      figure of merit                 3.43716E+05             9.02256E+05                     1.625000
 
  there is not enough information in the largest  history scores (usually less than 500 scores) for a reliable estimate of the slope.
  the large score tail of the empirical history score probability density function appears to have no unsampled regions.
 
- fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (2.474E+06)*( 3.780E-01)**2 = (2.474E+06)*(1.429E-01) = 3.535E+05
+ fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (2.406E+06)*( 3.780E-01)**2 = (2.406E+06)*(1.429E-01) = 3.437E+05
  print table 161 cannot be done for this tally because all tallies were between 1.00000E+00 and 1.25893E+00 which is one tally bin.
 
 1tally       38        nps =           5
@@ -2452,12 +2455,12 @@
       relative error                  9.68246E-01             5.77350E-01                    -0.403715
       variance of the variance        8.16667E-01             8.33333E-02                    -0.897959
       shifted center                  8.98438E-02             1.38889E-01                     0.545894
-      figure of merit                 1.64948E+05             4.63918E+05                     1.812500
+      figure of merit                 1.60401E+05             4.51128E+05                     1.812500
 
  there is not enough information in the largest  history scores (usually less than 500 scores) for a reliable estimate of the slope.
  the large score tail of the empirical history score probability density function appears to have no unsampled regions.
 
- fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (2.474E+06)*( 2.582E-01)**2 = (2.474E+06)*(6.667E-02) = 1.649E+05
+ fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (2.406E+06)*( 2.582E-01)**2 = (2.406E+06)*(6.667E-02) = 1.604E+05
  print table 161 cannot be done for this tally because all tallies were between 1.00000E+00 and 1.25893E+00 which is one tally bin.
 
 1tally       48        nps =           5
@@ -2955,12 +2958,12 @@
       relative error                  9.68246E-01             5.77350E-01                    -0.403715
       variance of the variance        8.16667E-01             8.33333E-02                    -0.897959
       shifted center                  8.98438E-02             1.38889E-01                     0.545894
-      figure of merit                 1.64948E+05             4.63918E+05                     1.812500
+      figure of merit                 1.60401E+05             4.51128E+05                     1.812500
 
  there is not enough information in the largest  history scores (usually less than 500 scores) for a reliable estimate of the slope.
  the large score tail of the empirical history score probability density function appears to have no unsampled regions.
 
- fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (2.474E+06)*( 2.582E-01)**2 = (2.474E+06)*(6.667E-02) = 1.649E+05
+ fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (2.406E+06)*( 2.582E-01)**2 = (2.406E+06)*(6.667E-02) = 1.604E+05
  print table 161 cannot be done for this tally because all tallies were between 1.00000E+00 and 1.25893E+00 which is one tally bin.
 
 1tally       98        nps =           5
@@ -3094,12 +3097,12 @@
       relative error                  6.61438E-01             4.08248E-01                    -0.382787
       variance of the variance        3.21429E-01             3.21429E-01                     0.000000
       shifted center                  1.48438E-01             2.07837E-01                     0.400167
-      figure of merit                 3.53461E+05             9.27835E+05                     1.625000
+      figure of merit                 3.43716E+05             9.02256E+05                     1.625000
 
  there is not enough information in the largest  history scores (usually less than 500 scores) for a reliable estimate of the slope.
  the large score tail of the empirical history score probability density function appears to have no unsampled regions.
 
- fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (2.474E+06)*( 3.780E-01)**2 = (2.474E+06)*(1.429E-01) = 3.535E+05
+ fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (2.406E+06)*( 3.780E-01)**2 = (2.406E+06)*(1.429E-01) = 3.437E+05
  print table 161 cannot be done for this tally because all tallies were between 1.00000E+00 and 1.25893E+00 which is one tally bin.
 
 1tally      108        nps =           5
@@ -3242,26 +3245,26 @@
 
                             tally        8                          tally       18                          tally       28
           nps      mean     error   vov  slope    fom      mean     error   vov  slope    fom      mean     error   vov  slope    fom
-            5   8.7500E-01 0.4389 0.2144  0.0  802895   6.2500E-02 0.9682 0.8167  0.0  164948   1.2500E-01 0.6614 0.3214  0.0  353461
+            5   8.7500E-01 0.4389 0.2144  0.0  780760   6.2500E-02 0.9682 0.8167  0.0  160401   1.2500E-01 0.6614 0.3214  0.0  343716
  
 
                             tally       38                          tally       48                          tally       58
           nps      mean     error   vov  slope    fom      mean     error   vov  slope    fom      mean     error   vov  slope    fom
-            5   6.2500E-02 0.9682 0.8167  0.0  164948   0.0000E+00 0.0000 0.0000  0.0 0.0E+00   0.0000E+00 0.0000 0.0000  0.0 0.0E+00
+            5   6.2500E-02 0.9682 0.8167  0.0  160401   0.0000E+00 0.0000 0.0000  0.0 0.0E+00   0.0000E+00 0.0000 0.0000  0.0 0.0E+00
  
 
                             tally       68                          tally       78                          tally       88
           nps      mean     error   vov  slope    fom      mean     error   vov  slope    fom      mean     error   vov  slope    fom
-            5   0.0000E+00 0.0000 0.0000  0.0 0.0E+00   0.0000E+00 0.0000 0.0000  0.0 0.0E+00   6.2500E-02 0.9682 0.8167  0.0  164948
+            5   0.0000E+00 0.0000 0.0000  0.0 0.0E+00   0.0000E+00 0.0000 0.0000  0.0 0.0E+00   6.2500E-02 0.9682 0.8167  0.0  160401
  
 
                             tally       98                          tally      108
           nps      mean     error   vov  slope    fom      mean     error   vov  slope    fom
-            5   1.2500E-01 0.6614 0.3214  0.0  353461   0.0000E+00 0.0000 0.0000  0.0 0.0E+00
+            5   1.2500E-01 0.6614 0.3214  0.0  343716   0.0000E+00 0.0000 0.0000  0.0 0.0E+00
 
  ***********************************************************************************************************************
 
- dump no.    2 on file runtpe     nps =           5     coll =             53     ctm =        0.00   nrn =             
+ dump no.    2 on file runtpf     nps =           5     coll =             53     ctm =        0.00   nrn =             
   506
 
          9 warning messages so far.
@@ -3271,4 +3274,4 @@
 
  computer time =    0.00 minutes
 
- mcnp     version 6     02/20/18                     01/28/20 10:25:43                     probid =  01/28/20 10:25:42 
+ mcnp     version 6     02/20/18                     01/28/20 13:48:23                     probid =  01/28/20 13:48:22 
