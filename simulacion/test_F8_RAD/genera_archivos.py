@@ -78,8 +78,8 @@ def genera_archivo_completo(arch_sin_tallies, arch_tallies, arch_final):
 if __name__ == '__main__':
 
     nombre_archivo_tallies = 'solo_tallies'
-    nombre_archivo_sin_tallies = 'input_sin_tallies.i'
-    nombre_archivo_completo = 'test_F8_RAD.i'
+    # nombre_archivo_sin_tallies = 'input_sin_tallies.i'
+    # nombre_archivo_completo = 'test_F8_RAD.i'
 
     def_tallies = {
                    'id_det': '5010 3006',
@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
     genera_tallies(nombre_archivo_tallies, def_tallies)
 
-    genera_archivo_completo(nombre_archivo_sin_tallies,
-                            nombre_archivo_tallies,
-                            nombre_archivo_completo,
-                            )
+    # genera_archivo_completo(nombre_archivo_sin_tallies,
+    #                         nombre_archivo_tallies,
+    #                         nombre_archivo_completo,
+    #                         )
