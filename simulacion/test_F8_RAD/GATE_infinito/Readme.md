@@ -125,12 +125,13 @@ El resultado de utilizar F8 con la opción CAP y un GATE infinito es:
 
       Juntando todo:
 
-	historia	captura=0	captura=1	captura=2	captura=3	captura=4
-	1		1		1		1		1		1
-	2		1		1		0		0		0
-	3               1		1		1		1		0
-	4		1		1		0		0		0
-	5		1		0		0		0		0
+	|historia	|captura=0	|captura=1	|captura=2	|captura=3	|captura=4|
+	| :-----------: | :-----------: | :-----------: | :-----------: | :-----------: | :-----: |
+	|1		|1		|1		|1		|1		|1        |
+	|2		|1		|1		|0		|0		|0        |
+	|3              |1		|1		|1		|1		|0        |
+	|4		|1		|1		|0		|0		|0        |
+	|5		|1		|0		|0		|0		|0        |
 
      Sumando todas las historias se obtiene la columna "histogram" que muestra la salia del tally.
 
