@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-TODO
+Script para facilitar la escritura del archivo de entrada de MCNP cuando se
+quiere calcula la distribución de alfa-Rossi utilizando tally F8 con GATES.
 """
 
 import os.path
@@ -11,7 +12,28 @@ import numpy as np
 
 def genera_tallies(archivo_tallies, def_tallies, *args, **kargs):
     """
-    TODO
+    Genera los tallies F8 con los GATES sucesivos para obtener la RAD
+
+    Parámetros
+    ----------
+        archivo_tallies : string
+            Nombre del archivo donde se guardaran las tallies
+
+        def_tallies : dict
+            Diccionario con los parámetros que se utilizarán para construir
+            las tallies. Las claves deben ser:
+                'id_det' : string
+                    ZAID del elemento donde se quiere analizar las capturas
+                    (helio-3, boro-10, etc).
+                'celdas_detector' : string
+                    Celda en donde se analizarán las capturas (detector)
+                'gate_width' : float (en segundos)
+                    Ancho de la ventana temporal (es el bin en el histogama de
+                    la distribución de alfa-Rossi).
+                'gate_maxim' : float (en segundos)
+                    Es el máximo tiempo que se analizará para cada trigger.
+                    Haciendo `gate_maxim` / `gate_width` se obtiene el número
+                    de bines de la distribución.
     """
     try:
         id_det = def_tallies['id_det']
@@ -54,7 +76,7 @@ def genera_tallies(archivo_tallies, def_tallies, *args, **kargs):
 
 def genera_archivo_completo(arch_sin_tallies, arch_tallies, arch_final):
     """
-    TODO
+    Concatena dos archivos y escribe el resultado en un tercero.
     """
     _arch_fin_i = arch_final
 

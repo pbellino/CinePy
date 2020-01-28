@@ -116,7 +116,7 @@ El resultado de utilizar F8 con la opción CAP y un GATE infinito es:
 	- 4to trigger: 1 captura
 	- 5to trigger: 0 captura
 
-       Entonces se tiene que cada trigger sumó 1 a cada captura en el histograma
+       Por lo tanto, cada trigger sumó 1 a cada captura en el histograma
 
     b) Se repite lo mismo para las cuatro historias restante. La historia #2 tiene dos capturas, por lo tanto el análisis sería:
 	
