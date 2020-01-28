@@ -35,7 +35,7 @@ Los datos que me interesan de salida del archivo `test_F8_RAD.out` son:
 
 ```
 
-Y las 16 capturas se producen en:
+Y las 14 capturas se producen en:
 
 ```
       cell     cell   nuclides     atom       total    wgt. lost   wgt. gain  
