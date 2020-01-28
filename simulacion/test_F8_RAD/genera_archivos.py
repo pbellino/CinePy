@@ -34,7 +34,13 @@ def genera_tallies(archivo_tallies, def_tallies, *args, **kargs):
         f.write('c ' + '-'*40 + '\n')
         f.write('c Definición de las tallies con GATE\n')
         f.write('c ' + '-'*40 + '\n')
-        for i, pd_gate in enumerate(pd_gates):
+        # Tally sin GATE
+        f.write('FC0008 Capturas en He3 - Sin GATE\n')
+        f.write('F0008:n {}\n'.format(celdas_detector))
+        f.write('FT0008 CAP {} \n'.format(id_det))
+        f.write('c\n')
+        # Tallies con GATE
+        for i, pd_gate in enumerate(pd_gates, 1):
             f.write('FC{:03d}8 Capturas en He3 - PD={:.2e}s GW={:.1e}s\n'.format(i, pd_gate/1e8, gate_width/1e8))
             f.write('F{:03d}8:n {}\n'.format(i, celdas_detector))
             f.write('FT{:03d}8 CAP {} GATE {} {}\n'.format(i, id_det, pd_gate,

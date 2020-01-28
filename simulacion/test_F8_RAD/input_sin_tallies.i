@@ -7,7 +7,7 @@ c
 103 0         1001         imp:n=0    $ Exterior
 
 1000 SO  0.0001       $ Esfera para fuente
-1001 SO  2.00         $ Esfera para detector
+1001 SO  2.50         $ Esfera para detector
 
 M1    98252    1      $ Cf252
 M2    5010     0.5    $ B10
@@ -32,4 +32,9 @@ c CUT:n 100.0e8
 NPS 5
 PRINT
 c ***************************************************
+c PTRAC para debuggear 
+c ***************************************************
+c Recordar asociar el tally con capturas totales sin GATE
+c
+PTRAC buffer=1000 file=asc write=all tally=0008 event=cap value=0 type=n max=2e9 filter=102,icl
 c
