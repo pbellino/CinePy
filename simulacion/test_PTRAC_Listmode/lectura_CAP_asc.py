@@ -10,6 +10,7 @@ import sys
 
 sys.path.append('../../')
 from modules.alfa_rossi_procesamiento import arossi_una_historia_I
+from modules.io_modules import read_PTRAC_CAP_bin
 
 if __name__ == '__main__':
 
@@ -44,3 +45,11 @@ if __name__ == '__main__':
     print(P_trig)
     print(P_trig.sum(axis=0))
 
+    # Leo el archivo PTRAC en binario
+
+    archivo = 'ptrac_CAP_bin'
+
+    datos, header = read_PTRAC_CAP_bin(archivo)
+
+    for dato in datos:
+        print(dato)

@@ -284,6 +284,140 @@ def read_timestamp_list_ascii(filenames):
     return data
 
 
+# ------------- Funciones para leer datos en binario --------------------------
+
+
+def uint16_at(f, pos):
+    f.seek(pos)
+    return np.fromfile(f, dtype=np.dtype('<u2'), count=1)[0]
+
+
+def int32_at(f, pos):
+    f.seek(pos)
+    return np.fromfile(f, dtype=np.dtype('<i4'), count=1)[0]
+
+
+def uint32_at(f, pos):
+    f.seek(pos)
+    _data = np.fromfile(f, dtype=np.dtype('<u4'), count=1)
+    if len(_data) == 0:
+        return _data
+    else:
+        return _data[0]
+
+
+def uint64_at(f, pos):
+    f.seek(pos)
+    return np.fromfile(f, dtype=np.dtype('<u8'), count=1)[0]
+
+
+def float64_at(f, pos):
+    f.seek(pos)
+    return np.fromfile(f, dtype=np.dtype('<f8'), count=1)[0]
+
+
+def string_at(f, pos, length):
+    f.seek(pos)
+    # In order to avoid characters with not utf8 encoding
+    return f.read(length).decode('utf8').rstrip('\00').rstrip()
+
+# ---------- Fin de funciones para leer datos en binario ---------------------
+
+
+def read_PTRAC_CAP_bin(filename):
+    """
+    Función para leer el archivo binario de PTRAC para event=CAP
+
+    Se leen los datos en el archivo binario de PTRAC cuando se especifica
+    la opción event=CAP. Se escribió porque MCNPTools no admite leer los
+    archivos de PTRAC para capturas.
+
+    Fue hecho buscando los datos en el archivo, no fue probado para cualquier
+    tipo de especificaciones de entrada del PTRAC. Mientras se conserven la
+    cantidad de datos, tendría que funcionar igual.
+
+    Los datos son leidos hasta que se termina el archivo.
+
+    Parametros
+    ----------
+
+       filename : string
+
+    Resultados
+    ----------
+
+        datos : list of list
+            Cada línea se guarda como una lista de datos. La segunda columna
+            corresponde a los tiempos de captura en shakes (10e-8s).
+
+        header : list
+            Encabezados y demás parámetros que se encuentran antes de los
+            datos en el archivo PTRAC. Muchos de ellos no son relevantes cuando
+            se utiliza PTRAC con la opción `event=CAP'.
+
+    TODO: Aprender a hacer esto bien.
+
+    """
+
+    def _lee_datos_CAP(f, pos):
+        """ Función para leer los datos de capturas luego del encabezado """
+
+        data = []
+        while True:
+            line = []
+            line.append(uint32_at(f, pos))
+            # Se lee hasta llegar al final del archivo
+            if not line[-1]:
+                break
+            else:
+                pass
+            line.append(float64_at(f, pos+8))
+            for i in range(7):
+                line.append(int32_at(f, pos+16+4*i))
+            pos = f.tell() + 8
+            data.append(line)
+        return data
+
+    with open(filename, 'rb') as f:
+        # Lectura de las primeras tres líneas del archivo
+        line1 = int32_at(f, 4)
+        line2 = string_at(f, 16, 40)
+        line3 = string_at(f, 64, 128)
+
+        # Lectura de los 30 números con especificaciones de PTRAC
+        ptrac_input_data = []
+        f.seek(f.tell() + 8)
+        for i in range(32):
+            if i in [10, 21]:
+                continue
+            ptrac_input_data.append(float64_at(f, 200 + 8*i))
+        num_variables = []
+
+        # Lectura de los 20 números de variables
+        f.seek(f.tell()+8)
+        num_variables = np.fromfile(f, '<i4', count=2)
+        f.seek(f.tell()+4)
+        _temp1 = np.fromfile(f, '<i8', count=9)
+        _temp2 = np.fromfile(f, '<i4', count=9)
+        num_variables = np.append(num_variables, _temp1)
+        num_variables = np.append(num_variables, _temp2)
+
+        # Lectura de los tipos de variables
+        f.seek(f.tell()+8)
+        tipos_var = np.fromfile(f, '<i8', count=4)
+        _temp1 = np.fromfile(f, '<i4', count=79)
+        tipos_var = np.append(tipos_var, _temp1)
+
+        header = [line1, line2, line3, ptrac_input_data,
+                  num_variables, tipos_var]
+
+        # Se leen los datos de las capturas
+        pos = f.tell() + 8
+        datos = _lee_datos_CAP(f, pos)
+
+    return datos, header
+
+
 if __name__ == '__main__':
 
     # Prueba read_bin_dt
