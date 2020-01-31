@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Script de prueba para leer un archivo PTRAC en formato ASCII
+Script de prueba para generar la distrubución de alfa-Rossi a partir de la
+simulación con PTRAC en modo lista.
 """
 
 import numpy as np
