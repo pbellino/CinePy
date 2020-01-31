@@ -491,7 +491,7 @@ def lee_tally_F8_RAD(archivo):
                 source_neutrons = int(next(f).split()[1])
 
     no_gate_data = np.asarray(data[0], dtype='float64')
-    RAD_data = np.asarray(data[1:-1], dtype='float64')
+    RAD_data = np.asarray(data[1:], dtype='float64')
     return RAD_data, no_gate_data, source_neutrons
 
 
