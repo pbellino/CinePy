@@ -418,6 +418,31 @@ def read_PTRAC_CAP_bin(filename):
     return datos, header
 
 
+def read_PTRAC_CAP_asc(filename):
+    """
+    Función para leer el archivo ascii de PTRAC para event=CAP
+
+    Leer docstring de `read_PTRAC_CAP_bin` para más información. Tiene
+    el mismo formato (salvo la resolución temporal).
+    """
+    data = []
+    header = []
+    with open(filename, 'r') as f:
+        # Se lee encabezado
+        for _ in range(10):
+            header.append(f.readline().rstrip())
+        # Se leen datos
+        for line in f:
+            if line.split()[2] == '0':
+                pass
+            else:
+                _dat_str = line.split()
+                _data_num = [int(_dat_str[0]), float(_dat_str[1])]
+                _data_num.extend(list(map(int, _dat_str[2:])))
+                data.append(_data_num)
+    return data, header
+
+
 def lee_tally_F8_RAD(archivo):
     """
     Lee los datos de tallies en la salida del MCNP para obtener la RAD
