@@ -418,6 +418,57 @@ def read_PTRAC_CAP_bin(filename):
     return datos, header
 
 
+def lee_tally_F8_RAD(archivo):
+    """
+    Lee los datos de tallies en la salida del MCNP para obtener la RAD
+
+    Se leen las 'tally fluctuation charts' asumiendo que siempre la primera
+    será de captura total sin GATE, y el resto serán con GATES y PREDELAY
+    sucesivos.
+
+    También se leen los neutrones creados en la fuente para la normalización.
+    Recordar que en SDEF par=SF normalizar por neutrones y par=-SF por fisiones
+
+    Parámetros
+    ----------
+
+        archivo : string
+            Nombre del archivo de salida de MCNP
+
+    Resultados
+    ----------
+
+       RAD_data : numpy ndarray
+            Array de la tally fluctuation charts (mean, error, vov, slope, fom)
+            para la distribución de alfa-Rossi.
+
+       no_gate_data : numpy array
+            Array de la tally fluctuation chart cuando no se utiliza GATE
+
+       source_neutrons : int
+            Cantidad de neutrones emitidos por fisión espontánea. Este es el
+            número por el cual están normalizadas las tallies si es que se
+            utilizó par=SF en la SDEF.
+    """
+
+    data = []
+    with open(archivo, 'r') as f:
+        for line in f:
+            if line.startswith(' '*10 + 'nps'):
+                tally_line = next(f).split('   ')[5:]
+                for tally in tally_line:
+                    data.append(tally.split())
+            # Se lee los neutrones creados por fuente
+            if line.startswith(' neutron creation'):
+                next(f)
+                next(f)
+                source_neutrons = int(next(f).split()[1])
+
+    no_gate_data = np.asarray(data[0], dtype='float64')
+    RAD_data = np.asarray(data[1:], dtype='float64')
+    return RAD_data, no_gate_data, source_neutrons
+
+
 if __name__ == '__main__':
 
     # Prueba read_bin_dt
