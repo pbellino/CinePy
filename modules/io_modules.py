@@ -480,9 +480,10 @@ def lee_tally_F8_RAD(archivo):
     with open(archivo, 'r') as f:
         for line in f:
             if line.startswith(' '*10 + 'nps'):
-                tally_line = next(f).split('   ')[5:]
-                for tally in tally_line:
-                    data.append(tally.split())
+                _separados = next(f).split()[1:]
+                _n_t = int(len(_separados) / 5)
+                for i in range(_n_t):
+                    data.append(_separados[i*5:5*(i+1)])
             # Se lee los neutrones creados por fuente
             if line.startswith(' neutron creation'):
                 next(f)
@@ -490,7 +491,7 @@ def lee_tally_F8_RAD(archivo):
                 source_neutrons = int(next(f).split()[1])
 
     no_gate_data = np.asarray(data[0], dtype='float64')
-    RAD_data = np.asarray(data[1:], dtype='float64')
+    RAD_data = np.asarray(data[1:-1], dtype='float64')
     return RAD_data, no_gate_data, source_neutrons
 
 
