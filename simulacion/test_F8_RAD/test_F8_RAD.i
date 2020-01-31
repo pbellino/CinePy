@@ -36,6 +36,6 @@ c PTRAC para debuggear
 c ***************************************************
 c Recordar asociar el tally con capturas totales sin GATE
 c
-PTRAC buffer=1000 file=asc write=all tally=0008 event=cap value=0 type=n max=2e9 filter=102,icl
+PTRAC buffer=1000 file=bin write=all tally=0008 event=cap value=0 type=n max=2e9 filter=102,icl
 c
 READ file=solo_tallies
