@@ -480,7 +480,13 @@ def lee_tally_F8_RAD(archivo):
     with open(archivo, 'r') as f:
         for line in f:
             if line.startswith(' '*10 + 'nps'):
-                _separados = next(f).split()[1:]
+                # _separados = next(f).split()[1:]
+                _separados = next(f)
+                _tmp_line = _separados
+                while _tmp_line.startswith('    '):
+                    _separados = _tmp_line
+                    _tmp_line = next(f)
+                _separados = _separados.split()[1:]
                 _n_t = int(len(_separados) / 5)
                 for i in range(_n_t):
                     data.append(_separados[i*5:5*(i+1)])
