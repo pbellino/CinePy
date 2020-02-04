@@ -63,7 +63,6 @@ def RAD_sin_accidentales(nombre, dt_s, dtmax_s):
     # Datos de la RAD
     historias = []
     for time in times_historia:
-        print(time)
         P_historia, _, N_trig, P_trig =  \
             arossi_una_historia_I(time, dt_s, dtmax_s, 1)
         # print(P_trig)
@@ -97,6 +96,7 @@ if __name__ == '__main__':
     # ------------------------------------------------------------------------
     #
     archivo = 'test_F8_RAD.out'
+
     data, cap_NG, nps = lee_tally_F8_RAD(archivo)
     RAD_from_F8 = data[:, 0] * nps
     tot_cap = cap_NG[0] * nps
