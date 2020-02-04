@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-TODO
+Comparación de la distribución alfa-Rossi obtenida con las tallies F8 y PTRAC
 """
 
 import numpy as np
