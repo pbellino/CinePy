@@ -57,6 +57,8 @@ def agrega_tiempo_de_fuente(tasa, datos, filename):
 
     # Convierto a array de numpy
     datos = np.asarray(datos)
+    # Ordeno por historia para después buscar más fácil
+    datos = datos[datos[:, 0].argsort()]
     # Número de historia de cada evento
     nps = np.asarray(datos[:, 0], dtype='int64')
     # Cantidad de historias totales
@@ -69,10 +71,12 @@ def agrega_tiempo_de_fuente(tasa, datos, filename):
     # Se generan número con distribución exponencial
     beta = 1.0 / tasa
     # Genero los tiempos para cada evento de fuente
+    np.random.seed(313131)
     src_time = np.cumsum(np.random.exponential(beta, num_hist))
     for n, t in zip(set(nps), src_time):
-        indx = np.where(nps == n)
-        times[indx] += t
+        indx_min = np.searchsorted(nps, n, side='left')
+        indx_max = np.searchsorted(nps, n, side='right')
+        times[indx_min:indx_max] += t
 
     # Ordeno los tiempos y mantengo asociado el numero de historia y la celda
     _temp = np.stack((nps, times, cells), axis=-1)
