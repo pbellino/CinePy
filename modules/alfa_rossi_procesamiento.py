@@ -256,6 +256,7 @@ def arossi_inspecciona_resultados(resultados, nombres, N_hist, dt_s, dtmax_s):
 
     ax1.set_xlabel(r'Tiempo [s]')
     ax1.set_ylabel(r'P($\tau$)')
+    ax1.ticklabel_format(style='sci', axis='x', scilimits=(0, 0))
     ax1.set_title(r'Curvas promediadas entre historias')
     ax1.grid(True)
     ax1.legend(loc='best')
