@@ -8,3 +8,14 @@ Se simulan los tiempos en que los neutrones son capturados en un detector de neu
 Resultados preliminares:
 
 ![Distribución de alfa-Rossi](RAD.png)
+
+
+## TODO
+
+  * Analizar los tiempos característicos. Ver los tiempos de neutrones moderados y sin moderar (tratar de distinguir las dos exponenciales)
+
+  * Agregar tiempos muerto a la simulación previo al análisis
+
+  * Agregar fotones 
+
+  * Construiir otro PTRAC para fotones capturados en otro detector
