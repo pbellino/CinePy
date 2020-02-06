@@ -70,7 +70,7 @@ def genera_tallies(archivo_tallies, def_tallies, *args, **kargs):
     return None
 
 
-def agrega_tiempo_de_fuente(tasa, datos, filename):
+def agrega_tiempo_de_fuente(tasa, nps, datos, filename):
     """
     Agrega los tiempos de fuente al tiempo registrado en el PTRAC
 
@@ -83,6 +83,10 @@ def agrega_tiempo_de_fuente(tasa, datos, filename):
         tasa : double [1/s]
             Tasa de eventos de fuente (fisiones espontáneas) por segundo. Se
             debe calcular en base a la actividad de la fuente.
+
+        nps : int
+            Cantidad de eventos de fuente (fisiones espontáneas) generadas en
+            MCNP
 
         datos : list of list
             Los datos leídos del archivo PTRAC, tal cual se obtienen con la
@@ -100,7 +104,7 @@ def agrega_tiempo_de_fuente(tasa, datos, filename):
         cells : numpy_array
             Celda en donde se produjo la captura. Sirve para diferenciar
             distintos detectores.
-        nps : numpy array
+        nps_hist : numpy array
             Lista que identifica a cuál historia pertenece cada captura. En
             principio  no tiene mucha utilidad
 
@@ -116,9 +120,9 @@ def agrega_tiempo_de_fuente(tasa, datos, filename):
     # Ordeno por historia para después buscar más fácil
     datos = datos[datos[:, 0].argsort()]
     # Número de historia de cada evento
-    nps = np.asarray(datos[:, 0], dtype='int64')
-    # Cantidad de historias totales
-    num_hist = len(set(nps))
+    nps_hist = np.asarray(datos[:, 0], dtype='int64')
+    # Cantidad de historias totales detectadas
+    num_hist_tot = len(set(nps_hist))
     # Tiempos del PTRAC en segundos
     times = np.asarray(datos[:, 1], dtype='float64') * 1e-8
     # Celda donde se produjo la captura
@@ -128,18 +132,21 @@ def agrega_tiempo_de_fuente(tasa, datos, filename):
     beta = 1.0 / tasa
     # Genero los tiempos para cada evento de fuente
     np.random.seed(313131)
-    src_time = np.cumsum(np.random.exponential(beta, num_hist))
-    for n, t in zip(set(nps), src_time):
-        indx_min = np.searchsorted(nps, n, side='left')
-        indx_max = np.searchsorted(nps, n, side='right')
+    # Tiempo para todos los eventos de fuente
+    src_time_tot = np.cumsum(np.random.exponential(beta, nps))
+    # Tiempo sólo para los eventos que contribuyeron en el PTRAC
+    src_time = np.random.choice(src_time_tot, size=num_hist_tot, replace=False)
+    for n, t in zip(set(nps_hist), src_time):
+        indx_min = np.searchsorted(nps_hist, n, side='left')
+        indx_max = np.searchsorted(nps_hist, n, side='right')
         times[indx_min:indx_max] += t
 
     # Ordeno los tiempos y mantengo asociado el numero de historia y la celda
-    _temp = np.stack((nps, times, cells), axis=-1)
+    _temp = np.stack((nps_hist, times, cells), axis=-1)
     # Ordeno para tiempos crecientes
     _temp_sorted = _temp[_temp[:, 1].argsort()]
     # Vuelvo a separar
-    nps = _temp_sorted[:, 0]
+    nps_hist = _temp_sorted[:, 0]
     times = _temp_sorted[:, 1]
     cells = _temp_sorted[:, 2]
     # Pongo en cero al primer pulso
@@ -148,7 +155,7 @@ def agrega_tiempo_de_fuente(tasa, datos, filename):
     # Se guardan los datos del tiempo
     np.savetxt(filename, times, fmt='%.12E')
 
-    return times, cells, cells
+    return times, cells, nps_hist
 
 
 def RAD_sin_accidentales(nombre, dt_s, dtmax_s):
@@ -212,6 +219,17 @@ def RAD_sin_accidentales(nombre, dt_s, dtmax_s):
     # Sumo entre todos los eventos para obtener la distribución de alfa-Rossi
     RAD = np.sum(historias, axis=0)
     return RAD
+
+
+def lee_nps_entrada(nombre):
+    """
+    Lee la cantidad de historias simuladas desde el archivo de entrada de MCNP
+    """
+    with open(nombre, 'r') as f:
+        for line in f:
+            if line.startswith('NPS'):
+                return int(float(line.split()[-1]))
+        print('No se pudo leer la cantidad nps del archivo: ' + nombre)
 
 
 if __name__ == "__main__":
