@@ -12,13 +12,18 @@ import sys
 sys.path.append('../../')
 from modules.alfa_rossi_procesamiento import arossi_una_historia_I
 from modules.io_modules import read_PTRAC_CAP_bin, read_PTRAC_CAP_asc
-from modules.simulacion_modules import agrega_tiempo_de_fuente
+from modules.simulacion_modules import agrega_tiempo_de_fuente, \
+                                       lee_nps_entrada
 
 
 if __name__ == '__main__':
 
     archivo_asc = 'ptrac_CAP_asc'
     archivo_bin = 'ptrac_CAP_bin'
+    archivo_entrada = 'test_ptrac_CAP.i'
+
+    # Se lee nps del archivo de entrada de MCNP
+    nps = lee_nps_entrada(archivo_entrada)
 
     # Se leen los datos en ascii (debug)
     '''
@@ -43,7 +48,7 @@ if __name__ == '__main__':
     # Se agrega el tiempo del evento de fuente
     tasa = 10
     archivo = 'times_listmode.dat'
-    times, nps, cells = agrega_tiempo_de_fuente(tasa, datos, archivo)
+    times, nps_hist, cells = agrega_tiempo_de_fuente(tasa, nps, datos, archivo)
 
     print('-'*50)
     print('Tiempos absolutos:')
