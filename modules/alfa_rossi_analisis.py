@@ -68,6 +68,7 @@ def arossi_grafica_historias(nombres):
         ax.plot(tau, historias, marker='.', label='Historias')
         ax.set_xlabel('Tiempo [s]')
         ax.set_ylabel(r'P($\tau$)')
+        ax.ticklabel_format(style='sci', axis='x', scilimits=(0, 0))
         handles, labels = ax.get_legend_handles_labels()
         ax.legend([handles[0]], [labels[0]], loc='best')
         ax.set_title(os.path.split(nombre)[-1])
@@ -117,6 +118,7 @@ def arossi_grafica_promedio(nombres):
                     elinewidth=0.5, marker='.')
         ax.set_xlabel('Tiempo [s]')
         ax.set_ylabel(r'P($\tau$)')
+        ax.ticklabel_format(style='sci', axis='x', scilimits=(0, 0))
         ax.legend(loc='best')
         fig.tight_layout()
         print('-'*80)
@@ -165,6 +167,7 @@ def arossi_ajuste_1exp(tau, P, P_std):
                  label='measurement')
     ax0.plot(tau, best_fit, 'r', zorder=3, label='fit')
     ax0.set_ylabel(r'P($\tau$)')
+    ax0.ticklabel_format(style='sci', axis='x', scilimits=(0, 0))
     # Invierte orden de las leyendas
     handles, labels = ax0.get_legend_handles_labels()
     ax0.legend(handles[::-1], labels[::-1], loc='best')
@@ -234,6 +237,7 @@ def arossi_ajuste_2exp(tau, P, P_std):
                  label='measurement')
     ax0.plot(tau, best_fit, 'r', zorder=3, label='fit')
     ax0.set_ylabel(r'P($\tau$)')
+    ax0.ticklabel_format(style='sci', axis='x', scilimits=(0, 0))
     # Invierte orden de las leyendas
     handles, labels = ax0.get_legend_handles_labels()
     ax0.legend(handles[::-1], labels[::-1], loc='best')
