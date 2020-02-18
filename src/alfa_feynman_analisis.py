@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import numpy as np
@@ -154,7 +154,7 @@ def ajuste_afey_3exp(tau, Y, std_Y):
     ax0.legend(handles[::-1], labels[::-1], loc='best')
 
     ax1.plot(tau, result.residual, 'k.')
-    ax1.set_xlabel(r'$\tau$ [ms]')
+    ax1.set_xlabel(r'$\tau$ [s]')
     ax1.set_ylabel(r'Residuals')
     fig.subplots_adjust(hspace=0.1)
 
@@ -232,7 +232,7 @@ def ajuste_afey_2exp(tau, Y, std_Y):
     ax0.legend(handles[::-1], labels[::-1], loc='best')
 
     ax1.plot(tau, result.residual, 'k.')
-    ax1.set_xlabel(r'$\tau$ [ms]')
+    ax1.set_xlabel(r'$\tau$ [s]')
     ax1.set_ylabel(r'Residuals')
     fig.subplots_adjust(hspace=0.1)
 
@@ -308,7 +308,7 @@ def ajuste_afey_delayed(tau, Y, std_Y):
     ax0.legend(handles[::-1], labels[::-1], loc='best')
 
     ax1.plot(tau, result.residual, 'k.')
-    ax1.set_xlabel(r'$\tau$ [ms]')
+    ax1.set_xlabel(r'$\tau$ [s]')
     ax1.set_ylabel(r'Residuals')
     fig.subplots_adjust(hspace=0.1)
 
@@ -387,7 +387,7 @@ def ajuste_afey_2exp_delayed(tau, y, std_y):
     ax0.legend(handles[::-1], labels[::-1], loc='best')
 
     ax1.plot(tau, result.residual, 'k.')
-    ax1.set_xlabel(r'$\tau$ [ms]')
+    ax1.set_xlabel(r'$\tau$ [s]')
     ax1.set_ylabel(r'residuals')
     fig.subplots_adjust(hspace=0.1)
 
@@ -460,7 +460,7 @@ def ajuste_afey(tau, Y, std_Y):
     ax0.legend(handles[::-1], labels[::-1], loc='best')
 
     ax1.plot(tau, result.residual, 'k.')
-    ax1.set_xlabel(r'$\tau$ [ms]')
+    ax1.set_xlabel(r'$\tau$ [s]')
     ax1.set_ylabel(r'Residuals')
     fig.subplots_adjust(hspace=0.1)
 
@@ -536,7 +536,7 @@ def ajuste_afey_nldtime(tau, Y, std_Y):
     ax0.legend(handles[::-1], labels[::-1], loc='best')
 
     ax1.plot(tau, result.residual, 'k.')
-    ax1.set_xlabel(r'$\tau$ [ms]')
+    ax1.set_xlabel(r'$\tau$ [s]')
     ax1.set_ylabel(r'Residuals')
     fig.subplots_adjust(hspace=0.1)
 
@@ -608,7 +608,7 @@ if __name__ == '__main__':
 
     fig8, ax8 = plt.subplots(1, 1)
     ax8.plot(tau, num_hist*std_Y**2, '.', label='Estimated variance')
-    ax8.set_xlabel(r'$\tau$ [ms]')
+    ax8.set_xlabel(r'$\tau$ [s]')
     ax8.set_ylabel(r'Var[Y($\tau$)]')
 
     ax8.plot(tau, var_teo, 'r', lw=2, label='Teoretical variance')
