@@ -162,7 +162,7 @@ def ajuste_afey_3exp(tau, Y, std_Y):
     fig2, ax3 = plt.subplots(1, 1)
     ax3.hist(result.residual, bins=15, density=True, label='Residuals')
     res_mean = np.mean(result.residual)
-    res_std = np.std(result.residual)
+    res_std = np.std(result.residual, ddof=1)
     x = np.linspace(norm.ppf(0.001), norm.ppf(0.999), 500)
     ax3.plot(x, norm.pdf(x, loc=res_mean, scale=res_std),
              'r-', lw=5, alpha=0.6, label='Normal pdf')
@@ -240,7 +240,7 @@ def ajuste_afey_2exp(tau, Y, std_Y):
     fig2, ax3 = plt.subplots(1, 1)
     ax3.hist(result.residual, bins=15, density=True, label='Residuals')
     res_mean = np.mean(result.residual)
-    res_std = np.std(result.residual)
+    res_std = np.std(result.residual, ddof=1)
     x = np.linspace(norm.ppf(0.001), norm.ppf(0.999), 500)
     ax3.plot(x, norm.pdf(x, loc=res_mean, scale=res_std),
              'r-', lw=5, alpha=0.6, label='Normal pdf')
@@ -316,7 +316,7 @@ def ajuste_afey_delayed(tau, Y, std_Y):
     fig2, ax3 = plt.subplots(1, 1)
     ax3.hist(result.residual, bins=15, density=True, label='Residuals')
     res_mean = np.mean(result.residual)
-    res_std = np.std(result.residual)
+    res_std = np.std(result.residual, ddof=1)
     x = np.linspace(norm.ppf(0.001), norm.ppf(0.999), 500)
     ax3.plot(x, norm.pdf(x, loc=res_mean, scale=res_std),
              'r-', lw=5, alpha=0.6, label='Normal pdf')
@@ -395,7 +395,7 @@ def ajuste_afey_2exp_delayed(tau, y, std_y):
     fig2, ax3 = plt.subplots(1, 1)
     ax3.hist(result.residual, bins=15, density=True, label='residuals')
     res_mean = np.mean(result.residual)
-    res_std = np.std(result.residual)
+    res_std = np.std(result.residual, ddof=1)
     x = np.linspace(norm.ppf(0.001), norm.ppf(0.999), 500)
     ax3.plot(x, norm.pdf(x, loc=res_mean, scale=res_std),
              'r-', lw=5, alpha=0.6, label='normal pdf')
@@ -468,7 +468,7 @@ def ajuste_afey(tau, Y, std_Y):
     fig2, ax3 = plt.subplots(1, 1)
     ax3.hist(result.residual, bins=15, density=True, label='Residuals')
     res_mean = np.mean(result.residual)
-    res_std = np.std(result.residual)
+    res_std = np.std(result.residual, ddof=1)
     x = np.linspace(norm.ppf(0.001), norm.ppf(0.999), 500)
     ax3.plot(x, norm.pdf(x, loc=res_mean, scale=res_std),
              'r-', lw=5, alpha=0.6, label='Normal pdf')
@@ -544,7 +544,7 @@ def ajuste_afey_nldtime(tau, Y, std_Y):
     fig2, ax3 = plt.subplots(1, 1)
     ax3.hist(result.residual, bins=15, density=True, label='Residuals')
     res_mean = np.mean(result.residual)
-    res_std = np.std(result.residual)
+    res_std = np.std(result.residual, ddof=1)
     x = np.linspace(norm.ppf(0.001), norm.ppf(0.999), 500)
     ax3.plot(x, norm.pdf(x, loc=res_mean, scale=res_std),
              'r-', lw=5, alpha=0.6, label='Normal pdf')

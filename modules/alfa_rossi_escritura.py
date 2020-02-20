@@ -160,10 +160,10 @@ def escribe_datos_promedio(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
         # Sólo me interesan los promedios
         R = R[:, 0]
         R_mean = np.mean(R)
-        R_std = np.std(R) / np.sqrt(R.size)
+        R_std = np.std(R, ddof=1) / np.sqrt(R.size)
         N_trig = resultado[:, 2]
         N_trig_mean = np.mean(N_trig)
-        N_trig_std = np.std(N_trig) / np.sqrt(N_trig.size)
+        N_trig_std = np.std(N_trig, ddof=1) / np.sqrt(N_trig.size)
         with open(camino, 'a') as f:
             f.write('# Tasa de cuentas promedio [cps] \n')
             f.write('{:1.6e}\n'.format(R_mean))
@@ -180,7 +180,7 @@ def escribe_datos_promedio(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
         # Todas las historias
         _historias = resultado[:, 0]
         P_mean = np.mean(_historias)
-        P_std = np.std(_historias) / np.sqrt(Nhist)
+        P_std = np.std(_historias, ddof=1) / np.sqrt(Nhist)
         # Agrupa en columnas
         _es = np.column_stack((tau, P_mean, P_std))
         with open(camino, 'ab') as f:

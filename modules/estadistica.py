@@ -69,7 +69,8 @@ def rate_from_timestamp(tiempo_entre_pulsos):
     _dt_mean = np.mean(tiempo_entre_pulsos)
     R_mean = 1.0/_dt_mean
     # Desvío
-    _dt_std = np.std(tiempo_entre_pulsos)/np.sqrt(len(tiempo_entre_pulsos))
+    _dt_std = np.std(tiempo_entre_pulsos, ddof=1) \
+        / np.sqrt(len(tiempo_entre_pulsos))
     # Fórmula de propagación de errores a primer orden
     R_std = _dt_std / _dt_mean**2
     return R_mean, R_std

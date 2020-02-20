@@ -250,7 +250,7 @@ def arossi_inspecciona_resultados(resultados, nombres, N_hist, dt_s, dtmax_s):
         fig2.tight_layout()
         # Grafica el promedio entre historias
         P_mean = np.mean(historias)
-        P_std = np.std(historias) / np.sqrt(N_hist)
+        P_std = np.std(historias, ddof=1) / np.sqrt(N_hist)
         ax1.errorbar(tau, P_mean, yerr=P_std, fmt='.', elinewidth=0.5,
                      lw=0, label=nombres_lab[i])
 

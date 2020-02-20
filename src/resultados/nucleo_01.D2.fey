@@ -2,7 +2,7 @@
 #
 # Cálculo de (var_i/mean_i - 1) en paralelo
 #
-# Fecha de procesamiento: 06-05-2019 23:11
+# Fecha de procesamiento: 20-02-2020 17:44
 #
 # Valor de dt [s]:
 5e-05
@@ -11,7 +11,7 @@
 100
 # Tasa de cuentas [cps]:
 # [promedio desvio_promedio ...]
-[3463.898520832936, 2.1983432170161636]
+[3463.8985208329359, 2.1983432921868165]
 # Cada columna es una historia
 #
 2.001106076229745845e-02 3.910149920411242906e-04

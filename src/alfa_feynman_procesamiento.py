@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import numpy as np
@@ -54,9 +54,9 @@ def calcula_alfa_feynman_input(datos, numero_de_historias, dt_base, dt_maximo):
                 _nom = line.split('/')[-1]
                 _nom = _nom.rsplit('.', 1)
                 nombres_archivos.append('resultados/' + _nom[-2] + '.Nk')
-        header = u'Cantidad de datos utilizados para hacer estadística ' + \
-                 u'con cada intervalo dt. Se usa para corregir la ' + \
-                 u'función teórica durante el ajuste'
+        header = 'Cantidad de datos utilizados para hacer estadistica ' + \
+                 'con cada intervalo dt. Se usa para corregir la ' + \
+                 'funcion teorica durante el ajuste'
         for nombre in nombres_archivos:
             np.savetxt(nombre, N_k, fmt='%.i', header=header)
 
@@ -586,7 +586,8 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo):
                 # Tasa promedio
                 _prom = np.mean(leido[0]) / leido[1]
                 # Desvío del promedio
-                _desvio = np.std(leido[0]) / leido[1] / np.sqrt(len(leido[0]))
+                _desvio = np.std(leido[0], ddof=1) / leido[1] \
+                    / np.sqrt(len(leido[0]))
                 _tasas.append([_prom, _desvio])
             return _tasas
 

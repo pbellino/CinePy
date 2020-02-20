@@ -181,7 +181,7 @@ def arossi_ajuste_1exp(tau, P, P_std):
     fig2, ax1 = plt.subplots(1, 1)
     ax1.hist(result.residual, bins=20, density=True, label='Residuals')
     res_mean = np.mean(result.residual)
-    res_std = np.std(result.residual)
+    res_std = np.std(result.residual, ddof=1)
     x = np.linspace(norm.ppf(0.0001), norm.ppf(0.999), 500)
     ax1.plot(x, norm.pdf(x, loc=res_mean, scale=res_std), 'r-', lw=5,
              alpha=0.6, label='Normal pdf')
@@ -251,7 +251,7 @@ def arossi_ajuste_2exp(tau, P, P_std):
     fig2, ax1 = plt.subplots(1, 1)
     ax1.hist(result.residual, bins=20, density=True, label='Residuals')
     res_mean = np.mean(result.residual)
-    res_std = np.std(result.residual)
+    res_std = np.std(result.residual, ddof=1)
     x = np.linspace(norm.ppf(0.0001), norm.ppf(0.999), 500)
     ax1.plot(x, norm.pdf(x, loc=res_mean, scale=res_std), 'r-', lw=5,
              alpha=0.6, label='Normal pdf')

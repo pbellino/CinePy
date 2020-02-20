@@ -262,9 +262,9 @@ def inspeccion_historias(historias, tb=12.5e-9):
     print('Pulsos totales : {}'.format(_pul_tot))
     # Duración de cada historia en unidades de tb
     _mean_t = np.mean(tiempos_historia) * tb
-    _std_t = np.std(tiempos_historia) * tb
+    _std_t = np.std(tiempos_historia, ddof=1) * tb
     _mean_R = np.mean(tasa_historia) / tb
-    _std_R = np.std(tasa_historia) / tb
+    _std_R = np.std(tasa_historia, ddof=1) / tb
     print('Duración de cada historia: {} +/- {}'.format(_mean_t, _std_t))
     print('Tasa de cada historia: {} +/- {}'.format(_mean_R, _std_R))
     print('(Utilizando {} como unidad temporal)'.format(tb))
