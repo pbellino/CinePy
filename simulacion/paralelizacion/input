@@ -1,0 +1,32 @@
+Fuente quasi-puntual de Cf252 en agua
+c
+c
+c
+100 1  -2.0        -1000   imp:n=1    $ Fuente Cf252
+102 2  -1.0   1000 -1001   imp:n=1    $ Moderador
+103 3  -10.0  1001 -1002   imp:n=1    $ Detector
+104 0         1002         imp:n=0    $ Exterior
+
+1000 SO  0.0001       $ Esfera para fuente
+1001 SO  15.00        $ Esfera para moderador
+1002 SO  15.50        $ Esfera para detector
+
+M1    98252     1     $ Cf252
+M2     1001     2     $ H
+       8016     1     $ O
+M3     5010     1     $ B10
+c ***************************************************
+c FUENTE
+c ***************************************************
+c Fuente puntual, debe ubicarse en una celda con un
+c nucleido que posea datos de fisiones espontáneas
+c
+SDEF  par=SF  pos= 0 0 0
+c ***************************************************
+MODE n
+CUT:n 100.0e10 J 0 0
+F4:n 102
+RAND GEN=2 SEED=1
+NPS 1e2
+
+
