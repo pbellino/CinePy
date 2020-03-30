@@ -25,7 +25,7 @@
 
 
 #Limpia enviroment
-module purge
+# module purge
 
 #Suma la posibilidad de cargar modulos propios del usuario
 module load use.own 
