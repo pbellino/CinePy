@@ -59,10 +59,16 @@ if __name__ == '__main__':
     input_mcnp = 'input'
     slurm_script = 'mcnp6.slurm'  # Un solo proceso en serie
     slurm_script = 'mcnp6_gcc6.3_openmp.slurm'  # Usando OpenMP
-    n_tasks = 32   # Sólo se utiliza para OpenMP
+    # n_tasks = 32   # Sólo se utiliza para OpenMP
     ###########################################################################
 
-    n_tasks = str(n_tasks)
+    try:
+        n_tasks = str(n_tasks)
+    except NameError:
+        if 'openmp' in slurm_script:
+            print('No se definió la variable n_task')
+            print('Se sale')
+            quit()
 
     # Directorio raiz
     parent = os.getcwd()
@@ -106,7 +112,7 @@ if __name__ == '__main__':
         command = "sbatch " + slurm_script
         process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
-        
+
         print(' Se sale de la carpeta ' + dir_corrida)
 
         os.chdir(parent)
