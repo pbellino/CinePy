@@ -26,7 +26,7 @@ c ***************************************************
 c Fuente puntual, debe ubicarse en una celda con un
 c nucleido que posea datos de fisiones espontáneas
 c
-SDEF  PAR=SF  POS= 0 0 0  EXT=D1  RAD=D2  AXS= 0 0 1
+SDEF  PAR=-SF  POS= 0 0 0  EXT=D1  RAD=D2  AXS= 0 0 1
 SI1 H -2 2      $ Longitud de la fuente
 SP1 -21 0       $ Densidad unifrome en z
 SI2 H 0 0.5     $ Radio de la fuente
