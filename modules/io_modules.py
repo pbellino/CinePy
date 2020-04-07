@@ -501,6 +501,60 @@ def lee_tally_F8_RAD(archivo):
     return RAD_data, no_gate_data, source_neutrons
 
 
+def lee_tallies(archivo):
+    """
+    Lee los datos de las tallies del archivo de salida de MCNP
+
+    Se leen las 'tally fluctuation charts' en el orden en que aparecen las
+    tallies. También busca valor de partículas generadas por fuente.
+
+    Parametros
+    ----------
+
+        archivo : string
+            Nombre del archivo de salida de MCNP
+
+    Resultados
+    ---------
+
+        data : numpy ndarray
+            Array de la tally fluctuation chart (mean, error, vov, slope, fom)
+
+        nps : int
+            Valores de nps que se utilizí en la corrida
+
+        source_neutrons : int
+            Cantidad de partículas generadas por la fuente (puede no coincidir
+            con nps (por ejemplo, en fisiones espontáneas)
+    """
+
+    data = []
+    with open(archivo, 'r') as f:
+        for line in f:
+            # Busca el comienzo de las TFC
+            if line.startswith(' '*10 + 'nps'):
+                _separados = next(f)
+                _tmp_line = _separados
+                while _tmp_line.startswith('    '):
+                    _separados = _tmp_line
+                    _tmp_line = next(f)
+                # Se lee el valor de nps
+                nps = int(_separados.split()[0])
+                # Se lee el resto del renglón
+                _separados = _separados.split()[1:]
+                # De cuentan la cantidad de tallies
+                _n_t = int(len(_separados) / 5)
+                # Se guardan los valores de cada tally
+                for i in range(_n_t):
+                    data.append(_separados[i*5:5*(i+1)])
+            # Se lee los neutrones creados por fuente
+            if line.startswith(' neutron creation'):
+                next(f)
+                next(f)
+                source_neutrons = int(next(f).split()[1])
+    return data, nps, source_neutrons
+
+
 if __name__ == '__main__':
 
     # Prueba read_bin_dt
