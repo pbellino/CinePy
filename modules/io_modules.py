@@ -573,6 +573,9 @@ def lee_tally_E_card(archivo):
     datos : dictionary
         Diccionario donde cada clave es un string con el número del tally, y el
         valor es un ndarray de numpy con [energia valor error_rel].
+    bins : dictionary
+        Diccionario donde cada clave es un string con el número del tally, y el
+        valor es un ndarray con [valor_bin_inferior valor_bin_superior]
     nombres : list of strings
         Lista con strings correspondientes a cada tally leída. Sólo para
         debuggear. Deben coincidir con los keys del diccionario 'datos'.
@@ -580,10 +583,12 @@ def lee_tally_E_card(archivo):
 
     nombres = []
     datos = {}
+    bins = {}
     with open(archivo, 'r') as f:
         for line in f:
             if line.startswith('1tally'):
                 line_sep = line.split()
+                # Lee los resultados de las tallies
                 if line_sep[2] == 'nps':
                     _tally_n = line_sep[1]
                     nombres.append(_tally_n)
@@ -599,7 +604,25 @@ def lee_tally_E_card(archivo):
                                     _un_tally.append(val_line.rsplit())
                             break
                     datos[_tally_n] = np.asarray(_un_tally, dtype=float)
-    return datos, nombres
+                # Lee los bins de las tallies
+                elif line_sep[2] == 'print':
+                    _tally_n = line_sep[1]
+                    _un_bin = []
+                    while True:
+                        _line = f.readline()
+                        if _line.startswith(' energy bins'):
+                            while True:
+                                bin_line = f.readline()
+                                if 'total' in bin_line:
+                                    break
+                                else:
+                                    _un_bin.append([bin_line.rsplit()[j] for j
+                                                    in [0, 2]])
+                            break
+                        print('No se encontraaron bines de energía')
+                        _un_bin = []
+                    bins[_tally_n] = np.asarray(_un_bin, dtype=float)
+    return datos, nombres, bins
 
 
 if __name__ == '__main__':
