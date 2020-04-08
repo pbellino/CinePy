@@ -323,6 +323,7 @@ def string_at(f, pos, length):
 
 # ---------- Fin de funciones para leer datos en binario ---------------------
 
+# ------------- Funciones para leer archivos de MCNP  -------------------------
 
 def read_PTRAC_CAP_bin(filename):
     """
@@ -553,6 +554,52 @@ def lee_tallies(archivo):
                 next(f)
                 source_neutrons = int(next(f).split()[1])
     return data, nps, source_neutrons
+
+
+def lee_tally_E_card(archivo):
+    """
+    Función para leer los datos al utilizar la tarjeta e en un tally de MCNP
+
+    Se hace una búsqueda de la palabra '1tally' seguidoa de 'nps'. De leen
+    todas las tallies del archivo
+
+    Parámetros
+    ----------
+    archivo : string
+        Nombre del archivo de salida de MCNP
+
+    Resultados
+    ----------
+    datos : dictionary
+        Diccionario donde cada clave es un string con el número del tally, y el
+        valor es un ndarray de numpy con [energia valor error_rel].
+    nombres : list of strings
+        Lista con strings correspondientes a cada tally leída. Sólo para
+        debuggear. Deben coincidir con los keys del diccionario 'datos'.
+    """
+
+    nombres = []
+    datos = {}
+    with open(archivo, 'r') as f:
+        for line in f:
+            if line.startswith('1tally'):
+                line_sep = line.split()
+                if line_sep[2] == 'nps':
+                    _tally_n = line_sep[1]
+                    nombres.append(_tally_n)
+                    _un_tally = []
+                    while True:
+                        _line = f.readline()
+                        if _line.startswith('      energy'):
+                            while True:
+                                val_line = f.readline()
+                                if 'total' in val_line:
+                                    break
+                                else:
+                                    _un_tally.append(val_line.rsplit())
+                            break
+                    datos[_tally_n] = np.asarray(_un_tally, dtype=float)
+    return datos, nombres
 
 
 if __name__ == '__main__':
