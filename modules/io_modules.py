@@ -619,8 +619,8 @@ def lee_tally_E_card(archivo):
                                     _un_bin.append([bin_line.rsplit()[j] for j
                                                     in [0, 2]])
                             break
-                        print('No se encontraaron bines de energía')
-                        _un_bin = []
+                        # print('No se encontraaron bines de energía')
+                        # _un_bin = []
                     bins[_tally_n] = np.asarray(_un_bin, dtype=float)
     return datos, nombres, bins
 
