@@ -402,15 +402,24 @@ def read_PTRAC_CAP_bin(filename):
         _temp2 = np.fromfile(f, '<i4', count=9)
         num_variables = np.append(num_variables, _temp1)
         num_variables = np.append(num_variables, _temp2)
+        # Sumando puedo obtener la cantidad de variables que
+        # se deben leer en el próximo paso
+        sum_num_var = np.sum(num_variables[0:11])
+        # Indica el ID de la partícula
+        # (=0 si es un problema con más de una partícula, y esta info se
+        # agrega dentro de las líneas de cada evento)
+        tipo_particula = num_variables[11]
+        # El valor #13 siempre debe valer cuatro
+        assert num_variables[12] == 4, 'Falla en lectura de encabezado'
 
         # Lectura de los tipos de variables
         f.seek(f.tell()+8)
         tipos_var = np.fromfile(f, '<i8', count=4)
-        _temp1 = np.fromfile(f, '<i4', count=79)
+        _temp1 = np.fromfile(f, '<i4', count=sum_num_var-4)
         tipos_var = np.append(tipos_var, _temp1)
 
         header = [line1, line2, line3, ptrac_input_data,
-                  num_variables, tipos_var]
+                  num_variables, tipos_var, tipo_particula]
 
         # Se leen los datos de las capturas
         pos = f.tell() + 8
@@ -434,6 +443,7 @@ def read_PTRAC_CAP_asc(filename):
             header.append(f.readline().rstrip())
         # Se leen datos
         for line in f:
+            # Eventos que aparecen como '0' en lugar de la celda
             if line.split()[2] == '0':
                 pass
             else:
