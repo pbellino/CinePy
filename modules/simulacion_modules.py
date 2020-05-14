@@ -102,8 +102,7 @@ def agrega_tiempo_de_fuente(tasa, nps, datos, filename):
     ----------
 
         times : numpy array
-            Lista ordenada de los tiempos de captura. Contados todos a partir
-            del primero (ie times[0]=0)
+            Lista ordenada de los tiempos de captura.
         cells : numpy_array
             Celda en donde se produjo la captura. Sirve para diferenciar
             distintos detectores.
@@ -138,7 +137,12 @@ def agrega_tiempo_de_fuente(tasa, nps, datos, filename):
     # Tiempo para todos los eventos de fuente
     src_time_tot = np.cumsum(np.random.exponential(beta, nps))
     # Tiempo sólo para los eventos que contribuyeron en el PTRAC
-    src_time = np.random.choice(src_time_tot, size=num_hist_tot, replace=False)
+    # - Esto lo comento para conservar la relación entre el tiempo generado
+    # - y la histroria cuando quiero procesar neutrones y fotones
+    # src_time = np.random.choice(src_time_tot, size=num_hist_tot,
+    #                        replace=False)
+    src_time = src_time_tot[np.unique(nps_hist)-1]
+    print(src_time_tot)
     for n, t in zip(np.unique(nps_hist), src_time):
         indx_min = np.searchsorted(nps_hist, n, side='left')
         indx_max = np.searchsorted(nps_hist, n, side='right')
@@ -153,7 +157,7 @@ def agrega_tiempo_de_fuente(tasa, nps, datos, filename):
     times = _temp_sorted[:, 1]
     cells = _temp_sorted[:, 2]
     # Pongo en cero al primer pulso
-    times -= times[0]
+    # times -= times[0]
 
     # Se guardan los datos del tiempo
     np.savetxt(filename, times, fmt='%.12E')
