@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+from mcnptools import Ptrac
 from modules.alfa_rossi_procesamiento import arossi_una_historia_I
 from modules.io_modules import read_PTRAC_CAP_bin
 
@@ -142,7 +143,6 @@ def agrega_tiempo_de_fuente(tasa, nps, datos, filename):
     # src_time = np.random.choice(src_time_tot, size=num_hist_tot,
     #                        replace=False)
     src_time = src_time_tot[np.unique(nps_hist)-1]
-    print(src_time_tot)
     for n, t in zip(np.unique(nps_hist), src_time):
         indx_min = np.searchsorted(nps_hist, n, side='left')
         indx_max = np.searchsorted(nps_hist, n, side='right')
@@ -237,6 +237,55 @@ def lee_nps_entrada(nombre):
             if line.startswith('NPS'):
                 return int(float(line.split()[-1]))
         print('No se pudo leer la cantidad nps del archivo: ' + nombre)
+
+
+def read_PTRAC_estandar(archivo, tipo):
+    """
+    Función para leer archivo PTRAC estandar de MCNP
+
+    Parametros
+    ----------
+        archivo : string
+            Nombre del archivo que se quiere leer
+        tipo : string ('asc', 'bin')
+            Tipo del archivo PTRAC. ASCII o binario ('asc' o 'bin')
+
+    """
+
+    Nbatch = 1000
+    if tipo == 'bin':
+        p = Ptrac(archivo, Ptrac.BIN_PTRAC)
+    elif tipo == 'asc':
+        p = Ptrac(archivo, Ptrac.ASC_PTRAC)
+    else:
+        raise NameError('Tipo de archivo no reconocido.' +
+                        'Debe ser "bin" o "asc"')
+
+    # Se obtienen las historias
+    hists = p.ReadHistories(Nbatch)
+
+    data = []
+    while hists:
+        # Loop en las historias
+        for h in hists:
+            # Número de historia
+            numero_nps = h.GetNPS().NPS()
+            # Loop en los eventos
+            for e in range(h.GetNumEvents()):
+                event = h.GetEvent(e)
+                data.append([
+                              numero_nps,
+                              event.Get(Ptrac.TIME),
+                              int(event.Get(Ptrac.CELL)),
+                              event.Type(),
+                              ]
+                            )
+
+                # if event.Type() == Ptrac.SUR:
+                #    print(event.Get(Ptrac.X))
+
+        hists = p.ReadHistories(Nbatch)
+    return data
 
 
 if __name__ == "__main__":
