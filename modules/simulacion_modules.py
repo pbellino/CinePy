@@ -124,7 +124,7 @@ def agrega_tiempo_de_fuente(tasa, nps, datos, filename):
     # Número de historia de cada evento
     nps_hist = np.asarray(datos[:, 0], dtype='int64')
     # Cantidad de historias totales detectadas
-    num_hist_tot = np.unique(nps_hist).shape[0]
+    # num_hist_tot = np.unique(nps_hist).shape[0]
     # Tiempos del PTRAC en segundos
     times = np.asarray(datos[:, 1], dtype='float64') * 1e-8
     # Celda donde se produjo la captura
