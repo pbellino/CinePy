@@ -89,8 +89,11 @@ def agrega_tiempo_de_fuente(tasa, nps, datos, filename):
             MCNP
 
         datos : list of list
-            Los datos leídos del archivo PTRAC, tal cual se obtienen con la
-            función `read_PTRAC_CAP_bin()`
+            Los datos leídos del archivo PTRAC. El formato debe ser:
+                1er columna -> El número de historia (nps)
+                2da columna -> Los tiempos registrados
+                3ra columna -> La celda donde se registró
+            Si hay más columnas son ignoradas.
 
         filename : string
             Nombre del archivo donde se guardarán los tiempos.
@@ -122,7 +125,7 @@ def agrega_tiempo_de_fuente(tasa, nps, datos, filename):
     # Número de historia de cada evento
     nps_hist = np.asarray(datos[:, 0], dtype='int64')
     # Cantidad de historias totales detectadas
-    num_hist_tot = len(set(nps_hist))
+    num_hist_tot = np.unique(nps_hist).shape[0]
     # Tiempos del PTRAC en segundos
     times = np.asarray(datos[:, 1], dtype='float64') * 1e-8
     # Celda donde se produjo la captura
@@ -136,7 +139,7 @@ def agrega_tiempo_de_fuente(tasa, nps, datos, filename):
     src_time_tot = np.cumsum(np.random.exponential(beta, nps))
     # Tiempo sólo para los eventos que contribuyeron en el PTRAC
     src_time = np.random.choice(src_time_tot, size=num_hist_tot, replace=False)
-    for n, t in zip(set(nps_hist), src_time):
+    for n, t in zip(np.unique(nps_hist), src_time):
         indx_min = np.searchsorted(nps_hist, n, side='left')
         indx_max = np.searchsorted(nps_hist, n, side='right')
         times[indx_min:indx_max] += t
