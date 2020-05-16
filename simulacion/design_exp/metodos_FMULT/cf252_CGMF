@@ -1,0 +1,37 @@
+Caracteristicas de emision del Cf252 usando metodo CGMF (METHOD=7)
+c
+c
+100 1  -1e-10   -1000  imp:n,p=1  $ Cf252
+102 0            1000  imp:n,p=0  $ Nada
+
+1000 SO  0.000000001              $ Esfera para Cf252
+
+M1    98252.80c     1             $ Cf252
+c ***************************************************
+c FUENTE
+c ***************************************************
+c Fuente puntual
+c
+SDEF  PAR=-SF 
+c ***************************************************
+FC11 Neutrones que salen de la fuente
+F11:n 1000
+E11 1e-5 198ILOG 100
+c
+FC21 Fotones que salen de la fuente
+F21:p 1000
+E21 2e-2 198ILOG 50
+c ***************************************************
+c PTRAC
+c ***************************************************
+PTRAC BUFFER=1000 FILE=bin MAX=1e9 TYPE=n,p WRITE=all EVENT=ter
+FMULT METHOD=7
+c TOTNU NO
+MODE n p
+CUT:n J J 0 0           $ Fuerza captura analógica
+CUT:p J 1e-3 0 0           $ Fuerza captura analógica
+RAND GEN=2 SEED=1
+NPS 1e1
+PRINT
+
+

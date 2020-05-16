@@ -1,0 +1,37 @@
+Fuente quasi-puntual de Cf252 inmersa en esfera de agua
+c
+c
+c
+100 1  -2.0        -1000         imp:np=1    $ Fuente Cf252
+102 0               1000 -1001   imp:np=1
+c 102 2  -1.0         1000 -1001   imp:np=1
+104 0               1001         imp:np=0    $ Exterior
+
+1000 SO  0.000000001       $ Esfera para fuente
+1001 SO  1.00             $ Esfera para moderador
+
+M1    98252.70c     1     $ Cf252
+M2     1001.70c     2     $ H
+       8016.70c     1     $ O
+MT2 lwtr.20t
+c ***************************************************
+c FUENTE
+c ***************************************************
+c
+SDEF  par=SF  pos= 0 0 0 
+c
+FC11 Neutrones a través de la superficie
+F11:n 1001
+E11 0.1e-6 200ILOG 100
+SD11 1
+FC21 Fotones a través de la superficie
+F21:p 1001
+E21 2e-3 200ILOG 50
+MODE n p
+NPS 5e4
+PRINT
+FMULT METHOD=5
+c CUT:n J J 0 0
+
+
+

@@ -261,6 +261,7 @@ def arossi_inspecciona_resultados(resultados, nombres, N_hist, dt_s, dtmax_s):
     ax1.grid(True)
     ax1.legend(loc='best')
     fig3.tight_layout()
+    ax1.set_yscale('log')
 
     plt.show()
 

@@ -1,0 +1,36 @@
+Fuente de Cf252 puntual en agua con detectores de NaI
+c
+c
+c
+100 1  -0.5         -1000       imp:n,p=1    $ Fuente Cf252
+102 0  1000 -1001               imp:n,p=1    $ Agua
+106 0               1001        imp:n,p=0    $ Exterior
+
+1000 SO  0.0000000000001         $ Fuente Cf-252
+1001 SO  1                          $ Esfera vacio
+
+M1    98252.80c     1     $ Cf252
+c ***************************************************
+c FUENTE
+c ***************************************************
+c Fuente puntual, debe ubicarse en una celda con un
+c nucleido que posea datos de fisiones espontáneas
+c
+SDEF  PAR=-SF  
+c ***************************************************
+FC11 Corriente de neutrones que salen del balde
+F11:n 1001
+E11 1e-5 200ILOG 100
+c
+FC21 Corriente de fotones que salen del balde
+F21:p 1001
+E21 2e-2 200ILOG 50
+c ***************************************************
+FMULT METHOD=6
+MODE n p
+CUT:n 100.0e10 J 0 0
+RAND GEN=2 SEED=1
+NPS 1e6
+PRINT
+
+
