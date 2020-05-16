@@ -239,7 +239,7 @@ def lee_nps_entrada(nombre):
         print('No se pudo leer la cantidad nps del archivo: ' + nombre)
 
 
-def read_PTRAC_estandar(archivo, tipo):
+def read_PTRAC_estandar(archivo, tipo, eventos):
     """
     Función para leer archivo PTRAC estandar de MCNP
 
@@ -249,6 +249,14 @@ def read_PTRAC_estandar(archivo, tipo):
             Nombre del archivo que se quiere leer
         tipo : string ('asc', 'bin')
             Tipo del archivo PTRAC. ASCII o binario ('asc' o 'bin')
+        eventos : list of strings ('src', 'ter', 'bnk', 'col', 'src')
+            Lista con los eventos que se desean leer
+
+    Resultados
+    ----------
+        data : list of lists
+           Cada elemento de data contiene una lista con:
+                [numero_historia, tiempo, celda, tipo_de_evento]
 
     """
 
@@ -260,6 +268,14 @@ def read_PTRAC_estandar(archivo, tipo):
     else:
         raise NameError('Tipo de archivo no reconocido.' +
                         'Debe ser "bin" o "asc"')
+
+    event_types = {'sur': Ptrac.SUR, 'ter': Ptrac.TER, 'bnk': Ptrac.BNK,
+                   'col': Ptrac.COL, 'src': Ptrac.SRC}
+
+    try:
+        eventos_selec = [event_types[s] for s in eventos]
+    except KeyError:
+        print('Tipo de evento no válido ("sur", "ter", "bnk", "col", "src")')
 
     # Se obtienen las historias
     hists = p.ReadHistories(Nbatch)
@@ -273,13 +289,15 @@ def read_PTRAC_estandar(archivo, tipo):
             # Loop en los eventos
             for e in range(h.GetNumEvents()):
                 event = h.GetEvent(e)
-                data.append([
-                              numero_nps,
-                              event.Get(Ptrac.TIME),
-                              int(event.Get(Ptrac.CELL)),
-                              event.Type(),
-                              ]
-                            )
+                # Se guardan los eventos seleccionados
+                if event.Type() in eventos_selec:
+                    data.append([
+                                  numero_nps,
+                                  event.Get(Ptrac.TIME),
+                                  int(event.Get(Ptrac.CELL)),
+                                  event.Type(),
+                                  ]
+                                )
 
                 # if event.Type() == Ptrac.SUR:
                 #    print(event.Get(Ptrac.X))
