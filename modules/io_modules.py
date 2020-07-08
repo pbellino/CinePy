@@ -613,12 +613,17 @@ def lee_tally_E_card(archivo):
                                 else:
                                     _un_tally.append(val_line.rsplit())
                             break
+                        elif _line.startswith(' ======'):
+                            print('No se lee valor de tally. Sin energías.')
+                            break
                     datos[_tally_n] = np.asarray(_un_tally, dtype=float)
                 # Lee los bins de las tallies
                 elif line_sep[2] == 'print':
                     _tally_n = line_sep[1]
                     _un_bin = []
+                    _cont = 0
                     while True:
+                        _cont += 1
                         _line = f.readline()
                         if _line.startswith(' energy bins'):
                             while True:
@@ -632,6 +637,9 @@ def lee_tally_E_card(archivo):
                                 else:
                                     _un_bin.append([bin_line.rsplit()[j] for j
                                                     in [0, 2]])
+                            break
+                        elif _cont >= 10:
+                            print('Tally sin energías')
                             break
                         # print('No se encontraaron bines de energía')
                         # _un_bin = []
