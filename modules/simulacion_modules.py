@@ -306,5 +306,79 @@ def read_PTRAC_estandar(archivo, tipo, eventos):
     return data
 
 
+# Funciones para PHITS
+
+def lee_espectro_phits_eng(archivo, zona):
+    """
+    Lee el archivo de un tally t-track de PHITS en función de la energía,
+    que fue especificado por zonas
+
+    Parámetros
+    ----------
+    archivo : string
+        Nombre del archivo que se quiere leer ('track_eng.out')
+    zona : string
+        Zona (cell) en donde se pidió medir el tally
+
+    Resultados
+    ----------
+    data : diccionario
+        Un diccionario cuyas claves son los nombres que pone PHITS
+        para cada columna.
+        data['e-lower'] : numpy array con límites inferiores del bin
+        data['e-upper'] : numpy array con límites superiores del bin
+        data['particula'] : 2D numpy array con los valores del tally
+        y su incerteza para 'partícula'
+
+    """
+    with open(archivo, 'r') as f:
+        i = 0
+        lines_block = []
+        regions = []
+        column_names = []
+        for line in f:
+            i += 1
+            if line.startswith('       ne ='):
+                # Cantidad de puntos de energía
+                ne = np.int(line.split()[2])
+            elif line[1:].startswith('newpage'):
+                _newp = i
+                regions.append(f.readline().split('=')[2].strip())
+                i += 1
+            elif line.startswith('#  e-lower'):
+                _elower = i
+                lines_block.append([_newp, _elower])
+                column_names.append(line[1:].split())
+
+    if zona not in regions:
+        print('La zona especificada no pudo ser leida')
+        quit()
+
+    info_data = {}
+    for reg, lin, col in zip(regions, lines_block, column_names):
+        info_data[reg] = [lin, col]
+
+    # Selecciona la zona especificada
+    _a = np.genfromtxt(archivo, skip_header=info_data[zona][0][1],
+                       max_rows=ne)
+
+    # Diccionario donde se guardan los datos
+    data = {}
+    # Columnas para la región de interés
+    cols = info_data[zona][1]
+    # Se guardan límites de los binnes
+    data[cols[0]] = _a[:, 0]
+    data[cols[1]] = _a[:, 1]
+
+    # Selecciona sólo los nombres de las partículas en el tally
+    cols_part = [cols[i] for i in range(2, len(cols)) if i % 2 == 0]
+
+    # Guarda los datos de las partículas
+    for j, name in enumerate(cols_part):
+        data[name] = _a[:, 2*j+2:2*j+4]
+
+    return data
+
+
 if __name__ == "__main__":
     pass
