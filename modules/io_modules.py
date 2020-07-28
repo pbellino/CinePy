@@ -630,7 +630,7 @@ def lee_tally_E_card(archivo):
                                 bin_line = f.readline()
                                 if '-i' in bin_line:
                                     _un_bin.append([-1, 0])
-                                    print('Se simula un bin negativo')
+                                    # print('Se simula un bin negativo')
                                     bin_line = f.readline()
                                 if 'total' in bin_line:
                                     break
