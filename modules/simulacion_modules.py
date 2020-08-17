@@ -306,6 +306,26 @@ def read_PTRAC_estandar(archivo, tipo, eventos):
     return data
 
 
+def lee_tally_E_mcnptools(filename, tally):
+    """ Read energy tally from mctal file using MCNPTools """
+
+    from mcnptools import Mctal, MctalTally
+
+    m = Mctal(filename)
+    if tally not in m.GetTallyList():
+        raise ValueError('El número de tally no existe en el archivo')
+
+    tal = m.GetTally(tally)
+    bins = tal.GetEBins()
+    tfc = MctalTally.TFC
+    val = []
+    err = []
+    for e in range(len(bins)):
+        val.append(tal.GetValue(tfc, tfc, tfc, tfc, tfc, tfc, e, tfc))
+        err.append(tal.GetError(tfc, tfc, tfc, tfc, tfc, tfc, e, tfc))
+    return map(np.asarray, (bins, val, err))
+
+
 # Funciones para PHITS
 
 def lee_espectro_phits_eng(archivo, zona):
