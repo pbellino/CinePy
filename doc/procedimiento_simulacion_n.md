@@ -17,7 +17,6 @@ Los pasos 1) y 2) en conjunto producen un archivo similar al que se obtiene en u
 
 El paso 3) es el que usualmente utilizamos para procesar los datos simulados
 
-
 Analizzamos en detalle cada uno de estas etapas.
 
 ## 1) Simulación con MCNP 
