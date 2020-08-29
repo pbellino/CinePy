@@ -32,26 +32,26 @@ Prestar atención porque el formato con que se guardan los datos en la PTRAC cua
 
 En el archivo PTRAC quedan registradas (entre otras cosas) las tres magnitudes que se usarán en la simulación. Por cada neurón de fuente que se simula, se registran:
 
-a) Los tiempos en que se produjeron las capturas de los neutrones generados a partir de dicho neutrón de fuente
+a) Los tiempos en que se produjeron las capturas de los neutrones generados a partir de dicho neutrón de fuente.
 
 b) El número de historia a la que pertenece el neutrón capturado (un neutrón de fuente puede generaar muchos neutrones que luego son capturados).
 
-c) La celda en donde fue capturado (equivalente a decir en qué detector fue capturado)
+c) La celda en donde fue capturado (equivalente a decir en qué detector fue capturado).
 
 
-El archivo PTRAC puede grabarse en formtato ASCII como en binario. El problema es que en formato ASCII tiene un ancho de caracteres fijo y eso hace que se pierdan dígitos relevantes para el análisis de ruido.
+El archivo PTRAC puede grabarse tanto en formtato ASCII como en binario. El problema es que en formato ASCII tiene un ancho de caracteres fijo y eso hace que se pierdan dígitos relevantes para el análisis de ruido.
 
 Conviene trabajar con el binario.
 
 ## 2) Post-procesamiento de la simulación
 
-En esta parte se debe leer el archivo generado por MCNP y producir un archivo en modo lista (timestamp) para cada detector similar al que se hubiera obtenido con la simulación.
+En esta parte se debe leer el archivo generado por MCNP (arvhivo PTRAC) y producir un nuevo archivo en modo lista (timestamp) para cada detector. Dicho archivo es similar al que se hubiera obtenido con una medición.
 
-En esta parte es donde entra en juego la actividad de la fuente. Recordar que los tiempos de captura respecto al tiempo en que salió el neutrón de fuente (aunque se ponga una distribución de tiempo a la fuente, el FT CAP siempre registra la diferencia de tiempos).
+Aquí es donde entra en juego la actividad de la fuente. Recordar que los tiempos de captura registrados en el archivo PTRAC son respecto al tiempo en que salió el neutrón de fuente (aunque se ponga una distribución de tiempo a la fuente, el FT CAP siempre registra la diferencia de tiempos). Se debe entonces asignar un tiempo al evento de fuente, y luego sumarlo al tiempo que aparece en el archvo PTRAC.
 
-Para asignar los tiempos, se va a simular con Python los tiempos en que fueron generados los neutrones de fuentes (distribución exponencial acumulada). Se deben sortear nps tiempos (la misma cantidad de eventos totales de fuente). El parámetro de la distribución exponencial es la actividad de la fuente. Notar que una vez definida la actividad (y junto con el nps) queda definido el tiempo total de la "medición"
+Para asignar los tiempos, se va a simular con Python los tiempos en que fueron generados los neutrones de fuentes (distribución exponencial acumulada). Se deben sortear nps tiempos (la misma cantidad de eventos totales de fuente). El parámetro de la distribución exponencial es la cantidad media de eventos fuente por unidad de tiempo. Notar que una vez definida la actividad (y junto con el nps) queda definido el tiempo total de la "medición".
 
-Supongamos que se producen $\lambda$ eventos de fuente por unidad de tiempo. Si se simula una fuente basada en la reacción $(\alpha,n)$ $\lambda$ será la cantidad de neutrones emitidos por unidad de tiempo.. Si en cambio se simula una fuente de fisión espontánea, $\lambda$ será la actividad parcial de fisión espontánea de dicha fuente (pues MCNP toma como historia la fisóń espontánea, y no a los neutrones producidos por fisión).
+Para ver esto último, supongamos que se producen $\lambda$ eventos de fuente por unidad de tiempo. Si se simula una fuente basada en la reacción $(\alpha,n)$ $\lambda$ será la cantidad de neutrones emitidos por unidad de tiempo. Si en cambio se simula una fuente de fisión espontánea, $\lambda$ será la actividad parcial de fisión espontánea de dicha fuente (pues MCNP toma como historia la fisóń espontánea, y no a los neutrones producidos por fisión).
 
 En uno u otro caso será válido que la distribución de tiempo entre eventos ($\tau$) de fuente es una distribución exponencial:
 
