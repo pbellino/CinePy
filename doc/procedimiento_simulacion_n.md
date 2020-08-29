@@ -1,6 +1,7 @@
 # Procedimiento para simular un experimetno de ruido neutrónico
 
-**OBjetivo**: explicar brevemente cómo realizar una simulación de ruido neutrónico (sin fotones)
+**Objetivo**: explicar brevemente cómo realizar una simulación de ruido neutrónico (sin fotones)
+
 
 La simulación consta de varias etapas y en cada una de ellas es necesario entender bien qué se está haciendo y cómo se está haciendo.
 
@@ -80,7 +81,9 @@ Una vez que están con los tiempos correctos, se deben separar de acuerdo a la c
 
 Una vez que están separados por detector, se ordena los tiempos de forma ascendente y se los guarda en un archivo. Este archivo es el equivalente al obtenido en una medición real.
 
+En el siguiente gráfico se hizo un esquema simplificado de los programas y scripts que se utilizaron para realizar algunas de estos pasos:
 
+![Diagrama de flujo para la simulación con MCNP6](flujo_simulacion.png)
 
 ## 3) Análisis
 
