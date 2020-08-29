@@ -50,7 +50,9 @@ En esta parte es donde entra en juego la actividad de la fuente. Recordar que lo
 
 Para asignar los tiempos, se va a simular con Python los tiempos en que fueron generados los neutrones de fuentes (distribución exponencial acumulada). Se deben sortear nps tiempos (la misma cantidad de eventos totales de fuente). El parámetro de la distribución exponencial es la actividad de la fuente. Notar que una vez definida la actividad (y junto con el nps) queda definido el tiempo total de la "medición"
 
-Si la actividad de la fuente es $\lambda$ (en [1/s]). La distribución de tiempo entre eventos ($\tau$) de fuente es una distribución exponencial:
+Supongamos que se producen $\lambda$ eventos de fuente por unidad de tiempo. Si se simula una fuente basada en la reacción $(\alpha,n)$ $\lambda$ será la cantidad de neutrones emitidos por unidad de tiempo.. Si en cambio se simula una fuente de fisión espontánea, $\lambda$ será la actividad parcial de fisión espontánea de dicha fuente (pues MCNP toma como historia la fisóń espontánea, y no a los neutrones producidos por fisión).
+
+En uno u otro caso será válido que la distribución de tiempo entre eventos ($\tau$) de fuente es una distribución exponencial:
 
 \begin{equation}
 p(\tau; \lambda) = \lambda e^{-\lambda \tau}
@@ -70,7 +72,7 @@ Si se simulan N neutrones (nps=N), se tendrá que el tiempo total de la simulaci
 T = t_N = \sum_{k=0}^{N-1} \tau_i = N \frac{1}{N} \sum_{k=0}^{N-1}\tau_i = \frac{N}{\lambda}
 \end{equation}
 
-pues $1/\lambda$ es el tiempo promedio entre dos eventos de fuente ($\tau$). En esta deducción se está despreciando el tiempo entre la emisión de la fuente y la detección de algún neutrón generado (es del órden de los ms).
+pues $1/\lambda$ es el tiempo promedio entre dos eventos de fuente $\tau$. En esta deducción se está despreciando el tiempo entre la emisión de la fuente y la detección de algún neutrón generado (es del órden de los ms).
 
 Continuamos con el procedimiento. Para construir estos tiempo, primero hay que agrupar entre todos los tiempos registrados en el PTRAC, aquellos que pertenecen al mismo evento de fuente. A todos esos tiempos, se le suma uno de los tiempos de fuente generado. Obviamente, muchos de los tiempos generados no se van a utilizar (pues no todos los eventos de fuente van a producir neutrones que sean detectados)
 
