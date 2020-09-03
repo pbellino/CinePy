@@ -1,0 +1,12 @@
+Input para correr KCODE sobre el sistema y verificar subcriticidad
+c
+READ FILE=sistema
+c
+c *****************************************************************************
+c KCODE
+c *****************************************************************************
+c
+KCODE 5000 1.0 50 250
+KSRC 0 0 0
+KOPTS KINETICS=yes
+
