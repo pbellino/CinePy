@@ -16,34 +16,33 @@ c *****************************************************************************
 c TALLIES NEUTRONES
 c *****************************************************************************
 FC18 Capturas en detector de He3
-F18:n 104
+F18:n 103  
 FT18 CAP -1 -1 2003 
-PTRAC buffer=1000 file=bin write=all tally=18 filter=104,icl event=cap value=0 type=n max=2e9 
+PTRAC buffer=1000 file=bin write=all tally=18 filter=103,icl event=cap value=0 type=n max=2e9 
 c @END_TALLY_N
 c @BEGIN_TALLY_P
 c *****************************************************************************
 c TALLIES FOTONES
 c *****************************************************************************
 FC51 Corriente de fotones por cara interna del detector
-F51:p 1001
+F51:p 1001  
 E51 1e-3 150ILOG 2.21 2.23 50ILOG 50    $ Bineado de energía
 TF51 6J 153 J                           $ TFC en el bin de 2.22MeV
 FT51 TAG 3                              $ Tags
 FU51 -1.0 01001.00102 1e10              $ De fuente - H(n,g)D - Resto
 c
 FC61 Corriente de fotones por cara externa del detector (debug)
-F61:p 1002
+F61:p 1002     
 E61 1e-3 150ILOG 2.21 2.23 50ILOG 50
 TF61 6J 153 J       $ TFC en el bin de 2.22MeV
-PTRAC buffer=1000 file=bin write=all tally=51 filter=103,icl 2.21,2.23,erg event=sur value=0 type=p max=2e9
+PTRAC buffer=1000 file=bin write=all tally=51 filter=102,icl 2.21,2.23,erg event=sur value=0 type=p max=2e9 
 c @END_TALLY_P
 c
-FMULT METHOD=5
 MODE n p
 CUT:n 2J 0 0   $ Fuerza capturas analógicas
 CUT:p 2J 0 0   $ Fuerza capturas analógicas
-FMULT METHOD=5
 RAND GEN=2 SEED=1
 PRINT
 NPS 1e3
+
 

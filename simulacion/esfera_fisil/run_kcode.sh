@@ -5,6 +5,6 @@
 # INPUT=alfas
 INPUT=in_kcode
 
-rm ${INPUT}.*
-cnp6 tasks 8 i=${INPUT} n=${INPUT}.
+rm -f ${INPUT}.*
+mcnp6 tasks 8 i=${INPUT} n=${INPUT}.
 

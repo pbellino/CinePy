@@ -1,18 +1,26 @@
 c Esfera para multiplicidad n/g
 c
-100 1  -2.0        -1000   imp:n,p=1    $ Fuente Cf252
-102 2  -1.0   1000 -1001   imp:n,p=1    $ Moderador
-103 0         1001 -1002   imp:n,p=1    $ Detector fotones (vacío)
-104 3  -9.0   1002 -1003   imp:n,p=1    $ Detector neutrones (exagerada densidad)
-105 0         1003         imp:n,p=0    $ Exterior
+100 1  -1.2        -1000   imp:n,p=1    $ Combustible homogéneo
+101 2  -1.18  1000 -1001   imp:n,p=1    $ Reflector polietileno
+102 0         1001 -1002   imp:n,p=1    $ Detector fotones (vacío)
+103 3  -9.0   1002 -1003   imp:n,p=1    $ Detector neutrones (exagerada densidad)
+104 0         1003         imp:n,p=0    $ Exterior
 
-1000 SO  0.0001       $ Esfera para fuente
-1001 SO  8.0          $ Esfera para moderador
-1002 SO  10.0         $ Esfera para detector fotones
-1003 SO  15.00        $ Esfera para detector de neutrones
+1000 SO  15.0         $ Esfera moderador
+1001 SO  17.0         $ Esfera reflector
+1002 SO  18.0         $ Esfera detector fotones
+1003 SO  20.00        $ Esfera detector de neutrones
 
-M1    98252.80c     1     $ Cf252
-M2     1001.80c     2     $ H1
-       8016.80c     1     $ O16
-MT2 lwtr.20t              $ Tratamiento térmico ara el H2O
-M3     2003         1     $ He3
+c Combustible RA-4 (densidad=1.2g/cm3)
+M1   92235.80c  -6.00000e-02
+     92238.80c  -2.40000e-01
+      8016.80c  -5.39057e-02
+      6000.80c  -7.24501e-01
+      1001.80c  -1.21593e-01
+MT1   poly.20t
+c Polietileno (densidad=1.1849g/cm3)
+M2    6000.80c  -7.24501e-01
+      1001.80c  -1.21593e-01
+MT2   poly.20t
+c Detector de neutrones
+M3    2003.80c   1           $ He3

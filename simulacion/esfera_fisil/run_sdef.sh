@@ -14,18 +14,24 @@ echo "***********************************************************************"
 echo
 
 # Nombre de los archivos temporales que correrán n y p
-INPUT_N=${INPUT}_n
 INPUT_P=${INPUT}_p
+INPUT_N=${INPUT}_n
 
 # Quito tallies de neutrones para correr PTRAC de fotones
 sed '/@BEGIN_TALLY_N/,/@END_TALLY_N/d' ${INPUT} > ${INPUT_P}
 # Quito tallies de fotones para correr PTRAC de neutrones
 sed '/@BEGIN_TALLY_P/,/@END_TALLY_P/d' ${INPUT} > ${INPUT_N}
 
-# Corro el sistema para cada PTRAC
-for name in ${INPUT_N} ${INPUT_P}; do
-    rm -f ${name}.*
-    mcnp6 i=${name} n=${name}.
-    # Borro input temporal
-    rm ${name}
-done
+# Corro los inputs temporales
+rm -f ${INPUT_P}.*
+mcnp6 i=${INPUT_P} n=${INPUT_P}. &
+P1=$!
+rm -f ${INPUT_N}.*
+mcnp6 i=${INPUT_N} n=${INPUT_N}. &
+P2=$!
+
+# Espera a que terminen
+wait ${P1} ${P2}
+
+# Borro input temporales
+rm ${INPUT_N} ${INPUT_P}
