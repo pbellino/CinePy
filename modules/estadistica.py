@@ -24,6 +24,15 @@ def agrupa_datos(data, n_datos=1, dt=None):
         dt_agrupado : flotante, opcional
             Si se especificó dt se devuelve el dt agrupado
             (dt_agrupado = dt*n_datos)
+
+    >>> a = np.array([3, 6, 7, 9, 1])
+    >>> agrupa_datos(a, 2)
+    Se agrupan 2 intervalos base
+    array([ 9, 16], dtype=uint32)
+    >>> agrupa_datos(a, 2, 0.3)
+    Se agrupan 2 intervalos base
+    Intervalo de adquisición agrupado: 0.6 s
+    (array([ 9, 16], dtype=uint32), 0.6)
     '''
 
     data = np.array(data)
@@ -97,11 +106,22 @@ def timestamp_to_timewindow(datos, dt, units_in, units_out, tb):
     ----------
         datos_binned : (list of) numpy array
             Pulsos agrupado en el dt
-        tiempo: numpy array
-            Vector temporal asociado a cada bin centrado
+        tiempos: (list of) numpy array
+            Cada elemento es un vector temporal asociado a cada bin centrado
+            Los elementos están asociados a los elementos de `datos_binnes`,
+            conservando el orden.
             (si `units_out` = 'segundos')
             Vector con índices dsde 0 ... Nbin-1 (si `units_out` = 'pulsos')
+
+    >>> a = np.asarray([0, 2, 3, 6, 7, 8, 14])
+    >>> y, t = timestamp_to_timewindow(a, 3, 'pulsos', 'pulsos', 1)
+    >>> y
+    array([2, 1, 3, 0])
+    >>> t
+    array([0, 1, 2, 3])
+
     """
+
     if isinstance(datos, list):
         _es_lista = True
     else:
@@ -113,9 +133,15 @@ def timestamp_to_timewindow(datos, dt, units_in, units_out, tb):
     elif units_in == 'pulsos':
         pass
     else:
-        print('La unidad de dt_in puede ser "segundos" o "pulsos"')
+        print('La unidad de dt_in sólo puede ser "segundos" o "pulsos"')
+        quit()
+
+    if units_out not in ['pulsos', 'segundos']:
+        print('La unidad de salida sólo puede ser "segundos" o "pulsos"')
+        quit()
 
     datos_binned = []
+    tiempos = []
     for dato in datos:
         if dato[-1] <= (2**64 / 2 - 1):
             dato = dato.astype(np.int64)
@@ -133,34 +159,23 @@ def timestamp_to_timewindow(datos, dt, units_in, units_out, tb):
             _bines = _bines / dt / tb
         datos_binned.append(_bines)
 
-    tiempo = np.arange(_bines.size)
+        # Construyo vectores temporales para cada vector leido
+        tiempo = np.arange(_bines.size)
 
-    if units_out == 'segundos':
-        # vector centrado en los bines
-        tiempo = tiempo + 0.5
-        tiempo = tiempo * dt * tb
-    elif units_out == 'pulsos':
-        pass
-    else:
-        print('La unidad de salida puede ser "segundos" o "pulsos"')
-        quit()
+        if units_out == 'segundos':
+            # vector centrado en los bines
+            tiempo = tiempo + 0.5
+            tiempo = tiempo * dt * tb
+        tiempos.append(tiempo)
+
+    # En caso de que no sea una lista
     if not _es_lista:
         datos_binned = datos_binned[0]
-    return datos_binned, tiempo
+        tiempos = tiempos[0]
+
+    return datos_binned, tiempos
 
 
 if __name__ == "__main__":
-    # Pruebas
-    a = np.asarray([0, 2, 3, 6, 7, 8, 14])
-    y, t = timestamp_to_timewindow(a, 3, 'pulsos', 'pulsos', 1)
-    print(a)
-    print(y)
-    print(t)
-    quit()
-    # Prueba de agrupa_datos
-    # TODO: pasarla a la carpeta tests
-    a = np.array([3, 6, 7, 9, 1])
-    b = agrupa_datos(a, 2)
-    print(b)
-    c, c_dt = agrupa_datos(a, 2, 0.3)
-    print(c, c_dt)
+    import doctest
+    doctest.testmod()
