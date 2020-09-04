@@ -71,7 +71,7 @@ def genera_tallies(archivo_tallies, def_tallies, *args, **kargs):
     return None
 
 
-def agrega_tiempo_de_fuente(tasa, nps, datos, filename):
+def agrega_tiempo_de_fuente(tasa, nps, datos):
     """
     Agrega los tiempos de fuente al tiempo registrado en el PTRAC
 
@@ -96,26 +96,24 @@ def agrega_tiempo_de_fuente(tasa, nps, datos, filename):
                 3ra columna -> La celda donde se registró
             Si hay más columnas son ignoradas.
 
-        filename : string
-            Nombre del archivo donde se guardarán los tiempos.
-
     Resultados
     ----------
-
-        times : numpy array
-            Lista ordenada de los tiempos de captura.
-        cells : numpy_array
-            Celda en donde se produjo la captura. Sirve para diferenciar
-            distintos detectores.
-        nps_hist : numpy array
-            Lista que identifica a cuál historia pertenece cada captura. En
-            principio  no tiene mucha utilidad
+        data_sorted : numpy array
+            Formado por tres vectores [nps_hist tiempos cells]
+            nps_hist :
+                Lista que identifica a cuál historia pertenece cada captura. En
+                principio  no tiene mucha utilidad
+            times :
+                Lista ordenada de los tiempos de captura.
+            cells :
+                Celda en donde se produjo la captura. Sirve para diferenciar
+                distintos detectores.
 
     Cada elemento de estos tres vectores hace referencia a una captura.
 
-    Ejemplo: times[3], cells[3] y nps[3] hacen referencia al tiempo de captura
-    del times[3] del cuarto pulso que se produjo en la celda cells[3] y que
-    pertenece a la historia nps[3]
+    Ejemplo: data_sorted[3, :] hacen referencia al tiempo de captura
+    data_sorted[3, 1] del cuarto pulso que se produjo en la celda
+    data_sorted[3, 2] y que pertenece a la historia data_sorted[3, 0]
     """
 
     # Convierto a array de numpy
@@ -151,18 +149,9 @@ def agrega_tiempo_de_fuente(tasa, nps, datos, filename):
     # Ordeno los tiempos y mantengo asociado el numero de historia y la celda
     _temp = np.stack((nps_hist, times, cells), axis=-1)
     # Ordeno para tiempos crecientes
-    _temp_sorted = _temp[_temp[:, 1].argsort()]
-    # Vuelvo a separar
-    nps_hist = _temp_sorted[:, 0]
-    times = _temp_sorted[:, 1]
-    cells = _temp_sorted[:, 2]
-    # Pongo en cero al primer pulso
-    # times -= times[0]
+    data_sorted = _temp[_temp[:, 1].argsort()]
 
-    # Se guardan los datos del tiempo
-    np.savetxt(filename, times, fmt='%.12E')
-
-    return times, cells, nps_hist
+    return data_sorted
 
 
 def RAD_sin_accidentales(nombre, dt_s, dtmax_s):
@@ -326,7 +315,53 @@ def lee_tally_E_mcnptools(filename, tally):
     return map(np.asarray, (bins, val, err))
 
 
+def corrige_t_largos(datos, tasa, nps_tot, metodo='elimina'):
+    """
+    Corrección de los tiempos muy largos en medios multiplicativos
+
+    Si el medio multiplicativo está cercano a crítico, se pueden generar
+    cadenas de fisión muy largas, mucho más allá del tiempo del último
+    evento de fuente.
+
+    Parámetros
+    ----------
+        datos : numpy ndarray
+            Datos de la simulación que salen de `agrega_tiempo_de_fuente()`.
+            Son tres columnas con: [nps_hist tiempos cells]
+        tasa : double
+            Tasa de la fuente (eventos de fuente por unidad de tiempo)
+        npts_tot : int
+            Cantidad total de eventos de fuente
+        metodo : str ('elimina', 'pliega')
+            'elimina' : Elimina todos los eventos con un t > nps_tot/tasa
+            (que es el tiempo total de medición). Tiene la desventaja de que
+            los primeros puntos también deben ser corregidos hasta alcanar un
+            régimen estacionario
+            'plegado' :  a los tiempos t > t_med = nps_tot/tasa les calcula el
+            módulo(t_med) y los agrega a los eventos dentro de t < t_med.
+            Permite corregir tanto el final como el comienzo de la simulación.
+
+    Resultados
+    ----------
+        datos_corregidos : numpy ndarray
+            Datos en el mismo formato que `datos` [nps_hist tiempos cells]
+    """
+    # Tiempo total de la medición
+    t_med = nps_tot / tasa
+    if metodo == "elimina":
+        # Elimina todo t > t_med
+        datos_corregidos = datos[datos[:, 1] < t_med]
+    elif metodo == "pliega":
+        # Pliegatodo t > t_med
+        datos[:, 1] = datos[:, 1] % t_med
+        # Ordena los tiempos
+        datos_corregidos = datos[datos[:, 1].argsort()]
+
+    return datos_corregidos
+
+
 # Funciones para PHITS
+
 
 def lee_espectro_phits_eng(archivo, zona):
     """
