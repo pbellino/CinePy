@@ -30,8 +30,8 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     # Archivos a leer
     nombres = [
-               './times_listmode_n_orig.dat',
-               './times_listmode_p_orig.dat',
+               './times_listmode_n.dat',
+               './times_listmode_p.dat',
               ]
     tipo = 'ascii'
     # Cantidad de historias
