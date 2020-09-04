@@ -93,12 +93,12 @@ def grafica_mediciones_cuentas(nombres, dt_s, tb=12.5e-9, tipo='binario'):
         datos = corrige_roll_over(data_con_rollover)
     elif tipo == 'ascii':
         datos = read_timestamp_list_ascii(nombres)
-    datos_binned, t = timestamp_to_timewindow(datos, dt_s, 'segundos',
-                                              'segundos', tb)
+    datos_binned, ts = timestamp_to_timewindow(datos, dt_s, 'segundos',
+                                               'segundos', tb)
 
     # Graficación
     fig1, ax1 = plt.subplots(1, 1)
-    for datos, nombre in zip(datos_binned, nombres):
+    for datos, t, nombre in zip(datos_binned, ts, nombres):
         _lab_str = os.path.split(nombre)[-1]
         ax1.plot(t, datos, label=_lab_str)
 
