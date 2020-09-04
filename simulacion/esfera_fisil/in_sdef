@@ -43,6 +43,6 @@ CUT:n 2J 0 0   $ Fuerza capturas analógicas
 CUT:p 2J 0 0   $ Fuerza capturas analógicas
 RAND GEN=2 SEED=1
 PRINT
-NPS 1e3
+NPS 1e4
 
 
