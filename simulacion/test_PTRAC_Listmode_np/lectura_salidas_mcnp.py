@@ -45,20 +45,26 @@ if __name__ == '__main__':
     print('La tasa de eventos agregada es {} 1/s'.format(tasa))
     print('El tiempo total de la simulación será: {} s'.format(nps / tasa))
 
-    archivo_times_n = 'times_listmode_n.dat'
-    archivo_times_p = 'times_listmode_p.dat'
-    times_n, cells_n, nps_hist_n = agrega_tiempo_de_fuente(tasa, nps, datos_n,
-                                                           archivo_times_n)
-    times_p, cells_p, nps_hist_p = agrega_tiempo_de_fuente(tasa, nps, datos_p,
-                                                           archivo_times_p)
+    # Se agrega el tiempo de fuente
+    datos_n = agrega_tiempo_de_fuente(tasa, nps, datos_n)
+    datos_p = agrega_tiempo_de_fuente(tasa, nps, datos_p)
 
+    # Se ponen en cero a los valores
+    times_n = datos_n[:, 1]
+    times_p = datos_p[:, 1]
     t_0 = min(times_n[0], times_p[0])
     times_n -= t_0
     times_p -= t_0
     print('Tiempo total simulado de neutrones: {} s'.format(times_n[-1]))
     print('Tiempo total simulado de fotones: {} s'.format(times_p[-1]))
 
+    # Se guardan los datos del tiempo
+    np.savetxt('times_listmode_n.dat', times_n, fmt='%.12E')
+    np.savetxt('times_listmode_p.dat', times_p, fmt='%.12E')
+
     # Para debuggear
+    nps_hist_n = datos_n[:, 0]
+    nps_hist_p = datos_p[:, 0]
     np.savetxt('historia_n.dat', nps_hist_n, fmt='%i')
     np.savetxt('historia_p.dat', nps_hist_p, fmt='%i')
 
@@ -66,4 +72,3 @@ if __name__ == '__main__':
         print('-'*50)
         print('Tiempos absolutos:')
         [print(t) for t in times_n]
-
