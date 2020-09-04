@@ -285,7 +285,7 @@ def inspeccion_historias_list(list_historias, tb=12.5e-9):
     return lista_pulsos_historia, lista_tiempos_historia
 
 
-def alfa_rossi_preprocesamiento(nombres, Nhist, tb, *args, **kargs):
+def alfa_rossi_preprocesamiento(nombres, Nhist, tb, formato_datos='binario'):
     """
     Función que genera las historias para todos los archivos leídos
 
@@ -319,8 +319,6 @@ def alfa_rossi_preprocesamiento(nombres, Nhist, tb, *args, **kargs):
             Cada elemento son los datos leidos directamente del archivo.
             Sólo está para debuggear.
     """
-    if kargs is not None:
-        formato_datos = kargs.get('formato_datos', 'binario')
 
     if formato_datos == 'binario':
         # Se leen los datos del archivo binario
