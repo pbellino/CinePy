@@ -6,7 +6,7 @@ c
 103 3  -9.0   1002 -1003   imp:n,p=1    $ Detector neutrones (exagerada densidad)
 104 0         1003         imp:n,p=0    $ Exterior
 
-1000 SO  15.0         $ Esfera moderador
+1000 SO  15.0         $ Esfera combustible
 1001 SO  17.0         $ Esfera reflector
 1002 SO  18.0         $ Esfera detector fotones
 1003 SO  20.00        $ Esfera detector de neutrones
