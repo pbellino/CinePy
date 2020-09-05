@@ -259,7 +259,7 @@ def arossi_ajuste_2exp(tau, P, P_std):
     handles, labels = ax1.get_legend_handles_labels()
     ax1.legend(handles[::-1], labels[::-1], loc='best')
 
-    return None
+    return fig
 
 
 if __name__ == '__main__':
