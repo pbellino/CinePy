@@ -31,7 +31,7 @@ if __name__ == '__main__':
     datos_p = read_PTRAC_estandar(archivo_p, 'bin', ['sur'])
 
     # Se agrega el tiempo del evento de fuente [1/s]
-    tasa = 100
+    tasa = 1000.0
 
     print('Se simularon {} fisiones espontáneas'.format(nps))
     print('El Cf252 generó (promedio) {} neutrones de fuente'.format(3.75*nps))
@@ -59,8 +59,8 @@ if __name__ == '__main__':
     t_n_corr = datos_n_corr[:, 1]
     t_p_corr = datos_p_corr[:, 1]
     t_0_corr = min(t_n_corr[0], t_p_corr[0])
-    t_n_corr -= t_0
-    t_p_corr -= t_0
+    t_n_corr -= t_0_corr
+    t_p_corr -= t_0_corr
     np.savetxt('times_listmode_n_corr.dat', t_n_corr, fmt='%.12E')
     np.savetxt('times_listmode_p_corr.dat', t_p_corr, fmt='%.12E')
 

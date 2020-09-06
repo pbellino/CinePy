@@ -30,8 +30,11 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     # Archivos a leer
     nombres = [
+               # './times_listmode_n.dat',
+               # './times_listmode_p.dat',
                './times_listmode_n_corr.dat',
                './times_listmode_p_corr.dat',
+
               ]
     tipo = 'ascii'
     # Cantidad de historias
@@ -42,9 +45,9 @@ if __name__ == '__main__':
     elif tipo == 'ascii':
         tb = 1
     # Duración de cada bin (discretización del tau) [s]
-    dt_s = 1e-4
+    dt_s = 5e-5
     # Máximo bin analizado (mayor tau) [s]
-    dtmax_s = 1e-2
+    dtmax_s = 5e-3
     # Nombre de la carpeta donde se guardarán los resultados
     nombre_carpeta = 'resultados_arossi'
 
@@ -53,7 +56,7 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     #
     # ---- Graficación la tasa de cuentas de los arhivos .bin (OPCIONAL)
-    grafica_mediciones_cuentas(nombres, 1.0, tb, tipo)
+    grafica_mediciones_cuentas(nombres, 1, tb, tipo)
     # ---- Corrección de roll-ove_nr y separación en historias (OBLIGATORIO)
     data_bloq, data_sin_rol, data_con_rol = \
         alfa_rossi_preprocesamiento(nombres, Nhist, tb, formato_datos=tipo)
