@@ -7,9 +7,11 @@ c SDEF
 c *****************************************************************************
 c Fuente quasi-puntual de Cf252 
 c
-SDEF  par=-SF  pos= 0 0 0 $  tme=d1
-c SI1  0    100.0e8    $ Durante 100 segundos
-c SP1  0    1
+c SDEF  par=-SF  pos= 0 0 0 RAD=d1
+SDEF  par=n ERG=2  pos= 0 0 0
+c SDEF  par=n ERG=2  pos= 0 0 0  RAD=d1
+c SI1  0     15       $ Radio del combustible
+c SP1  -21    2
 c
 c @BEGIN_TALLY_N
 c *****************************************************************************
