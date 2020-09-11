@@ -41,6 +41,7 @@ PTRAC buffer=1000 file=bin write=all tally=51 filter=102,icl 2.21,2.23,erg event
 c @END_TALLY_P
 c
 MODE n p
+FMULT METHOD=5
 CUT:n 2J 0 0   $ Fuerza capturas analógicas
 CUT:p 2J 0 0   $ Fuerza capturas analógicas
 RAND GEN=2 SEED=1
