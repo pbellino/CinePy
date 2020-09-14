@@ -1,8 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 import numpy as np
 import sys
+import re
 
 
 def read_bin_dt(filename):
@@ -645,6 +645,105 @@ def lee_tally_E_card(archivo):
                         # _un_bin = []
                     bins[_tally_n] = np.asarray(_un_bin, dtype=float)
     return datos, nombres, bins
+
+
+def read_kcode_out(filename):
+    """
+    Lee parámetros de la salida de MCNP6 cuando se corre con KCODE
+
+    Parametros
+    ----------
+        filename : string
+            Nombre del archivo de salida de una corrida con KCODE
+
+    Resultados
+    ----------
+        output : dic
+            Diccionario con los valores leídos
+
+            output['keff'] = (keff, keff_sd)
+            output['Lambda'] = (Lambda, Lambda_sd) [en segundos]
+            output['Rossi'] = (rossi, rossi_sd) [en 1/segundos]
+            output['betaeff'] = (betaeff, betaeff_sd) [en 1/segundos]
+            output['precursores'] = np.ndarray de np.floats (similar a como
+                                    aparece en el archivo de salida)
+
+            Si no se piden parámetros cinéticos (KINETICS=no) las keys
+            'Lambda', 'Rossi' y 'betaeff' poseen valores None
+            Si no se piden información sobre precursores (PRECURSOR=no),
+            output['precursores'] = None
+
+    TODO: Mejorar el formato del bloque de precursores
+    """
+    # Flag para saber si se pidieron parámetros cinéticos
+    _flag_kin = False
+    # Flag para saber si se pidieron parámetros sobre precursores
+    _flag_prec = False
+    # Diccionario de salida
+    output = {}
+    with open(filename, 'r') as f:
+        # Flag para saber si lee la parte del input
+        _eco_input = True
+        for line in f:
+            if _eco_input:
+                # Busca qué se pidió en la entrada
+                if "* Random Number Generator" in line:
+                    _eco_input = False
+                if "kopts" in line.split():
+                    if re.search(r"kinetics *= *yes", line, re.IGNORECASE):
+                        _flag_kin = True
+                    if re.search(r"precursor *= *yes", line, re.IGNORECASE):
+                        _flag_prec = True
+            else:
+                # Busca los resultados de la simulación
+                if line.startswith(" | the final estimated combined"):
+                    # Lee el keff y su incerteza
+                    keff = re.search(r"keff = (\d+.\d*) ", line).group(1)
+                    keff_sd = re.search(r"deviation of (\d+.\d*) ",
+                                        line).group(1)
+                    output['keff'] = (np.float(keff), np.float(keff_sd))
+                if _flag_kin:
+                    if 'gen. time' in line:
+                        # Lee el Lambda
+                        line_split = line.split()
+                        # Determina la unidad del Lambda y de Rossi-alpha
+                        if line_split[-1] == '(usec)':
+                            conv = 1e-6
+                        elif line_split[-1] == '(msec)':
+                            conv = 1e-3
+                        elif line_split[-1] == '(nsec)':
+                            conv = 1e-9
+                        else:
+                            print("No se reconocen unidades para Lambda")
+                        Lambda = np.float(line_split[2])*conv
+                        Lambda_sd = np.float(line_split[3])*conv
+                        output['Lambda'] = (Lambda, Lambda_sd)
+                        # Lee Rossi-alpha
+                        line_split = f.readline().split()
+                        rossi = np.float(line_split[1])/conv
+                        rossi_sd = np.float(line_split[2])/conv
+                        output['Rossi'] = (rossi, rossi_sd)
+                        # Lee el beta efectivo
+                        line_split = f.readline().split()
+                        beta_eff = np.float(line_split[1])
+                        beta_eff_sd = np.float(line_split[2])
+                        output['betaeff'] = (beta_eff, beta_eff_sd)
+                if _flag_prec:
+                    # Lee información sobre precursores
+                    if re.search(r"^ *precursor", line) is not None:
+                        next(f)
+                        next(f)
+                        prec = []
+                        for i in range(6):
+                            prec.append(f.readline().split())
+                        prec = np.asarray(prec)
+                        output['precursores'] = prec
+    if not _flag_kin:
+        for key in ['Lambda', 'Rossi', 'betaeff']:
+            output[key] = None
+    if not _flag_prec:
+        output['precursores'] = None
+    return output
 
 
 if __name__ == '__main__':
