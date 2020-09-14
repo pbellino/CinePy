@@ -9,7 +9,6 @@ c Fuente quasi-puntual de Cf252
 c
 c SDEF  par=-SF  pos= 0 0 0 RAD=d1
 SDEF  par=n ERG=2  pos= 0 0 0
-c SDEF  par=n ERG=2  pos= 0 0 0  RAD=d1
 c SI1  0     15       $ Radio del combustible
 c SP1  -21    2
 c
