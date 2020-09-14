@@ -45,9 +45,9 @@ if __name__ == '__main__':
     elif tipo == 'ascii':
         tb = 1
     # Duración de cada bin (discretización del tau) [s]
-    dt_s = 5e-5
+    dt_s = 2e-4
     # Máximo bin analizado (mayor tau) [s]
-    dtmax_s = 5e-3
+    dtmax_s = 2e-2
     # Nombre de la carpeta donde se guardarán los resultados
     nombre_carpeta = 'resultados_arossi'
 
