@@ -43,7 +43,7 @@ MODE n p
 FMULT METHOD=5
 CUT:n 2J 0 0   $ Fuerza capturas analógicas
 CUT:p 2J 0 0   $ Fuerza capturas analógicas
-RAND GEN=2 SEED=1
+RAND GEN=4 SEED=1 STRIDE=300000
 PRINT
 NPS 1e4
 
