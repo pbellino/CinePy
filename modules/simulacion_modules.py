@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import numpy as np
+from uncertainties import ufloat
 from mcnptools import Ptrac
 from modules.alfa_rossi_procesamiento import arossi_una_historia_I
 from modules.io_modules import read_PTRAC_CAP_bin
@@ -358,6 +358,86 @@ def corrige_t_largos(datos, tasa, nps_tot, metodo='elimina'):
         datos_corregidos = datos[datos[:, 1].argsort()]
 
     return datos_corregidos
+
+
+def calcula_param_cin(dic, verbose=False):
+    """
+    Calcula parámetros cinéticos a partir de las estimaciones de MCNP
+
+    Escribe los resultados en un archivo llamado <parametros.cin>
+    Utiliza el modulo uncertainties para propagación de incertezas.
+
+    Si <dic> no contiene la información de parámetros necesarias, se sale.
+    Dicha información es el "Lambda", "beta_eff", etc (todo lo que estima MCNP6
+    cuando se le da la opción "KOPTS KINETICS=yes"
+
+    Parámetros
+    ----------
+        dic : dict
+            Diccionario que devuelve la función read_kcode_out()
+        verbose : Bool (False)
+            Cuando es True imprime en pantalla las estimaciones realizadas
+
+    Resultados
+    ---------
+        dic_out: dic
+            Diccionaario con keys
+                dic_out['keff']
+                dic_out['Lambda']
+                dic_out['rho']
+                dic_out['rho_dol']
+                dic_out['alfa']
+            Todos los valores son dtype=ufloat (del paquete uncertainties9
+
+        'parametros.cin'
+            Archivo que se escribe con los resultados estimados. Sobreescribe
+            el archivo en caso de que existiera
+
+    """
+
+    if dic['Lambda'] is None:
+        print("El diccionario de entrada no tiene los datos necesarios")
+        print("calcula_param_cin() se aborta")
+        quit()
+
+    # Magnitudes estimadas por MCNP
+    keff = ufloat(*dic['keff'])
+    Lambda = ufloat(*dic['Lambda'])
+    beta = ufloat(*dic['betaeff'])
+
+    # Magnitudes derivadas
+    rho = (keff-1) / keff
+    rho_dol = rho / beta
+    alfa = (beta - rho) / Lambda
+
+    data_str = "#" + 79*"-" + "\n"
+    data_str += "# Magnituds simuladas por MCNP\n"
+    data_str += "#" + 79*"-" + "\n"
+    data_str += "k_effectivo =  {:.2u}\n".format(keff)
+    data_str += "Lambda = {:.2e}\n".format(Lambda)
+    data_str += "beta efectivo = {:.2e} s\n".format(Lambda)
+    data_str += "#" + 79*"-" + "\n"
+    data_str += "# Magnituds derivadas\n"
+    data_str += "#" + 79*"-" + "\n"
+    data_str += "rho = {:.2u}\n".format(rho)
+    data_str += "$ = {:.2u} dólares\n".format(rho_dol)
+    data_str += "alfa = {:.2u} 1/s\n".format(alfa)
+
+    out_name = 'parametros.cin'
+    with open(out_name, 'w') as f:
+        f.write(data_str)
+
+    dic_out = {}
+    dic_out['keff'] = keff
+    dic_out['Lambda'] = Lambda
+    dic_out['rho'] = rho
+    dic_out['rho_dol'] = rho_dol
+    dic_out['alfa'] = alfa
+
+    if verbose:
+        print(data_str)
+
+    return dic_out
 
 
 # Funciones para PHITS
