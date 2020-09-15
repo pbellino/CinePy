@@ -1,8 +1,9 @@
-#! /usr/bin/env python3
+#!/usr/bin/env python3
 
 import sys
 sys.path.append('../../')
 from modules.io_modules import read_kcode_out
+from modules.simulacion_modules import calcula_param_cin
 
 
 if __name__ == "__main__":
@@ -10,5 +11,5 @@ if __name__ == "__main__":
     filename = "in_kcode.o"
 
     dic = read_kcode_out(filename)
-    for key, val in dic.items():
-        print(key, val)
+
+    out_dic = calcula_param_cin(dic, verbose=True)
