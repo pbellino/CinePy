@@ -415,7 +415,7 @@ def calcula_param_cin(dic, verbose=False):
     data_str += "#" + 79*"-" + "\n"
     data_str += "k_effectivo =  {:.2u}\n".format(keff)
     data_str += "Lambda = {:.2e}\n".format(Lambda)
-    data_str += "beta efectivo = {:.2e} s\n".format(Lambda)
+    data_str += "beta efectivo = {:.2e}\n".format(beta)
     data_str += "#" + 79*"-" + "\n"
     data_str += "# Magnituds derivadas\n"
     data_str += "#" + 79*"-" + "\n"
