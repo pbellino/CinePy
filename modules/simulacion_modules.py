@@ -440,6 +440,42 @@ def calcula_param_cin(dic, verbose=False):
     return dic_out
 
 
+def separa_capturas_por_celda(datos_n):
+    """
+    Separa los datos dependiendo de las celdas donde se efectuaron las capturas
+
+    Parámetros
+    ----------
+        datos_n : numpy_array o list of list
+            Datos leidos del archivo ptrac
+
+    Resultados
+    ----------
+        separados : dict
+            Diccionario cuyas claves son los números de celda (positivos) y los
+            valores los numpy array con mismo formato que 'datos_n'
+        origen : dict
+            Diccionario cuyas claves son los números de celda (negativos y
+            positivos) y los valores la cantidad de captura en cada celda y con
+            cada signo. Sirve para analizar cuántas detecciones provienen
+            directas de fuente y cuántas de fisiones
+
+    """
+    # Por las dudas fuerzo numpy arrray
+    datos = np.asarray(datos_n)
+    _celdas_all = datos_n[:, 2]
+    _celdas = np.unique(_celdas_all)
+    origen = {}
+    for celda in _celdas:
+        origen[str(int(celda))] = np.shape(datos[datos[:, 2] == celda])[0]
+    separados = {}
+    for celda in np.unique(np.abs(_celdas)):
+        separados[str(int(celda))] = datos[(datos[:, 2] == celda) |
+                                           (datos[:, 2] == -celda)
+                                           ]
+    return separados, origen
+
+
 # Funciones para PHITS
 
 
