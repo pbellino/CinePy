@@ -10,6 +10,10 @@ características del archivo de entrada no admita una paralelización (por
 ejemplo, con la opción PTRAC) o porque no se disponga del ejecutable para MPI
 de MCNP6.
 
+Se puede ejecutar en un cluster como en una PC. En caso de ejecutarse en un
+cluster se debe contar con los scripts del gestor de colas para lanzar las
+corridas de MCNP.
+
 Las dos opciones que se pueden hacer son:
 
 ### 1) Ejecutar instancias de MCNP en serie de a un core
@@ -23,7 +27,7 @@ Las dos opciones que se pueden hacer son:
 ## Contenido
 
     - ``input``: Input de MCNP
-    - ``lanza_corridas.py``: Script para lanzar los jobs
+    - ``corridas_paralelizadas.py``: Script para lanzar los jobs
     - ``mcnp6.slurm``: Script de slurm para ejecutaar mcnp6 en una sola
       instancia
     - ``mcnp6_gcc6.3_openmp.slurm``: Script de slurm para ejecutar mcnp6 con
@@ -32,7 +36,7 @@ Las dos opciones que se pueden hacer son:
 
 ## Procedimiento
 
-Al ejecutar el script ``lanza_corridas.py`` se realiza lo siguiente:
+Al ejecutar el script ``corridas_paralelizadas.py`` se realiza lo siguiente:
 
 Dentro de la carpeta raíz (donde están todos estos archivos) se generan
 carpetas (una por cada corrida que se lanzó) con el nombre ``case_001``,
