@@ -1,0 +1,68 @@
+Fuente de Cf252 en agua con detectores de NaI
+c
+c
+c
+100 1  -2.0         -1000       imp:p=1    $ Fuente Cf252
+102 0      1000 -1001       imp:p=1    $ Agua
+103 3  -3.667       -1002       imp:p=1    $ Detector NaI 1
+104 0               -1003       imp:p=1    $ Detector NaI 2
+105 0  -1004 #102 #103 #104     imp:p=1    $ Aire
+106 0               1004        imp:p=0    $ Exterior
+
+1000 rcc 0 0 -2     0 0 4   0.00001        $ Fuente Cf-252
+1001 rcc 0 0 -20    0 0 40  7.5         $ Balde
+1002 rcc  -7.5 0 0     -7.62 0 0    3.81   $ Detector 1
+1003 rcc  7.5 0 0     7.62 0 0    3.81   $ Detector 2
+1004 SO  1000                          $ Esfera vacio
+
+M1    98252.80c     1     $ Cf252
+M2     1001.80c     2     $ H
+       8016.80c     1     $ O
+MT2 lwtr.20t
+M3     11023.80c    1     $ Na
+       53127.80c    1     $ I
+c ***************************************************
+c FUENTE
+c ***************************************************
+c Fuente puntual, debe ubicarse en una celda con un
+c nucleido que posea datos de fisiones espontáneas
+c
+SDEF  PAR=p  POS=0 0 0  ERG=2.22 
+c SDEF  PAR=p  POS=0 0 0  ERG=2  
+c SI1 L 0.5 2.0
+c SP1    1.  1. 
+c SDEF  PAR=-SF  POS= 0 0 0  EXT=D1  RAD=D2  AXS= 0 0 1
+c SI1 H -2 2      $ Longitud de la fuente
+c SP1 -21 0       $ Densidad unifrome en z
+c SI2 H 0 0.00001     $ Radio de la fuente
+c SP2 -21 1       $ Densidad uniforme en r
+c ***************************************************
+FC14 Flujo de fotones en detector 1 NaI 3x3
+F14:p 103 
+E14 2e-3 150ILOG 2.21 2.23 50ILOG 50
+SD14 1
+c
+c FC24 Flujo de fotones en detector 2 NaI 3x3
+c F24:p 104
+c E24 2e-3 150ILOG 2.21 2.23 50ILOG 50
+c SD24 1
+c
+FC21 Corriente de fotones que salen del balde
+F21:p (1001.1 1001.2 1001.3)
+E21 2e-3 150ILOG 2.21 2.23 50ILOG 50
+c ***************************************************
+F8:p 103
+E8 0 1e-5 1e-3 40ILOG 0.510 0.512 5ILOG 2.21 2.23 2.5 3
+TF8 6J 52 J   $ TFC en los de 2.22MeV
+c ***************************************************
+PTRAC buffer=1000 file=asc write=all type=p max=2e9 filter=103,icl tally=8 value=0 event=ter,sur
+c PTRAC buffer=1000 file=asc write=all type=p max=2e9 filter=102,icl  tally=8 value=0 $ event=ter 
+c ***************************************************
+c FMULT METHOD=5
+MODE p
+c CUT:n 100.0e10 J 0 0
+RAND GEN=2 SEED=1
+NPS 1e5
+PRINT
+
+
