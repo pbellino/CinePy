@@ -26,7 +26,7 @@ c ***************************************************
 MODE n
 CUT:n 100.0e10 J 0 0
 F4:n 102
-RAND GEN=2 SEED=1
-NPS 1e2
+RAND GEN=4 STRIDE=500000 SEED=1
+NPS 1e4
 
 
