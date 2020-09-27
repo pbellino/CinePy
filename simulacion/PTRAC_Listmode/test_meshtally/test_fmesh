@@ -1,0 +1,51 @@
+Fuente quasi-puntual de Cf252 inmersa en esfera de B10
+c
+c
+c
+100 1  -2.0        -1000   imp:n=1    $ Fuente Cf252
+102 2  -1.0   1000 -1001   imp:n=1    $ Moderador
+103 3  -10.0  1001 -1002   imp:n=1    $ Detector
+104 0         1002         imp:n=0    $ Exterior
+
+1000 SO  0.0001       $ Esfera para fuente
+1001 SO  15.00         $ Esfera para moderador
+1002 SO  15.50        $ Esfera para detector
+
+M1    98252     1     $ Cf252
+M2     1001     2     $ H
+       8016     1     $ O
+M3     5010     1     $ B10
+c
+M1001  1001   1
+c ***************************************************
+c FUENTE
+c ***************************************************
+c Fuente puntual, debe ubicarse en una celda con un
+c nucleido que posea datos de fisiones espontáneas
+c Se lo distribuye uniformemente en el tiempo
+c
+SDEF  par=n  pos= 0 0 0 dir=1 vec = 0 0 1 erg=5
+MODE n p
+CUT:n 100.0e10 J 0 0
+FMESH14:n   geom=xyz origin -20 -20 -20
+            imesh 20 iints 100 
+            jmesh 20 jints 100
+            kmesh 20 kints 100
+            emesh 1e-7 3 
+            eints 1 1
+            out=cf
+FMESH24:n   geom=xyz origin -20 -20 -20
+            imesh 20 iints 100 
+            jmesh 20 jints 100
+            kmesh 20 kints 100
+            out=cf
+FM24   -1 1001 102
+FMESH54:p   geom=xyz origin -20 -20 -20
+            imesh 20 iints 100 
+            jmesh 20 jints 100
+            kmesh 20 kints 100
+            out=cf
+            emesh 2.1 2.3
+NPS 1e4
+PRINT
+
