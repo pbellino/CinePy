@@ -70,6 +70,9 @@ def run_paralelo(n_corridas, input_mcnp, machine='PC', n_tasks=1,
     correr con OpenMP o en serie (pues no está compilado con MPI en
     Neurus).
 
+    Debe aparecer la tarjeta "RAND" para que reemplace correctamente
+    Si se llama a otro archivo, debe aparecer "READ" y luego "FILE="
+
     Parámetros
     ----------
         n_corridas : int
@@ -136,6 +139,9 @@ def run_paralelo(n_corridas, input_mcnp, machine='PC', n_tasks=1,
                     rand_num = 2*i - 1
                     f.write('RAND GEN=4 STRIDE=500000 SEED='
                             + str(rand_num) + '\n')
+                elif line.startswith("READ"):
+                    # Si el input lee otro archivo, subo un nivel
+                    f.write(line.replace('FILE=', 'FILE=../'))
                 else:
                     f.write(line)
 
