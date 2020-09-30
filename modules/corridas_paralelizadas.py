@@ -74,6 +74,12 @@ def run_paralelo(n_corridas, input_mcnp, machine='PC', n_tasks=1,
     Debe aparecer la tarjeta "RAND" para que reemplace correctamente
     Si se llama a otro archivo, debe aparecer "READ" y luego "FILE="
 
+    Es posible también correr en la misma copia-carpeta dos corridas
+    para PTRAC con neutrones y otra para fotones. Parte del manejo de
+    los inputs lo hace el script en bash. En 'PC' el script ejecuta MCNP,
+    mientras que en 'cluster' el script debe generar dos inputs agregando
+    "_n" y "_p" (esto es importante).
+
     Parámetros
     ----------
         n_corridas : int
