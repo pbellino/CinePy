@@ -58,7 +58,8 @@ def _modifica_slurm_openmp(slurm_script, slurm_base, input_corrida,
 
 
 def run_paralelo(n_corridas, input_mcnp, machine='PC', n_tasks=1,
-                 queue_script=None, parallelization=None):
+                 queue_script=None, parallelization=None, nombre='case',
+                 run_script=None):
     """
     Función para realizar distintas corridas en paralelo de MCNP
 
@@ -91,6 +92,17 @@ def run_paralelo(n_corridas, input_mcnp, machine='PC', n_tasks=1,
             Tipo de paralelización que se va a utilizar. Se asume que cada
             una posee un 'queue_script' diferente (como sucede en Neurus).
             Si se toma 'serie' se ignora la variable 'n_tasks'
+        nombre : str
+            Nombre de las carpetas que se generan para cada copia.
+            Se crean carpetas con nombre "nombre_xxx".
+        run_script : str
+            Nombre del script que se va a ejecutar en cada copia.
+            Cuando se corre 'PC' el script separa en corridas para fotones
+            y neutrones y luego ejecuta MCNP para ambos inputs.
+            Cuando se corre en 'cluster' el script sólo debe separ el input
+            en otros dos con terminaciones "_n" y "_p"
+
+    TODO: Reescribir en python lo que hacen los scripts en bash
     """
 
     if machine == 'cluster':
@@ -120,7 +132,7 @@ def run_paralelo(n_corridas, input_mcnp, machine='PC', n_tasks=1,
     for i in range(1, n_corridas + 1):
         # Identificación de cada corrida
         id_corrida = str(i).zfill(3)
-        dir_corrida = 'case_' + id_corrida
+        dir_corrida = nombre + '_' + id_corrida
         # Crea las carpetas si no existen
         # si existen se saltean (se deja como estaba)
         try:
@@ -148,23 +160,35 @@ def run_paralelo(n_corridas, input_mcnp, machine='PC', n_tasks=1,
         # Genera script de slurm
         # Si se corre en el cluster
         if machine == 'cluster':
-            # Si se utiliza OpenMP
-            if parallelization == "OpenMP":
-                _modifica_slurm_openmp(queue_script, slurm_base,
-                                       input_corrida, n_tasks)
-            # Si se utiliza en serie
-            elif parallelization == 'serie':
-                _modifica_slurm_serie(queue_script, slurm_base,
-                                      input_corrida)
-            # Se envia el job
-            command = "sbatch " + queue_script
-            process = subprocess.Popen(command.split(),
-                                       stdout=subprocess.PIPE)
-            output, error = process.communicate()
+            if run_script:
+                subprocess.call(['../' + run_script, input_corrida])
+                posfix = ['_n', '_p']
+            else:
+                posfix = ['']
+
+            for pos in posfix:
+                new_que = queue_script + pos
+                new_inp = input_corrida + pos
+                # Si se utiliza OpenMP
+                if parallelization == "OpenMP":
+                    _modifica_slurm_openmp(new_que, slurm_base,
+                                           new_inp, n_tasks)
+                # Si se utiliza en serie
+                elif parallelization == 'serie':
+                    _modifica_slurm_serie(new_que, slurm_base,
+                                          new_inp)
+                # Se envia el job
+                command = "sbatch " + new_que
+                process = subprocess.Popen(command.split(),
+                                           stdout=subprocess.PIPE)
+                output, error = process.communicate()
         # Si se corre en una PC
         elif machine == 'PC':
-            command = "mcnp6 tasks {0} i={1} n={1}.".format(n_tasks,
-                                                            input_corrida)
+            if run_script:
+                command = '../' + run_script + ' ' + input_corrida
+            else:
+                command = "mcnp6 tasks {0} i={1} n={1}.".format(n_tasks,
+                                                                input_corrida)
             subprocess.Popen(command.split(), stdout=subprocess.DEVNULL)
 
         print(' Se sale de la carpeta ' + dir_corrida)
@@ -185,7 +209,8 @@ if __name__ == '__main__':
     #              input_mcnp,
     #              machine='cluster',
     #              queue_script='mcnp6.slurm',
-    #              parallelization='serie')
+    #              parallelization='serie',
+    #              run_script='run_sdef_cluster.sh')
 
     # Para correr en Neurus con OpenMP
     # n_corridas = 4
@@ -195,4 +220,5 @@ if __name__ == '__main__':
     #              machine='cluster',
     #              n_tasks=8,
     #              queue_script='mcnp6_gcc6.3_openmp.slurm',
-    #              parallelization='OpenMP')
+    #              parallelization='OpenMP',
+    #              run_script='run_sdef_cluster.sh')
