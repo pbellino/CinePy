@@ -292,7 +292,7 @@ def read_PTRAC_estandar(archivo, tipo, eventos):
                 #    print(event.Get(Ptrac.X))
 
         hists = p.ReadHistories(Nbatch)
-    return data
+    return data, None
 
 
 def lee_tally_E_mcnptools(filename, tally):
