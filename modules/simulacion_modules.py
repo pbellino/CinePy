@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import glob
+import os
 import numpy as np
 from uncertainties import ufloat
 from mcnptools import Ptrac
@@ -474,6 +476,73 @@ def separa_capturas_por_celda(datos_n):
                                            (datos[:, 2] == -celda)
                                            ]
     return separados, origen
+
+
+def merge_outputs(carpetas=None, nombre='case', dos_corridas=False):
+    """
+    Función para leer los archivos ptrac de cada carpeta y juntarlos. No los
+    ordena, sólo hace un append cambiando el nps para que no se repitan.
+
+    Se asume que el input tiene el mismo nombre que la carpeta en donde se
+    encuentra.
+
+    Parámetros
+    ----------
+        carpetas : list of strings
+            Lista con los nombres de las carpetas que se quieren leer
+            Si no se especifica se toma 'case_001, case_002, ...'
+        nombre : str
+            Nombre con que se identifican las carpetas, se lee "nombre_xxx"
+        dos_corridas : boolean
+            Si se hicieron una corrida para neutrones y otra para fotones,
+            con esta opción se indica que lea ambos archivos en la misma
+            carpeta. Serán "nombre_carpeta"_n.p (para neutrones
+            "nombre_carpeta"_p.p (para fotones).
+
+    Resultados
+    ----------
+        out : numpy array
+            Datos agrupados entre todas las carpetas. No están ordenados. Tiene
+            el mismo formato que la salida de las funciones de lectura de los
+            archivos PTRAC.
+        nps_tot : float
+            Cantidad de eventos totales. Es la suma de los nps de cada carpeta.
+    """
+
+    parent = os.getcwd()
+    if not carpetas:
+        carpetas = glob.glob(nombre + '_*')
+    nps_tot = 0
+    out_n = np.empty((0, 9), float)
+    out_p = np.empty((0, 4), float)
+    out = np.empty((0, 9), float)
+    for carpeta in carpetas:
+        os.chdir(carpeta)
+        if dos_corridas:
+            datos_n, _ = read_PTRAC_CAP_bin(carpeta + '_n.p')
+            datos_p, _ = read_PTRAC_estandar(carpeta + '_p.p', 'bin', ['sur'])
+            if datos_n:
+                datos_n = np.asarray(datos_n)
+                datos_n[:, 0] = datos_n[:, 0] + nps_tot
+                out_n = np.append(out_n, datos_n, axis=0)
+                print(np.shape(datos_n))
+            if datos_p:
+                datos_p = np.asarray(datos_p)
+                datos_p[:, 0] = datos_p[:, 0] + nps_tot
+                out_p = np.append(out_p, datos_p, axis=0)
+                print(np.shape(datos_p))
+        else:
+            datos, _ = read_PTRAC_CAP_bin(carpeta + '.p')
+            if datos:
+                datos = np.asarray(datos)
+                datos[:, 0] = datos[:, 0] + nps_tot
+                out = np.append(out, datos, axis=0)
+        nps_tot += lee_nps_entrada(carpeta)
+        os.chdir(parent)
+    if dos_corridas:
+        return out_n, out_p, nps_tot
+    else:
+        return out, nps_tot
 
 
 # Funciones para PHITS
