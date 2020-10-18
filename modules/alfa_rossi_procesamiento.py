@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 """
 Script para procesar los datos con el método de alfa-Rossi
@@ -37,7 +36,7 @@ sns.set()
 plt.style.use('paper')
 
 
-def arossi_una_historia_I(data, dt_s, dtmax_s, tb):
+def arossi_una_historia_I(data, dt_s, dtmax_s, tb, trigs='compute'):
     """
     Aplica el método de a-Rossi (Tipo I) a una historia
 
@@ -65,6 +64,13 @@ def arossi_una_historia_I(data, dt_s, dtmax_s, tb):
             Tiempo total del histograma (N_bin = dtmax_s / dt_s)
         tb : double [segundos]
             Tiempo que dura cada pulso del contador
+        trigs : str ("compute", "all")
+            Indicación para saber cuántos triggers utilizarp por historia.
+            "compute" : Calcula cuál debe ser el último trigger para que todos
+            los binnes de la distribución tengan la misma estadística (es el
+            comportamiento original).
+            "all" : usa todos los triggers. Se agregó para procesar los datos
+            de coincidencias sin accidentales a través de la PTRAC.
 
     Resultados
     ----------
@@ -98,9 +104,14 @@ def arossi_una_historia_I(data, dt_s, dtmax_s, tb):
     t_tot_hist = data[-1]   # Tiempo total de la historia
     # Busca el último pulso que puede ser utilizado como trigger
     # en base a lo que dura cada barrido (dtmax)
-    ind_max_hist = np.searchsorted(data, t_tot_hist - dtmax, side='right')
-    # Creo el vector donde todos los pulsos servirán como triggers
-    data_ok = data[:ind_max_hist]
+    if trigs == "compute":
+        # Para que todos tengan la misma estadística
+        ind_max_hist = np.searchsorted(data, t_tot_hist - dtmax, side='right')
+        # Creo el vector donde todos los pulsos servirán como triggers
+        data_ok = data[:ind_max_hist]
+    elif trigs == "all":
+        # Si una historia es una cadena de fisión, tomo todos los triggers
+        data_ok = data[:-1]
     # Cantidad de triggers en data_ok
     N_triggers = data_ok.size
     # Tasa de cuentas y desvío de la historia
@@ -140,11 +151,11 @@ def arossi_serial(data_bloques_undet, dt_s, dtmax_s, tb):
 
 def wrapper_arossi_una_historia_I(arg_tupla):
     """ Wrapper de `arossi_una_historia_I` usada al paralelizar. """
-    data, dt_s, dtmax_s, tb = arg_tupla
-    return arossi_una_historia_I(data, dt_s, dtmax_s, tb)
+    data, dt_s, dtmax_s, tb, trigs = arg_tupla
+    return arossi_una_historia_I(data, dt_s, dtmax_s, tb, trigs)
 
 
-def alfa_rossi_procesamiento(data_bloques, dt_s, dtmax_s, tb):
+def alfa_rossi_procesamiento(data_bloques, dt_s, dtmax_s, tb, trigs='compute'):
     """
     Procesamiento de alfa-Rossi para todos los detectores.
 
@@ -162,6 +173,13 @@ def alfa_rossi_procesamiento(data_bloques, dt_s, dtmax_s, tb):
             Tiempo total del histograma (N_bin = dtmax_s / dt_s)
         tb : double [segundos]
             Tiempo que dura cada pulso del contador
+        trigs : str ("compute", "all")
+            Indicación para saber cuántos triggers utilizarp por historia.
+            "compute" : Calcula cuál debe ser el último trigger para que todos
+            los binnes de la distribución tengan la misma estadística (es el
+            comportamiento original).
+            "all" : usa todos los triggers. Se agregó para procesar los datos
+            de coincidencias sin accidentales a través de la PTRAC.
 
     Resultados
     ----------
@@ -188,7 +206,9 @@ def alfa_rossi_procesamiento(data_bloques, dt_s, dtmax_s, tb):
         # Construyo el argumento del wrapper en forma de tupla
         argumentos_wrapper = zip(data_un_detector, itertools.repeat(dt_s),
                                  itertools.repeat(dtmax_s),
-                                 itertools.repeat(tb))
+                                 itertools.repeat(tb),
+                                 itertools.repeat(trigs),
+                                 )
         _res = _pool.map(wrapper_arossi_una_historia_I, argumentos_wrapper)
         _res = np.asarray(_res)
         results_detectores.append(_res)
