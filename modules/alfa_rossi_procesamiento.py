@@ -115,7 +115,12 @@ def arossi_una_historia_I(data, dt_s, dtmax_s, tb, trigs='compute'):
     # Cantidad de triggers en data_ok
     N_triggers = data_ok.size
     # Tasa de cuentas y desvío de la historia
-    R_historia = rate_from_timestamp(np.diff(data_ok)*tb)
+    if trigs == 'compute':
+        R_historia = rate_from_timestamp(np.diff(data_ok)*tb)
+    elif trigs == 'all':
+        # No normalizo si cada historia es una cadena de fisión
+        # Fijo entonces una tasa unitaria y desvío nulo para identificarlo
+        R_historia = (1, 0)
 
     # Recorro todos los triggers
     P_trigger = []
