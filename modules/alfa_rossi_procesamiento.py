@@ -109,19 +109,16 @@ def arossi_una_historia_I(data, dt_s, dtmax_s, tb, trigs='compute'):
         ind_max_hist = np.searchsorted(data, t_tot_hist - dtmax, side='right')
         # Creo el vector donde todos los pulsos servirán como triggers
         data_ok = data[:ind_max_hist]
+        # Tasa de cuentas y desvío de la historia
+        R_historia = rate_from_timestamp(np.diff(data_ok)*tb)
     elif trigs == "all":
         # Si una historia es una cadena de fisión, tomo todos los triggers
         data_ok = data[:-1]
-    # Cantidad de triggers en data_ok
-    N_triggers = data_ok.size
-    # Tasa de cuentas y desvío de la historia
-    if trigs == 'compute':
-        R_historia = rate_from_timestamp(np.diff(data_ok)*tb)
-    elif trigs == 'all':
         # No normalizo si cada historia es una cadena de fisión
         # Fijo entonces una tasa unitaria y desvío nulo para identificarlo
         R_historia = (1, 0)
-
+    # Cantidad de triggers en data_ok
+    N_triggers = data_ok.size
     # Recorro todos los triggers
     P_trigger = []
     for i, trigger in enumerate(data_ok):
