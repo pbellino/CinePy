@@ -9,6 +9,59 @@ from modules.alfa_rossi_procesamiento import arossi_una_historia_I
 from modules.io_modules import read_PTRAC_CAP_bin
 
 
+def separa_en_historias_sin_accidentales(data):
+    """
+    Función para separar las capturas registradas en PTRAC por historias
+
+    Cada historia corresponde a los neutriones capturados durante un mismo
+    evento de fuente (notar que difiera de la definición de historia utilizada
+    al procesar datos de una medicion). Es decir, cada historia es una cadena
+    de fisión generada por un evento de fuente.
+
+    De esta manera no se tienen en cuenta la parte no-correlacionada de los
+    métodos de ruido, pues siempre se analiza siempre la misma cadena de
+    fisión.
+
+    Es de utilidad para comparar los resultados respecto a la simulación
+    completa de una medición, donde se mezclan las cadenas de fisión mediante
+    el agregado del tiempo de emisión de la fuente.
+
+    Parámetros
+    ----------
+        data : list of lists
+            Lista que devuelve la función 'read_PTRAC_CAP_bin()'
+    Resultados
+    ----------
+       times_all : list of lists
+            Cada elemento de la lista corresponde a un detector distinto. Cada
+            elemento es una lista de listas, con cada elemento indica los
+            tiempos de captura para cada nps del archivo (cadena de fisión).
+    """
+
+    data_out = np.asarray(data)
+    # Sólo me quedo con los datos de: nps, tiempos y celda
+    data_out = data_out[:, 0:3]
+    # Ordeno datos de acuerdo a número de historia creciente
+    data_out = data_out[data_out[:, 0].argsort()]
+    #
+    # TODO: separar por celda en este punto cuando se necesite
+    #
+    times_all = []  # Lista de tiempos para todos los detectores
+    # Dejo planteado el loop sobre los detectores para un futuro
+    for _ in ['det1']:    # Este loop recorre todos los detectores
+        # Encuentra los valores e índices de historia
+        _, _indxs, _counts = np.unique(data_out[:, 0],
+                                       return_index=True, return_counts=True)
+        # _new = []  # Datos completas con más de una captura (debugg)
+        _times = []  # Tiempos con más de una captura
+        for _inx, _count in zip(_indxs, _counts):
+            if _count > 1:
+                # _new.append(data_out[_inx:_inx + _count, :])
+                _times.append(np.sort(data_out[_inx:_inx + _count, 1])*1e-8)
+        times_all.append(_times)
+    return times_all
+
+
 def genera_tallies(archivo_tallies, def_tallies, *args, **kargs):
     """
     Genera los tallies F8 con los GATES sucesivos para obtener la RAD
