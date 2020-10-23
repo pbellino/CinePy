@@ -1,0 +1,50 @@
+Fuente quasi-puntual de Cf252 en H2O para multiplicidad n/g
+c
+READ FILE=sistema
+c
+c *****************************************************************************
+c SDEF
+c *****************************************************************************
+c Fuente quasi-puntual de Cf252 
+c
+c SDEF  par=-SF  pos= 0 0 0 RAD=d1
+SDEF  par=n ERG=2  pos= 0 0 0
+c SI1  0     15       $ Radio del combustible
+c SP1  -21    2
+c
+c @BEGIN_TALLY_N
+c *****************************************************************************
+c TALLIES NEUTRONES
+c *****************************************************************************
+FC18 Capturas en detector de He3
+F18:n 103  
+FT18 CAP -1 -1 2003 
+PTRAC buffer=1000 file=bin write=all tally=18 filter=103,icl event=cap value=0 type=n max=2e9 
+c @END_TALLY_N
+c @BEGIN_TALLY_P
+c *****************************************************************************
+c TALLIES FOTONES
+c *****************************************************************************
+FC51 Corriente de fotones por cara interna del detector
+F51:p 1001  
+E51 1e-3 150ILOG 2.21 2.23 50ILOG 50    $ Bineado de energía
+TF51 6J 153 J                           $ TFC en el bin de 2.22MeV
+FT51 TAG 3                              $ Tags
+FU51 -1.0 01001.00102 1e10              $ De fuente - H(n,g)D - Resto
+c
+FC61 Corriente de fotones por cara externa del detector (debug)
+F61:p 1002     
+E61 1e-3 150ILOG 2.21 2.23 50ILOG 50
+TF61 6J 153 J       $ TFC en el bin de 2.22MeV
+PTRAC buffer=1000 file=bin write=all tally=51 filter=102,icl 2.21,2.23,erg event=sur value=0 type=p max=2e9 
+c @END_TALLY_P
+c
+MODE n p
+FMULT METHOD=5
+CUT:n 2J 0 0   $ Fuerza capturas analógicas
+CUT:p 2J 0 0   $ Fuerza capturas analógicas
+RAND GEN=4 SEED=1 STRIDE=300000
+PRINT
+NPS 1e4
+
+
