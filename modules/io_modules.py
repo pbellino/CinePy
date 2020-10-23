@@ -325,7 +325,120 @@ def string_at(f, pos, length):
 
 # ------------- Funciones para leer archivos de MCNP  -------------------------
 
+
 def read_PTRAC_CAP_bin(filename):
+    """
+    Función para leer el archivo binario de PTRAC para event=CAP
+
+    Se leen los datos en el archivo binario de PTRAC cuando se especifica
+    la opción event=CAP. Se escribió porque MCNPTools no admite leer los
+    archivos de PTRAC para capturas.
+
+    Fue hecho buscando los datos en el archivo, no fue probado para cualquier
+    tipo de especificaciones de entrada del PTRAC. Mientras se conserven la
+    cantidad de datos, tendría que funcionar igual.
+
+    Los datos son leidos hasta que se termina el archivo.
+
+    Se optimizó la función para que lea líneas completas, en lugar de número
+    por número. Redujo el tiempo de lectura casi en un factor 10x. Se podría
+    seguir optimizando si fuera muy necesario. Lo único optimizado fue la
+    función interna '_lee_datos_CAP()'.
+
+    Parametros
+    ----------
+
+       filename : string
+
+    Resultados
+    ----------
+
+        datos : list of list
+            Cada línea se guarda como una lista de datos. La segunda columna
+            corresponde a los tiempos de captura en shakes (10e-8s).
+
+        header : list
+            Encabezados y demás parámetros que se encuentran antes de los
+            datos en el archivo PTRAC. Muchos de ellos no son relevantes cuando
+            se utiliza PTRAC con la opción `event=CAP'.
+
+    TODO: Aprender a hacer esto bien.
+
+    """
+
+    def _lee_datos_CAP(f, pos):
+        """ Función para leer los datos de capturas luego del encabezado """
+
+        data = []
+        # Formato de una línea del archivo PTRAC con F8+CAP
+        dt7 = np.dtype("<u8, <f8, <u4, <u4, <u4, <u4, <u4, <u4, <u4")
+        # Al final de cada línea hay un caracter ¿salto de línea? que también
+        # se podría incluir. Es problemático en la última línea, porque dicho
+        # caracter no está y devuelve un array vacío.
+        # dt7 = np.dtype("<u8, <f8, <u4, <u4, <u4, <u4, <u4, <u4, <u4, <u8")
+        pp = 'aa'  # Cualquier cosa que tenga len() distinto de cero
+        f.seek(pos)
+        while len(pp):
+            # Leo los siete números de cada captura
+            pp = np.fromfile(f, dtype=dt7, count=1)
+            # Salteo el final de línea
+            f.seek(f.tell() + 8)
+            # Lo guardo como lista
+            data.append(list(*pp))
+        # Como la última línea está vacía, la quito
+        data.pop()
+        return data
+
+    with open(filename, 'rb') as f:
+        # Lectura de las primeras tres líneas del archivo
+        line1 = int32_at(f, 4)
+        line2 = string_at(f, 16, 40)
+        line3 = string_at(f, 64, 128)
+
+        # Lectura de los 30 números con especificaciones de PTRAC
+        ptrac_input_data = []
+        f.seek(f.tell() + 8)
+        for i in range(32):
+            if i in [10, 21]:
+                continue
+            ptrac_input_data.append(float64_at(f, 200 + 8*i))
+        num_variables = []
+
+        # Lectura de los 20 números de variables
+        f.seek(f.tell()+8)
+        num_variables = np.fromfile(f, '<i4', count=2)
+        f.seek(f.tell()+4)
+        _temp1 = np.fromfile(f, '<i8', count=9)
+        _temp2 = np.fromfile(f, '<i4', count=9)
+        num_variables = np.append(num_variables, _temp1)
+        num_variables = np.append(num_variables, _temp2)
+        # Sumando puedo obtener la cantidad de variables que
+        # se deben leer en el próximo paso
+        sum_num_var = np.sum(num_variables[0:11])
+        # Indica el ID de la partícula
+        # (=0 si es un problema con más de una partícula, y esta info se
+        # agrega dentro de las líneas de cada evento)
+        tipo_particula = num_variables[11]
+        # El valor #13 siempre debe valer cuatro
+        assert num_variables[12] == 4, 'Falla en lectura de encabezado'
+
+        # Lectura de los tipos de variables
+        f.seek(f.tell()+8)
+        tipos_var = np.fromfile(f, '<i8', count=4)
+        _temp1 = np.fromfile(f, '<i4', count=sum_num_var-4)
+        tipos_var = np.append(tipos_var, _temp1)
+
+        header = [line1, line2, line3, ptrac_input_data,
+                  num_variables, tipos_var, tipo_particula]
+
+        # Se leen los datos de las capturas
+        pos = f.tell() + 8
+        datos = _lee_datos_CAP(f, pos)
+
+    return datos, header
+
+
+def read_PTRAC_CAP_bin_obsoleta(filename):
     """
     Función para leer el archivo binario de PTRAC para event=CAP
 
