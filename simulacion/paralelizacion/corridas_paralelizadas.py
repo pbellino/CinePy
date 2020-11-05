@@ -205,8 +205,15 @@ def run_paralelo(n_corridas, input_mcnp, machine='PC', n_tasks=1,
 
 if __name__ == '__main__':
 
-    # Para correr en una PC
-    run_paralelo(4, 'input', machine='PC')
+    # Para correr en una PC un solo archivo
+    # run_paralelo(4, 'input', machine='PC')
+
+    # Para correr en una PC con n + p por separado
+    # (leer 'run_sdef.sh' para ver cómo tiene que ser el input
+    run_paralelo(n_corridas=4,
+                 input_mcnp='in_sdef',
+                 machine='PC',
+                 run_script='run_sdef.sh')
 
     # Para correr en Neurus en serie
     # n_corridas = 4
