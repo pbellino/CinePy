@@ -578,12 +578,10 @@ def merge_outputs(carpetas=None, nombre='case', dos_corridas=False):
                 datos_n = np.asarray(datos_n)
                 datos_n[:, 0] = datos_n[:, 0] + nps_tot
                 out_n = np.append(out_n, datos_n, axis=0)
-                print(np.shape(datos_n))
             if datos_p:
                 datos_p = np.asarray(datos_p)
                 datos_p[:, 0] = datos_p[:, 0] + nps_tot
                 out_p = np.append(out_p, datos_p, axis=0)
-                print(np.shape(datos_p))
         else:
             datos, _ = read_PTRAC_CAP_bin(carpeta + '.p')
             if datos:
