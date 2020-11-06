@@ -539,6 +539,13 @@ def merge_outputs(carpetas=None, nombre='case', dos_corridas=False):
     Se asume que el input tiene el mismo nombre que la carpeta en donde se
     encuentra.
 
+    Se escriben aarchivos binarios .npy con los datos ya juntados. Esto se hace
+    para evitar tener que leer los archivos PTRAC cada vez que se quiera
+    reprocesar.
+
+    NOTA: si los archivos existen, la función devuelve los datos leidos de
+    archivos .npy existentes. NO VUELVE A LEER LOS ARCHIVOS PTRAC.
+
     Parámetros
     ----------
         carpetas : list of strings
@@ -560,8 +567,38 @@ def merge_outputs(carpetas=None, nombre='case', dos_corridas=False):
             archivos PTRAC.
         nps_tot : float
             Cantidad de eventos totales. Es la suma de los nps de cada carpeta.
+
+        Archivos 'nombre_n_merged.npy'  'nombre_n_merged.npy' y
+        'nombre_np_nps_merged.npy' (si dos_corridas=True)
+
+        Archivos 'nombre_merged.npy' y 'nombre_nps_merged.npy (si
+        dos_corridas=False)
     """
 
+    # Se fija si existen archivos binarios con los datos ya agrupado
+    # Si es así, se leen dichos valores y se sale de la función,
+    # No se leen los archivos PTRAC
+    if dos_corridas:
+        _nom_n = nombre + "_n_merged.npy"
+        _nom_p = nombre + "_p_merged.npy"
+        # Asumo que también existe el archivo con info del nps
+        _nom_nps = nombre + "_np_nps_merged.npy"
+        if os.path.exists(_nom_n) or os.path.exists(_nom_p):
+            print("Ya existen archivos con resultados combinados")
+            print("No se procesa ni se escriben nuevos archivos.")
+            print("Se leen archivos existentes.")
+            return np.load(_nom_n), np.load(_nom_p), np.load(_nom_nps)
+    else:
+        _nom = nombre + "_merged.npy"
+        # Asumo que también existe el archivo con info del nps
+        _nom_nps = nombre + "_nps_merged.npy"
+        if os.path.exists(_nom):
+            print("Ya existen archivos con resultados combinados")
+            print("No se procesa ni se escriben nuevos archivos.")
+            print("Se leen archivos existentes.")
+            return np.load(_nom), np.load(_nom_nps)
+
+    # Se leen los archivos PTRAC
     parent = os.getcwd()
     if not carpetas:
         carpetas = glob.glob(nombre + '_*')
@@ -591,8 +628,16 @@ def merge_outputs(carpetas=None, nombre='case', dos_corridas=False):
         nps_tot += lee_nps_entrada(carpeta)
         os.chdir(parent)
     if dos_corridas:
+        out_n = np.asarray(out_n)
+        out_p = np.asarray(out_p)
+        np.save(nombre + '_n_merged', out_n)
+        np.save(nombre + '_p_merged', out_p)
+        np.save(nombre + '_np_nps_merged', nps_tot)
         return out_n, out_p, nps_tot
     else:
+        out = np.asarray(out)
+        np.save(nombre + '_merged', out)
+        np.save(nombre + '_nps_merged', nps_tot)
         return out, nps_tot
 
 
