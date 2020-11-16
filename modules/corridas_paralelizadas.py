@@ -215,9 +215,9 @@ if __name__ == '__main__':
                  machine='PC',
                  run_script='run_sdef.sh')
 
-    # Para correr en Neurus en serie
+    # Para correr en Neurus en serie con n + p por separado
     # n_corridas = 4
-    # input_mcnp = 'input'
+    # input_mcnp = 'in_sdef'
     # run_paralelo(n_corridas,
     #              input_mcnp,
     #              machine='cluster',
@@ -225,9 +225,19 @@ if __name__ == '__main__':
     #              parallelization='serie',
     #              run_script='run_sdef_cluster.sh')
 
-    # Para correr en Neurus con OpenMP
+    # Para correr en Neurus en serie
     # n_corridas = 4
-    # input_mcnp = 'input'
+    # input_mcnp = 'in_sdef'
+    # run_paralelo(n_corridas,
+    #              input_mcnp,
+    #              machine='cluster',
+    #              queue_script='mcnp6.slurm',
+    #              parallelization='serie',
+    #              )
+
+    # Para correr en Neurus con OpenMP con n + p por separado
+    # n_corridas = 4
+    # input_mcnp = 'in_sdef'
     # run_paralelo(n_corridas,
     #              input_mcnp,
     #              machine='cluster',
@@ -235,3 +245,14 @@ if __name__ == '__main__':
     #              queue_script='mcnp6_gcc6.3_openmp.slurm',
     #              parallelization='OpenMP',
     #              run_script='run_sdef_cluster.sh')
+
+    # Para correr en Neurus con OpenMP 
+    # n_corridas = 4
+    # input_mcnp = 'in_sdef'
+    # run_paralelo(n_corridas,
+    #              input_mcnp,
+    #              machine='cluster',
+    #              n_tasks=8,
+    #              queue_script='mcnp6_gcc6.3_openmp.slurm',
+    #              parallelization='OpenMP',
+    #              )
