@@ -371,7 +371,7 @@ def read_PTRAC_CAP_bin(filename):
 
         data = []
         # Formato de una línea del archivo PTRAC con F8+CAP
-        dt7 = np.dtype("<u8, <f8, <u4, <u4, <u4, <u4, <u4, <u4, <u4")
+        dt7 = np.dtype("<u8, <f8, <i4, <u4, <u4, <u4, <u4, <u4, <u4")
         # Al final de cada línea hay un caracter ¿salto de línea? que también
         # se podría incluir. Es problemático en la última línea, porque dicho
         # caracter no está y devuelve un array vacío.
