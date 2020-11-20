@@ -19,8 +19,8 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     # Archivos de lista de tiempos a leer
     nombres = [
-              './times_listmode.D1.dat',
-              './times_listmode.D2.dat',
+              './times_listmode_n.D1.dat',
+              './times_listmode_p.D2.dat',
               ]
     # Conversión listmode a ventana temporal
     dt_base = 4e-4            # intervalo base para binnear la lista de tiempos

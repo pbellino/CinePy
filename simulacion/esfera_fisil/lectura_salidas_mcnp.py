@@ -28,7 +28,7 @@ if __name__ == '__main__':
     print('Leyendo arhvo de neutrones....')
     datos_n, header_n = read_PTRAC_CAP_bin(archivo_n)
     print('Leyendo arhvo de fotones....')
-    datos_p = read_PTRAC_estandar(archivo_p, 'bin', ['sur'])
+    datos_p, _ = read_PTRAC_estandar(archivo_p, 'bin', ['sur'])
 
     # Se agrega el tiempo del evento de fuente [1/s]
     tasa = 1000.0
@@ -46,8 +46,8 @@ if __name__ == '__main__':
     t_n = datos_n[:, 1]
     t_p = datos_p[:, 1]
     t_0 = min(t_n[0], t_p[0])
-    np.savetxt('times_listmode_n.dat', t_n, fmt='%.12E')
-    np.savetxt('times_listmode_p.dat', t_p, fmt='%.12E')
+    # np.savetxt('times_listmode_n.dat', t_n, fmt='%.12E')
+    # np.savetxt('times_listmode_p.dat', t_p, fmt='%.12E')
     print('Tiempo total simulado de neutrones: {} s'.format(t_n[-1] - t_0))
     print('Tiempo total simulado de fotones: {} s'.format(t_p[-1] - t_0))
 
@@ -61,11 +61,12 @@ if __name__ == '__main__':
     t_0_corr = min(t_n_corr[0], t_p_corr[0])
     t_n_corr -= t_0_corr
     t_p_corr -= t_0_corr
-    np.savetxt('times_listmode_n_corr.dat', t_n_corr, fmt='%.12E')
-    np.savetxt('times_listmode_p_corr.dat', t_p_corr, fmt='%.12E')
+    np.savetxt('times_listmode_n.D1.dat', t_n_corr, fmt='%.12E')
+    np.savetxt('times_listmode_p.D2.dat', t_p_corr, fmt='%.12E')
 
     # Para debuggear
-    nps_hist_n = datos_n_corr[:, 0]
-    nps_hist_p = datos_p_corr[:, 0]
-    np.savetxt('historia_n.dat', nps_hist_n, fmt='%i')
-    np.savetxt('historia_p.dat', nps_hist_p, fmt='%i')
+    #
+    # nps_hist_n = datos_n_corr[:, 0]
+    # nps_hist_p = datos_p_corr[:, 0]
+    # np.savetxt('historia_n.dat', nps_hist_n, fmt='%i')
+    # np.savetxt('historia_p.dat', nps_hist_p, fmt='%i')
