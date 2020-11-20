@@ -129,7 +129,7 @@ def timestamp_to_timewindow(datos, dt, units_in, units_out, tb):
         datos = [datos]
     # Paso a unidades de pulsos
     if units_in == 'segundos':
-        dt = np.uint64(dt / tb)
+        dt = np.float(dt / tb)
     elif units_in == 'pulsos':
         pass
     else:
@@ -143,18 +143,25 @@ def timestamp_to_timewindow(datos, dt, units_in, units_out, tb):
     datos_binned = []
     tiempos = []
     for dato in datos:
-        if dato[-1] <= (2**64 / 2 - 1):
-            dato = dato.astype(np.int64)
-        else:
-            print('No se puede aplicar binncount(), buscar otra forma')
-            quit()
+        # --------------------------------------------------------------------
+        # No recuerdo si esto era realmente necesario luego de esquivar el bug
+        # que tiene numpy.bincount()
+        #
+        # if dato[-1] <= (2**64 / 2 - 1):
+        #     dato = dato.astype(np.int64)
+        # else:
+        #     print('No se puede aplicar binncount(), buscar otra forma')
+        #     quit()
+        # --------------------------------------------------------------------
         # Cantidad de bines que se generan
         _Nbin = np.uint64(dato[-1] // dt)
         # Tiempo máximo exacto que voy a tomar respecto al dt_in
         t_exacto = (dato[-1] // dt) * dt
         # Índice del tiempo exacto
         i_exacto = np.searchsorted(dato, t_exacto, side='left')
-        _bines = np.bincount(dato[0:i_exacto] // dt, minlength=_Nbin)
+        _dat = dato[0:i_exacto] // dt
+        _bines = np.bincount(_dat.astype('int64'), minlength=_Nbin)
+        # _bines = np.bincount(dato[0:i_exacto] // dt, minlength=_Nbin)
         if units_out == 'segundos':
             _bines = _bines / dt / tb
         datos_binned.append(_bines)
