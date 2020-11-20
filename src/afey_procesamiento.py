@@ -38,6 +38,6 @@ if __name__ == '__main__':
 
     for calculo in calculos:
         Y_historias = metodo_alfa_feynman(leidos, numero_de_historias,
-                                          dt_maximo, calculo)
+                                          dt_maximo, calculo, nombres)
         for Y_historia in Y_historias:
             print(np.array(Y_historia)[9, :])
