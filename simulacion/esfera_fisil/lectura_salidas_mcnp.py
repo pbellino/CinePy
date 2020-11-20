@@ -13,8 +13,8 @@ from modules.alfa_rossi_procesamiento import arossi_una_historia_I
 from modules.io_modules import read_PTRAC_CAP_bin, read_PTRAC_CAP_asc
 from modules.simulacion_modules import agrega_tiempo_de_fuente, \
                                        lee_nps_entrada, read_PTRAC_estandar, \
-                                       corrige_t_largos
-
+                                       corrige_t_largos, \
+                                       split_and_save_listmode_data
 
 if __name__ == '__main__':
 
@@ -43,26 +43,27 @@ if __name__ == '__main__':
     datos_n = agrega_tiempo_de_fuente(tasa, nps, datos_n)
     datos_p = agrega_tiempo_de_fuente(tasa, nps, datos_p)
 
+    # Para debuggear
+    # Cómo son los datos antes de corregir por tiempos largos
     t_n = datos_n[:, 1]
     t_p = datos_p[:, 1]
     t_0 = min(t_n[0], t_p[0])
     # np.savetxt('times_listmode_n.dat', t_n, fmt='%.12E')
     # np.savetxt('times_listmode_p.dat', t_p, fmt='%.12E')
-    print('Tiempo total simulado de neutrones: {} s'.format(t_n[-1] - t_0))
-    print('Tiempo total simulado de fotones: {} s'.format(t_p[-1] - t_0))
+    print('Tiempo de neutrones sin corregir: {} s'.format(t_n[-1] - t_0))
+    print('Tiempo de fotones sin corregir: {} s'.format(t_p[-1] - t_0))
 
     # Corrección para los tiempos largos
     print('se corrigen los tiempos largos...')
     datos_n_corr = corrige_t_largos(datos_n, tasa, nps, metodo='pliega')
     datos_p_corr = corrige_t_largos(datos_p, tasa, nps, metodo='pliega')
 
-    t_n_corr = datos_n_corr[:, 1]
-    t_p_corr = datos_p_corr[:, 1]
-    t_0_corr = min(t_n_corr[0], t_p_corr[0])
-    t_n_corr -= t_0_corr
-    t_p_corr -= t_0_corr
-    np.savetxt('times_listmode_n.D1.dat', t_n_corr, fmt='%.12E')
-    np.savetxt('times_listmode_p.D2.dat', t_p_corr, fmt='%.12E')
+    # Separa y graba datos temporales en modo lista
+    print('se separann y gardan los datos...')
+    print(80*'-')
+    datos = [datos_n_corr, datos_p_corr]
+    nombres = ["times_listmode_n", "times_listmode_p"]
+    split_and_save_listmode_data(datos, nombres, comprime=True)
 
     # Para debuggear
     #

@@ -36,7 +36,7 @@ if __name__ == '__main__':
                './resultados_arossi/times_listmode_p_corr_ros.dat',
                ]
 
-    figs = arossi_grafica_historias(nombres)
+    # figs = arossi_grafica_historias(nombres)
 
     # figs[1].axes[0].set_xlabel('Nuevo nombre')
 
@@ -45,8 +45,8 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     # Archivos a leer
     nombres = [
-               './resultados_arossi/times_listmode_n_corr.ros',
-               './resultados_arossi/times_listmode_p_corr.ros',
+               './resultados_arossi/times_listmode_n.D103.ros',
+               './resultados_arossi/times_listmode_p.D102.ros',
                ]
 
     figs = arossi_grafica_promedio(nombres)

@@ -30,8 +30,8 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     # Archivos a leer
     nombres = [
-               './times_listmode_n.D1.dat',
-               './times_listmode_p.D2.dat',
+               './times_listmode_n.D103.gz',
+               './times_listmode_p.D102.gz',
 
               ]
     tipo = 'ascii'
