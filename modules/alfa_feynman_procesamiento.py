@@ -49,11 +49,18 @@ def calcula_alfa_feynman_input(datos, numero_de_historias, dt_base, dt_maximo):
         N_k = [datos_por_historia // i for i in
                range(1, maximos_int_para_agrupar + 1)]
         nombres_archivos = []
+
+        directorio = 'resultados_afey'
+        if not os.path.exists(directorio):
+            os.makedirs(directorio)
+
         with open('archivos_leidos.tmp', 'r') as f:
             for line in f:
                 _nom = line.split('/')[-1]
                 _nom = _nom.rsplit('.', 1)
-                nombres_archivos.append('resultados/' + _nom[-2] + '.Nk')
+                # Cuidado que 'resultados_afey' está hardcodeado y en la
+                # función genera_nombre_archivos() también aparece
+                nombres_archivos.append(directorio + '/' + _nom[-2] + '.Nk')
         header = 'Cantidad de datos utilizados para hacer estadistica ' + \
                  'con cada intervalo dt. Se usa para corregir la ' + \
                  'funcion teorica durante el ajuste'
@@ -127,12 +134,23 @@ def calcula_alfa_feynman(datos, numero_de_historias, dt_base, dt_maximo):
     return Y_historias
 
 
+def escribe_nombres_leidos(nombres):
+    """ Escribe los nombres de los archivos leidos """
+
+    filename = 'archivos_leidos.tmp'
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
+    with open(filename, 'a') as f:
+        for nombre in nombres:
+            f.write(nombre + '\n')
+    return None
+
+
 def wrapper_lectura(nombres, int_agrupar):
     """
     Función para leer los datos y agrupar intervalos
-
-    También escribe el archivo 'archivos_leidos.tmp' con los nombres de los
-    archivos leidos 'nombre'.
 
     Parametros
     ----------
@@ -154,18 +172,6 @@ def wrapper_lectura(nombres, int_agrupar):
             dt_agrupado = (dt_base * int_agrupar )
 
     """
-    def _escribe_nombres_leidos(nombres):
-        """ Escribe los nombres de los archivos leidos """
-
-        filename = 'archivos_leidos.tmp'
-        try:
-            os.remove(filename)
-        except OSError:
-            pass
-        with open(filename, 'a') as f:
-            for nombre in nombres:
-                f.write(nombre + '\n')
-
     _results = lee_bin_datos_dt(nombres)
 
     # Tamaños de los datos adquiridos
@@ -180,7 +186,6 @@ def wrapper_lectura(nombres, int_agrupar):
         # Se agrupan los datos originales de la adquisición
         agrupado_y_dt.append(agrupa_datos(dato, int_agrupar, dt))
 
-    _escribe_nombres_leidos(nombres)
     return agrupado_y_dt
 
 
@@ -473,7 +478,7 @@ def genera_nombre_archivos(Y_historias, calculo):
 
     """
 
-    # Se guardan en la carpeta 'resultados'
+    # Se guardan en la carpeta 'resultados_afey'
     # Se crea si no existe
     directorio = 'resultados_afey'
     if not os.path.exists(directorio):
@@ -508,7 +513,8 @@ def genera_nombre_archivos(Y_historias, calculo):
     return _final
 
 
-def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo):
+def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
+                        nombres):
     """
     Función principal para el método de alfa Feynman
 
@@ -520,6 +526,9 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo):
 
     Limitaciones: se asume que "leidos" proviene de una misma medición, por
     lo cual los parámetros del método son similares para todos los detectores
+
+    Escribe el archivo 'archivos_leidos.tmp' con los nombres de los
+    archivos leidos 'nombre'.
 
     Parametros
     ----------
@@ -546,6 +555,10 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo):
         'sum_paralelo' : Suma los datos de todos los detectores
             Sumo todos los datos de leidos
 
+    nombres : list of strings
+        Lista con los nombres de archivos leidos. Se utiliza para generaar los
+        archivos con los resultados del procesamiento
+
    Resultados
    ----------
     Y_historias : Lista de numpy array
@@ -570,6 +583,8 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo):
         print('Se sale del programa')
         quit()
     else:
+        # Escribe archivo temporal con nombres de archivos leidos
+        escribe_nombres_leidos(nombres)
         Y_historias, dt_base = fun_seleccionada(leidos, numero_de_historias,
                                                 dt_maximo)
 
