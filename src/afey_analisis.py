@@ -1,14 +1,8 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from scipy.stats import norm
 import matplotlib.pyplot as plt
 import os
-from lmfit import Minimizer, Parameters, report_fit
-
-import seaborn as sns
-sns.set()
-plt.style.use('paper')
 
 import sys
 sys.path.append('../')
