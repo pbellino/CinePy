@@ -1,0 +1,28 @@
+c Esfera para multiplicidad n/g
+c
+100 1  -1.00       -1000   imp:n,p=1    $ Combustible homogéneo
+101 2  -1.18  1000 -1001   imp:n,p=1    $ Reflector polietileno
+102 0         1001 -1002   imp:n,p=1    $ Detector fotones (vacío)
+103 3  -1e-3  1002 -1003   imp:n,p=1    $ Detector neutrones (exagerada densidad)
+104 0         1003         imp:n,p=0    $ Exterior
+
+1000 SO  15.0         $ Esfera combustible
+1001 SO  17.0         $ Esfera reflector
+1002 SO  18.0         $ Esfera detector fotones
+1003 SO  20.00        $ Esfera detector de neutrones
+
+c Combustible RA-4 (densidad=1.2g/cm3)
+M1   92235.80c  -1.00000e-01
+     92238.80c  -1.80000e-04
+      8016.80c  -5.39057e-02
+      6000.80c  -7.24501e-01
+      1001.80c  -8.21593e-05
+      1002.80c  -2.91593e+00
+      2003.80c  -2.0e-5       $ He3
+MT1   poly.20t
+c Polietileno (densidad=1.1849g/cm3)
+M2    6000.80c  -7.24501e-01
+      1001.80c  -1.21593e-01
+MT2   poly.20t
+c Detector de neutrones
+M3    2003.80c   1            $ He3
