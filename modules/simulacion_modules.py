@@ -641,6 +641,57 @@ def merge_outputs(carpetas=None, nombre='case', dos_corridas=False):
         return out, nps_tot
 
 
+def split_and_save_listmode_data(datos, nombres, comprime=False):
+    """
+    Graba los archivos en modo lista simulados.
+
+    Previamente los separa por detector.
+
+    Los nombres de los archivos con que se guardan tendrá como base lo indicado
+    en 'nombres' y luego se agrega la info de la celda (".D#celda") y la
+    extensión será '.dat' o '.gz' dependiendo del valor de 'comprime'.
+
+
+    Parámetros
+    ----------
+        datos : list of numpy array
+            Array los datos de la simulación (nx3)
+        nombres : list of strings
+            Nombres de base para cada elemento
+        comprime : bolean
+            Opción para guardar los archivos comprimidos (.gz)
+
+    Se debe cumplir len(datos)=len(nombres)
+    """
+
+    if len(datos) != len(nombres):
+        print('No coinciden los tamaños de las listas. Corregir')
+        quit()
+
+    if comprime:
+        _ext = ".gz"
+    else:
+        _ext = ".dat"
+
+    # Tomo t=0 para el primer pulso entre todos los detectores
+    # Busco cuál es el tiempo mínimo entre todos
+    t_iniciales = [x[:, 1][0] for x in datos]
+    t_0 = min(t_iniciales)
+
+    datos_por_detector = []
+    for dato, nom in zip(datos, nombres):
+        # Separo cada archivo
+        _sep, _origen = separa_capturas_por_celda(dato)
+        for key in _sep:
+            nombre = nom + ".D" + key + _ext
+            np.savetxt(nombre, _sep[key][:, 1] - t_0, fmt="%.12E")
+            print("Tiempo máximo en {} = {:2e} s".format(nombre,
+                  _sep[key][:, 1][-1] - t_0))
+        # Info para saber cuántas reacciones (n,xn) hubieron
+        for item in _origen.items():
+            print("{} detecciones en {}".format(*item[::-1]))
+    return None
+
 # Funciones para PHITS
 
 
