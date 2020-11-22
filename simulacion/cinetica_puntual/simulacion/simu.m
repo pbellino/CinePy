@@ -20,6 +20,10 @@ T_vjo = nan(nbuf,1);
 E_nvo = E_vjo;
 T_nvo = T_vjo;
 
+% Fijo semmilla de números pseudoaleatorios  para reproducir resultados
+SEED = 1;
+rand ("state", SEED);
+
 %% ------------------ FUENTE DE NEUTRONES ---------------------------------
 % Defino y cargo los valores de la fuente de neutrones
 
