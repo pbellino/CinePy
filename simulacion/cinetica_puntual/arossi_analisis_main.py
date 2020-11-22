@@ -44,7 +44,7 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     # Archivos a leer
     nombres = [
-               './resultados_arossi/Td1.ros',
+               './resultados_arossi/times.D1.ros',
                ]
 
     figs = arossi_grafica_promedio(nombres)

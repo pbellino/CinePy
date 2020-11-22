@@ -30,7 +30,7 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     # Archivos a leer
     nombres = [
-                './simulacion/Td1.gz',
+                './simulacion/times.D1.gz',
               ]
     tipo = 'ascii'
     # Cantidad de historias
