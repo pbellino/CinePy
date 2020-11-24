@@ -248,7 +248,7 @@ def ajuste_afey_2exp(tau, Y, std_Y):
     return None
 
 
-def ajuste_afey_delayed(tau, Y, std_Y):
+def ajuste_afey_delayed(tau, Y, std_Y, Y_ini=[300, 1, 1, 100]):
     """
     Ajuste no lineal de la curva de alfa-Feynman
 
@@ -275,10 +275,10 @@ def ajuste_afey_delayed(tau, Y, std_Y):
 
     # Se definen los parámetros del ajuste
     params = Parameters()
-    params.add('alfa', value=300, min=0)
-    params.add('amplitud', value=1, min=0)
-    params.add('offset', value=1)
-    params.add('slope', value=100, min=0)
+    params.add('alfa', value=Y_ini[0], min=0)
+    params.add('amplitud', value=Y_ini[1], min=0)
+    params.add('offset', value=Y_ini[2])
+    params.add('slope', value=Y_ini[3], min=0)
     # Se define la minimización
     minner = Minimizer(residual, params,
                        fcn_args=(tau,),
@@ -403,7 +403,7 @@ def ajuste_afey_2exp_delayed(tau, y, std_y):
     return None
 
 
-def ajuste_afey(tau, Y, std_Y):
+def ajuste_afey(tau, Y, std_Y, Y_ini=[300, 1, 1]):
     """
     Ajuste no lineal de la curva de alfa-Feynman
 
@@ -428,9 +428,9 @@ def ajuste_afey(tau, Y, std_Y):
 
     # Se definen los parámetros del ajuste
     params = Parameters()
-    params.add('alfa', value=300, min=0)
-    params.add('amplitud', value=1, min=0)
-    params.add('offset', value=1)
+    params.add('alfa', value=Y_ini[0], min=0)
+    params.add('amplitud', value=Y_ini[1], min=0)
+    params.add('offset', value=Y_ini[2])
     # Se define la minimización
     minner = Minimizer(residual, params,
                        fcn_args=(tau,),
