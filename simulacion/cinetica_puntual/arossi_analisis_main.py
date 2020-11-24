@@ -53,12 +53,11 @@ if __name__ == '__main__':
     # Ajuste de la curva
     # -------------------------------------------------------------------------
     # Archivos a leer
-    # nombres = './resultados_arossi/times_listmode_n.ros'
-
+    P_ini = [1e-3, 1, 1e-3, 1, 0]
     for nombre in nombres:
         P, P_std, tau, parametros = arossi_lee_historias_promedio(nombre)
         # arossi_ajuste_1exp(tau, P, P_std)
-        fig = arossi_ajuste_2exp(tau[1:], P[1:], P_std[1:])
+        fig = arossi_ajuste_2exp(tau[1:], P[1:], P_std[1:], P_ini)
         fig.suptitle(nombre.split('/')[-1])
     plt.show()
     #
