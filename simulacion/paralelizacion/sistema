@@ -1,9 +1,9 @@
 c Esfera para multiplicidad n/g
 c
-100 1  -1.2        -1000   imp:n,p=1    $ Combustible homogéneo
+100 1  -1.21       -1000   imp:n,p=1    $ Combustible homogéneo
 101 2  -1.18  1000 -1001   imp:n,p=1    $ Reflector polietileno
 102 0         1001 -1002   imp:n,p=1    $ Detector fotones (vacío)
-103 3  -9.0   1002 -1003   imp:n,p=1    $ Detector neutrones (exagerada densidad)
+103 3  -1.0   1002 -1003   imp:n,p=1    $ Detector neutrones (exagerada densidad)
 104 0         1003         imp:n,p=0    $ Exterior
 
 1000 SO  15.0         $ Esfera combustible
