@@ -126,7 +126,7 @@ def arossi_grafica_promedio(nombres):
     return fig
 
 
-def arossi_ajuste_1exp(tau, P, P_std):
+def arossi_ajuste_1exp(tau, P, P_std, P_ini=[200, 1, 1]):
     """
     Ajusta de P(tau) con una exponencial
     """
@@ -146,9 +146,9 @@ def arossi_ajuste_1exp(tau, P, P_std):
 
     # Se definen parámetros del ajuste
     params = Parameters()
-    params.add('alfa', value=200.0, min=0.0)
-    params.add('amplitud', value=1.0, min=0.0)
-    params.add('uno', value=1.0, min=0.0)
+    params.add('alfa', value=P_ini[0], min=0.0)
+    params.add('amplitud', value=P_ini[1], min=0.0)
+    params.add('uno', value=P_ini[2], min=0.0)
     # Se define la minimización
     minimi = Minimizer(residual, params,
                        fcn_args=(tau,),
@@ -192,7 +192,7 @@ def arossi_ajuste_1exp(tau, P, P_std):
     return fig
 
 
-def arossi_ajuste_2exp(tau, P, P_std):
+def arossi_ajuste_2exp(tau, P, P_std, P_ini=[200., 1, 800, 1, 0]):
     """
     Ajusta de P(tau) con dos exponenciales
     """
@@ -214,11 +214,11 @@ def arossi_ajuste_2exp(tau, P, P_std):
 
     # Se definen parámetros del ajuste
     params = Parameters()
-    params.add('alfa_1', value=200.0, min=0.0)
-    params.add('amplitud_1', value=1.0, min=0.0)
-    params.add('alfa_2', value=800.0, min=0.0)
-    params.add('amplitud_2', value=1.0, min=0.0)
-    params.add('uno', value=1.0, min=0.0)
+    params.add('alfa_1', value=P_ini[0], min=0.0)
+    params.add('amplitud_1', value=P_ini[1], min=0.0)
+    params.add('alfa_2', value=P_ini[2], min=0.0)
+    params.add('amplitud_2', value=P_ini[3], min=0.0)
+    params.add('uno', value=P_ini[4], min=0.0)
     # Se define la minimización
     minimi = Minimizer(residual, params,
                        fcn_args=(tau,),
