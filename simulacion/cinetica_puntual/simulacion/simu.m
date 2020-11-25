@@ -20,20 +20,20 @@ T_vjo = nan(nbuf,1);
 E_nvo = E_vjo;
 T_nvo = T_vjo;
 
-% Fijo semmilla de números pseudoaleatorios  para reproducir resultados
+% Fijo semmilla de nÃºmeros pseudoaleatorios  para reproducir resultados
 SEED = 1;
 rand ("state", SEED);
 
 %% ------------------ FUENTE DE NEUTRONES ---------------------------------
 % Defino y cargo los valores de la fuente de neutrones
 
-% Si es una fuente poissoniana, puedo predecir hasta dónde estaré simuladno
-% Lo hago para evitar muestrear un tiemop muy grande, lo que me tardaría
-% mucho tiempo en procesar con los métodos de ruido.
+% Si es una fuente poissoniana, puedo predecir hasta dÃ³nde estarÃ© simuladno
+% Lo hago para evitar muestrear un tiemop muy grande, lo que me tardarÃ­a
+% mucho tiempo en procesar con los mÃ©todos de ruido.
 
 % if strcmp(tpo_fte,'poisson')
 %     disp(['Tiempo final (promedio) = ' num2str(nf/Q)]);
-%     a = input('¿Sigue la ejecución? s/n [s]','s');
+%     a = input('Â¿Sigue la ejecuciÃ³n? s/n [s]','s');
 %     if a=='n', return; end
 % end
 
@@ -45,67 +45,67 @@ E_vjo(1:nf,:) = E_fte;
 
 % ------------------- FIN FUENTE DE NEUTRONES -----------------------------
 %% Inicializo contadores
-nc  = 0;		% Número de capturas
-nfi = 0;		% Número de fisiones
-nd1 = 0;		% Número de detecciones en d1
+nc  = 0;		% NÃºmero de capturas
+nfi = 0;		% NÃºmero de fisiones
+nd1 = 0;		% NÃºmero de detecciones en d1
 
-ite = 200;		% Vector para ir guardando los contadores (asumo un máximo de 200)
+ite = 200;		% Vector para ir guardando los contadores (asumo un mÃ¡ximo de 200)
 ntot  = nan(ite,1);	% Cantidad total de neutrones
 aite  = nan(ite,1);	% Cantidad de absorciones
 fite  = nan(ite,1);	% Cantidad de fisiones
 d1ite = nan(ite,1);	% Cantidad de detecciones
 
-% Para guardar los tiempos, construyo vectores más grandes porque no sé cuán largos van a ser
-nf2 = nf*8;		% Número tentativo
-% Tiempos en donde se produce cada interacción
-Ta  = nan(nf2,1);	% Absorción
-Tf  = nan(nf2,1);	% Fisión
-Td1 = nan(nf2,1);	% Detección
-% Tiempos entre que nace el neutrón y realiza alguna reacción
-DTfa  = nan(nf2,1);	% Absorción
-DTff  = nan(nf2,1);	% Fisión
-DTfd1 = nan(nf2,1);	% Detección
+% Para guardar los tiempos, construyo vectores mÃ¡s grandes porque no sÃ© cuÃ¡n largos van a ser
+nf2 = nf*8;		% NÃºmero tentativo
+% Tiempos en donde se produce cada interacciÃ³n
+Ta  = nan(nf2,1);	% AbsorciÃ³n
+Tf  = nan(nf2,1);	% FisiÃ³n
+Td1 = nan(nf2,1);	% DetecciÃ³n
+% Tiempos entre que nace el neutrÃ³n y realiza alguna reacciÃ³n
+DTfa  = nan(nf2,1);	% AbsorciÃ³n
+DTff  = nan(nf2,1);	% FisiÃ³n
+DTfd1 = nan(nf2,1);	% DetecciÃ³n
 
-%%----------------- COMIENZO DE LA SIMULACIÓN -----------------------------
+%%----------------- COMIENZO DE LA SIMULACIÃ“N -----------------------------
 j = 1;
 while ~all(isnan(E_vjo))
 
-    nonan   = ~isnan(E_vjo);    % Lugares donde hay partículas
-    ntot(j) = sum(nonan);       % Cantidad de partículas
+    nonan   = ~isnan(E_vjo);    % Lugares donde hay partÃ­culas
+    ntot(j) = sum(nonan);       % Cantidad de partÃ­culas
     
-    %% ----- Sorteo la distancia de interacción de la partícula -----------
+    %% ----- Sorteo la distancia de interacciÃ³n de la partÃ­cula -----------
     % Calculo distancia recorrida y acualizo el tiempo global
     S = -log(rand(ntot(j),1))./Sig_t;     % Tramo actual del recorrido
-    T_nvo(nonan) = T_vjo(nonan) + S./V0;  % Tiempo de cada partícula 
+    T_nvo(nonan) = T_vjo(nonan) + S./V0;  % Tiempo de cada partÃ­cula 
     % ---------------------------------------------------------------------
     
-    %% -----------------Sorteo el tipo de interacción----------------------
-    % Se fija qué tipo de interaccción se producirá
+    %% -----------------Sorteo el tipo de interacciÃ³n----------------------
+    % Se fija quÃ© tipo de interaccciÃ³n se producirÃ¡
     rul  = rand(nbuf,1);
     % Descarto
-    rul(isnan(E_vjo)) = nan; % Elimino los lugares donde no había partículas
-    % Asigno interacción a cada partícula
-    indc  = find(     rul <= cum_s(1));            % Absorción
-    indf  = find(cum_s(1) < rul & rul<=cum_s(2));  % Fisión
-    indd1 = find(cum_s(2) < rul & rul<=cum_s(3));  % Detección en el det 1
+    rul(isnan(E_vjo)) = nan; % Elimino los lugares donde no habÃ­a partÃ­culas
+    % Asigno interacciÃ³n a cada partÃ­cula
+    indc  = find(     rul <= cum_s(1));            % AbsorciÃ³n
+    indf  = find(cum_s(1) < rul & rul<=cum_s(2));  % FisiÃ³n
+    indd1 = find(cum_s(2) < rul & rul<=cum_s(3));  % DetecciÃ³n en el det 1
     % ---------------------------------------------------------------------
     
     %% --------------------- ABSORCIONES ----------------------------------
-    % Las absorciones serán las capturas + detecciones + fisiones
+    % Las absorciones serÃ¡n las capturas + detecciones + fisiones
     % --- 1) CAPTURAS
     nc = nc + length(indc); % Cuento la cantidad de absorciones    
     %
     % No me interesa el tiempo de las capturas. Se guarda el de las
     % absorciones que tienen en cuenta capturas + detecciones + fisiones.
-    % Esto tiene más sentido si se le agrega sctattering o escapes.
+    % Esto tiene mÃ¡s sentido si se le agrega sctattering o escapes.
     vec_abs = [indc ; indf ; indd1];   % Junto a los tres procesos
     n_abs   = length(vec_abs);         % Cantidad de absorciones
-    % Registro el tiempo de cada absorción y el Dt
+    % Registro el tiempo de cada absorciÃ³n y el Dt
     if ~isempty([indc;indf])
          Ta(find(isnan(Ta),n_abs),1) = T_nvo(vec_abs,1);
          DTfa(find(isnan(DTfa),n_abs),1) = (T_nvo(vec_abs,1)- T_vjo(vec_abs,1))./(prob_c+prob_f+prob_d1);
     end
-    % Destruye las partículas capturadas
+    % Destruye las partÃ­culas capturadas
     E_nvo(indc,1) = nan;
     T_nvo(indc,1) = nan;  
     
@@ -115,7 +115,7 @@ while ~all(isnan(E_vjo))
          Td1(find(isnan(Td1),length(indd1)),1) = T_nvo(indd1,1);
          DTfd1(find(isnan(DTfd1),length(indd1)),1) = (T_nvo(indd1,1)- T_vjo(indd1,1))./prob_d1;
     end
-    % Destruye las partículas detectadas
+    % Destruye las partÃ­culas detectadas
     E_nvo(indd1,1) = nan;
     T_nvo(indd1,1) = nan;
     % ----------------------- FIIN ABSORCIONES-----------------------------
@@ -124,12 +124,12 @@ while ~all(isnan(E_vjo))
     %
     nfi = nfi + length(indf);        % Cantidad de fisiones    
     %
-    % NEUTRONES INSTANTÁNEOS
+    % NEUTRONES INSTANTÃNEOS
     %          
-    % Sorteo la cantidad de neutrones instantáneos producidos por fisión
+    % Sorteo la cantidad de neutrones instantÃ¡neos producidos por fisiÃ³n
     rul = rand(length(indf),1);
-    % Asigno la cantidad producida en cada fisión
-    nprod = nan(length(indf),1);  % Neutr. inst. producidos por fisión
+    % Asigno la cantidad producida en cada fisiÃ³n
+    nprod = nan(length(indf),1);  % Neutr. inst. producidos por fisiÃ³n
     nprod(                 rul <= cum_p(1)) = 0 ;
     nprod(cum_p(1) < rul & rul <= cum_p(2)) = 1; 
     nprod(cum_p(2) < rul & rul <= cum_p(3)) = 2; 
@@ -138,12 +138,12 @@ while ~all(isnan(E_vjo))
     nprod(cum_p(5) < rul & rul <= cum_p(6)) = 5; 
     nprod(cum_p(6) < rul & rul <= cum_p(7)) = 6;
     nprod(cum_p(7) < rul & rul <= cum_p(8)) = 7;
-    nuev  = sum(nprod);   % Total de neutrones instantáneos producidos
+    nuev  = sum(nprod);   % Total de neutrones instantÃ¡neos producidos
     
-    % Ubico los nuevos neutrones instantáneos producidos y les asigno el
-    % tiempo y la energía correspondiente
-    % Busco qué fisiones produjeron al menos uno, al menos dos, etc.
-    % neutrones instantáneos
+    % Ubico los nuevos neutrones instantÃ¡neos producidos y les asigno el
+    % tiempo y la energÃ­a correspondiente
+    % Busco quÃ© fisiones produjeron al menos uno, al menos dos, etc.
+    % neutrones instantÃ¡neos
     indmp1 = find(nprod >= 1); mp(1)=length(indmp1);
     indmp2 = find(nprod >= 2); mp(2)=length(indmp2);
     indmp3 = find(nprod >= 3); mp(3)=length(indmp3);
@@ -153,12 +153,12 @@ while ~all(isnan(E_vjo))
     indmp7 = find(nprod >= 7); mp(7)=length(indmp7);
     acmp = cumsum(mp);
     
-    % Ubico las nuevas partículas en los lugares donde había nan's
-    if nuev~=0  % Si hay nuevas partículas
-        % Busco lugares con NaN para poner las nuevas partículas
+    % Ubico las nuevas partÃ­culas en los lugares donde habÃ­a nan's
+    if nuev~=0  % Si hay nuevas partÃ­culas
+        % Busco lugares con NaN para poner las nuevas partÃ­culas
         lib = find(isnan(E_vjo),nuev,'first');
         if nuev <= length(lib)    % Si me alcanza el buffer
-            % Asigno los tiempos acuales a las nuevas partículas
+            % Asigno los tiempos acuales a las nuevas partÃ­culas
             T_nvo(lib(1:acmp(1)),:)         = T_nvo(indf(indmp1),:);
             T_nvo(lib(acmp(1)+1:acmp(2)),:) = T_nvo(indf(indmp2),:);
             T_nvo(lib(acmp(2)+1:acmp(3)),:) = T_nvo(indf(indmp3),:);
@@ -166,40 +166,40 @@ while ~all(isnan(E_vjo))
             T_nvo(lib(acmp(4)+1:acmp(5)),:) = T_nvo(indf(indmp5),:);
             T_nvo(lib(acmp(5)+1:acmp(6)),:) = T_nvo(indf(indmp6),:);
             T_nvo(lib(acmp(6)+1:end),:)     = T_nvo(indf(indmp7),:);
-            % Las creo con la misma energía
+            % Las creo con la misma energÃ­a
             E_nvo(lib,:) = E0.*ones(nuev,1);
         else
-            disp('No se pueden ubicar a las nuevas partículas (instantáneas) creadas');
-            error('Aumentar el tamaño del buffer');
+            disp('No se pueden ubicar a las nuevas partÃ­culas (instantÃ¡neas) creadas');
+            error('Aumentar el tamaÃ±o del buffer');
         end
     end
     % 
-    % NEUTRONES INSTANTÁNEOS
+    % NEUTRONES INSTANTÃNEOS
     % 
-    % Toda esta sección es válida sólo si (nu_d=<1). Lo hice así porque es
-    % más sencillo ubicar a los neutrones producidos. Se debe cambiar en
+    % Toda esta secciÃ³n es vÃ¡lida sÃ³lo si (nu_d=<1). Lo hice asÃ­ porque es
+    % mÃ¡s sencillo ubicar a los neutrones producidos. Se debe cambiar en
     % caso de querer generalizarlo.
-    % Voy a asumir que por cada fisión se puede producir A LO SUMO un
-    % neutrón retardado (por eso nu_d=<1).
+    % Voy a asumir que por cada fisiÃ³n se puede producir A LO SUMO un
+    % neutrÃ³n retardado (por eso nu_d=<1).
     %
-    % - Sorteo qué fisiones producirán un neutrón retardado
+    % - Sorteo quÃ© fisiones producirÃ¡n un neutrÃ³n retardado
     rul    = rand(length(indf),1);  
-    indf_d = indf(rul<=nu_d);   % Índices de fisiones que pruducen n. ret.
+    indf_d = indf(rul<=nu_d);   % Ãndices de fisiones que pruducen n. ret.
     nuev_d = length(indf_d);    % Neutrones retardados producidos
     
-    % Ubico las nuevas neutrones retardados en los lugares donde había nan's
+    % Ubico las nuevas neutrones retardados en los lugares donde habÃ­a nan's
     if nuev_d~=0  % Si hay neutrones retardados
-        % Busco lugares con NaN para poner las nuevas partículas
+        % Busco lugares con NaN para poner las nuevas partÃ­culas
         lib_d = find(isnan(E_vjo),nuev+nuev_d,'first');
-        lib_d(1:nuev)=[];   % Elimino los lugares que ocupé con los inst. (MEJORAR)
+        lib_d(1:nuev)=[];   % Elimino los lugares que ocupÃ© con los inst. (MEJORAR)
         if nuev_d<=length(lib_d)    % Si me alcanza el buffer para las creadas
-            % El tiempo de emisión de la partícula distribuido exponencialmente
+            % El tiempo de emisiÃ³n de la partÃ­cula distribuido exponencialmente
             T_nvo(lib_d,1) = T_nvo(indf_d,1) + (-1/lam_d).*log(rand(nuev_d,1));
-            % Con energía fija
+            % Con energÃ­a fija
             E_nvo(lib_d,:) = E0.*ones(nuev_d,1);
         else
-            disp('No se pueden ubicar a las nuevas partículas (retardadas) creadas');
-            error('Aumentar el tamaño del buffer');
+            disp('No se pueden ubicar a las nuevas partÃ­culas (retardadas) creadas');
+            error('Aumentar el tamaÃ±o del buffer');
         end
     end
   
@@ -209,17 +209,17 @@ while ~all(isnan(E_vjo))
         Tf(find(isnan(Tf),length(indf)),1)  = T_nvo(indf,1);%./pf;
         DTff(find(isnan(Tf),length(indf)),1) = (T_nvo(indf,1)-T_vjo(indf,1))./prob_f;
     end
-    % Destruye las partículas que fisionaron
+    % Destruye las partÃ­culas que fisionaron
     T_nvo(indf,:) = nan;
     E_nvo(indf,1) = nan;
     
     % ----------------------- FIN FISIONES --------------------------------
     
-    %% Actualizo las energías y los tiempos de todas las partículas
+    %% Actualizo las energÃ­as y los tiempos de todas las partÃ­culas
     E_vjo = E_nvo;
     T_vjo = T_nvo;
        
-    %% Información sobre los tipos de reacciones que se producen
+    %% InformaciÃ³n sobre los tipos de reacciones que se producen
     % fprintf('\tEn la iteracion ACTUAL\n');
     % fprintf('Capturas: %i\n',length(indc));
     % fprintf('Fisiones: %i\n',length(indf));
@@ -230,7 +230,7 @@ while ~all(isnan(E_vjo))
     % fprintf('Fisiones: %i\n',nfi);
     % fprintf('Detecciones: %i\n',nd1);
     
-    % Guarda información sobre las partículas en cada iteración
+    % Guarda informaciÃ³n sobre las partÃ­culas en cada iteraciÃ³n
     aite(j)  = length(indc);
     fite(j)  = length(indf);
     d1ite(j) = length(indd1);
@@ -249,23 +249,23 @@ Tf(isnan(Tf))       = [];
 Ta(isnan(Ta))       = [];
 Td1(isnan(Td1))     = [];
 
-% -------------------- FIN DE LA SIMULACIÓN -------------------------------
+% -------------------- FIN DE LA SIMULACIÃ“N -------------------------------
 
-%% Verificación de la simulación
+%% VerificaciÃ³n de la simulaciÃ³n
 % Toda esta parte consiste en verificar los resultados que obtuve con la
-% simulación. Es válido para un grupo de energía y para un reactor
+% simulaciÃ³n. Es vÃ¡lido para un grupo de energÃ­a y para un reactor
 % homogeneo
 
 
-% Calculo alguno de los parámetros cinéticos más relevantes, tomando
-% valores medios de los tiempos característicos simulados
+% Calculo alguno de los parÃ¡metros cinÃ©ticos mÃ¡s relevantes, tomando
+% valores medios de los tiempos caracterÃ­sticos simulados
 Lambda  = mean(DTff)./nu;       % Tiempo entre reproducciones
 lambda  = mean(DTfa);           % Vida media
 keff    = lambda/Lambda;        % k efectivo
 rho     = (keff-1)/keff;        % Reactividad
-alfa    = (rho-bet)/Lambda;     % Alfa de los instantáneos
+alfa    = (rho-bet)/Lambda;     % Alfa de los instantÃ¡neos
 alfa_d  = -lam_d*rho/(rho-bet); % Alfa de los retardados
-% Valores teóricos (válidos para un grupo de energías y reactor homogeneo)
+% Valores teÃ³ricos (vÃ¡lidos para un grupo de energÃ­as y reactor homogeneo)
 teo = teoricos;
 
 %% Grafico y calculo algunos resultados
@@ -311,8 +311,8 @@ fprintf('beta                   --> Teorico: %.4f\n',bet);
 fprintf('Alfa ret   --> Simulado: %.4f   Teorico: %.4f   Teorico_exacto: %.4f\n', alfa_d,teo.alfa_d, teo.ad);  
 fprintf('Alfa inst  --> Simulado: %.4f   Teorico: %.4f   Teorico exacto: %.4f\n', alfa, teo.alfa_p, teo.ap);  
 
-%% Aplico los distintos métodos de ruido neutrónico
-% Sólo utilizo la variable local Td1. Tal vez alguna otra, pero sin
+%% Aplico los distintos mÃ©todos de ruido neutrÃ³nico
+% SÃ³lo utilizo la variable local Td1. Tal vez alguna otra, pero sin
 % importancia.
 
 %%--- Para a-Rossi
@@ -329,10 +329,10 @@ fprintf('Alfa inst  --> Simulado: %.4f   Teorico: %.4f   Teorico exacto: %.4f\n'
 % figure;
 % afeynman
 
-%% Guardo todas las variables para controlar el código. En verdad sólo
+%% Guardo todas las variables para controlar el cÃ³digo. En verdad sÃ³lo
 % necesito guardar la variable temporal del detector (Td1)
 % save variables
 Td1 = sort(Td1);
-save -z times.D1.gz Td1       % Si quiero guardar sólo Td1 (gzip)
-% save -ascii times.D1.dat Td1  % Si quiero guardar sólo Td1 (ascii)
+save -z times.D1.gz Td1       % Si quiero guardar sÃ³lo Td1 (gzip)
+% save -ascii times.D1.dat Td1  % Si quiero guardar sÃ³lo Td1 (ascii)
 

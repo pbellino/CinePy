@@ -1,32 +1,32 @@
 
-nf      = 1e6;          % N鷐ero de particulas de fuente
-nbuf    = nf*2;            % Buffer para alojar nuevas part韈ulas
+nf      = 1e6;          % N煤mero de particulas de fuente
+nbuf    = nf*2;            % Buffer para alojar nuevas part铆culas
 
-%-------- Definici髇 de la fuente -----------------------------------------
-E0      = 1;               % Energ韆 inicial de la fuente
-m       = 1;               % Masa de la part韈ula
+%-------- Definici贸n de la fuente -----------------------------------------
+E0      = 1;               % Energ铆a inicial de la fuente
+m       = 1;               % Masa de la part铆cula
 V0      = sqrt(2.*E0./m);  % Velocidad inicial
 Q       = 1; % Valor de la fuente de neutrones (si se usa una poissoniana)
 tpo_fte = 'poisson';
 %  tpo_fte = 'pulsada';
 
-%-------- Par醡etros f韘icos del medio ------------------------------------
-% Sistema cr韙ico con Sig_c=Sig_f=1 y nprod=2 (Asumiendo medio infinito)
-Sig_c   = 0.2;                  % Secci髇 efic醶 macrosc髉ica de captura
-Sig_f   = 0.2;                  % Secci髇 efic醶 macrosc髉ica de fisi髇
+%-------- Par谩metros f铆sicos del medio ------------------------------------
+% Sistema cr铆tico con Sig_c=Sig_f=1 y nprod=2 (Asumiendo medio infinito)
+Sig_c   = 0.2;                  % Secci贸n efic谩z macrosc贸pica de captura
+Sig_f   = 0.2;                  % Secci贸n efic谩z macrosc贸pica de fisi贸n
 Sig_d1  = 0.4;
-Sig_t   = Sig_c + Sig_f + Sig_d1;  % Secci髇 efic醶 macrosc髉ica total
+Sig_t   = Sig_c + Sig_f + Sig_d1;  % Secci贸n efic谩z macrosc贸pica total
 prob_c  = Sig_c/Sig_t;
 prob_f  = Sig_f/Sig_t;
 prob_d1 = Sig_d1/Sig_t;
 p_Sig   = [prob_c prob_f prob_d1];
 cum_s   = cumsum(p_Sig);
 
-% Probabilidad de que se produzcan n part韈ulas en una fisi髇 p(n)
+% Probabilidad de que se produzcan n part铆culas en una fisi贸n p(n)
 % P_prod = [p(0) p(1) p(2) p(3) p(4) p(5) p(6) p(7)]
 p_prod  = [0.032 0.17 0.34 0.30 0.13 0.027 0.0026 0.0002]; % Experimental
 p_prod  = p_prod./sum(p_prod);      % Normalizo por las dudas
-% p_prod = [0 0 1 0 0 0 0 0];      % S髄o se producen 2 part韈ulas por fisi髇 (Yule-Furry)
+% p_prod = [0 0 1 0 0 0 0 0];      % S贸lo se producen 2 part铆culas por fisi贸n (Yule-Furry)
 cum_p   = cumsum(p_prod);
 nu_p    = p_prod*(0:7)';
 
