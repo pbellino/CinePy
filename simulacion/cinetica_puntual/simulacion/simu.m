@@ -332,6 +332,13 @@ fprintf('Alfa inst  --> Simulado: %.4f   Teorico: %.4f   Teorico exacto: %.4f\n'
 %% Guardo todas las variables para controlar el código. En verdad sólo
 % necesito guardar la variable temporal del detector (Td1)
 % save variables
+% Lo que sigue lo necesito en caso de tener una fuente estacionaria
+% - Saco la última parte no estacionaria
+t_fte_fin = T_fte(end)
+% Td1 = sort(Td1);
+% Td1(Td1>=floor(nf/t_fte_fin)) = [];
+% - Pliego la última parte
+Td1 = rem(Td1, t_fte_fin)
 Td1 = sort(Td1);
 save -z times.D1.gz Td1       % Si quiero guardar sólo Td1 (gzip)
 % save -ascii times.D1.dat Td1  % Si quiero guardar sólo Td1 (ascii)
