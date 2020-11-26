@@ -1,0 +1,12 @@
+Vida media (lambda)    --> Simulado: 0.8836   Teorico: 0.8839
+Reproduciones (Lambda) --> Simulado: 1.3893   Teorico: 1.3893
+k efectivo (keff)      --> Simulado: 0.6360   Teorico: 0.6362
+Reactividad (rho)      --> Simulado: -0.5722  Teorico: -0.5718
+Eficiencia detector    --> Simulado: 1.9309   Teorico: 2.0000
+Tasa de fisiones       --> Simulado: 0.0005   Teorico: 0.6872
+Tasa de detecciones    --> Simulado: 0.0010   Teorico: 1.3745
+Tasa de absorciones    --> Simulado: 0.0020   Teorico: 2.7489
+Cocientes	 T.fis: 1317.9405 	 T.Det: 1365.0904 	 T.Abs: 1365.3060 
+beta                   --> Teorico: 0.0500
+Alfa ret   --> Simulado: -0.0000   Teorico: -0.0000   Teorico_exacto: 0.0000
+Alfa inst  --> Simulado: -0.4479   Teorico: -0.4476   Teorico exacto: 0.4476
