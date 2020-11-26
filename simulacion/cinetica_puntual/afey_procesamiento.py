@@ -47,7 +47,8 @@ if __name__ == '__main__':
 
     calculos = [
                # 'var_serie',
-                'var_paralelo',
+               'var_paralelo_choice',
+               # 'var_paralelo',
                # 'cov_paralelo',
                # 'sum_paralelo',
                # 'pirulo',

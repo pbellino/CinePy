@@ -115,6 +115,22 @@ def agrupamiento_historia(arg_tupla):
     return Y_k
 
 
+def agrupamiento_historia_choice(arg_tupla):
+    """ Técnica de agrupamiento para una historia """
+
+    p = 198  # Cantidad de intervalos tau que tomo para el promedio
+    historia, maximos, datos_x_hist = arg_tupla
+    Y_k = []
+    for i in range(1, maximos+1):
+        _partes = datos_x_hist // i
+        _indice_exacto = _partes * i
+        _matriz = historia[0:_indice_exacto].reshape(_partes, i)
+        _intervalos = _matriz.sum(axis=1, dtype='uint32')
+        _intervalos = np.random.choice(_intervalos, p, replace=False)
+        Y_k.append(np.var(_intervalos, ddof=1) / np.mean(_intervalos) - 1)
+    return Y_k
+
+
 def calcula_alfa_feynman(datos, numero_de_historias, dt_base, dt_maximo):
     """
     Método de alfa-Feynman con la técnica de agrupamiento. En serie.
@@ -231,6 +247,30 @@ def afey_varianza_paralelo(leidos, numero_de_historias, dt_maximo):
         # Argumento de 'agrupamiento_historia' como tupla
         arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist)
         Y_historias.append(pool.map(agrupamiento_historia, arg_tupla))
+    return Y_historias, dt_base
+
+
+def afey_varianza_paralelo_choice(leidos, numero_de_historias, dt_maximo):
+    """
+    Metodo de alfa-Feynman aplicado variance to mean, en paralelo.
+
+    Ver el DocString de "metodo_alfa_feynman" para parametros y resultados.
+
+    """
+
+    Y_historias = []
+    for leido in leidos:
+        a, dt_base = leido
+        historias, max_int, datos_x_hist = \
+            calcula_alfa_feynman_input(a, numero_de_historias, dt_base,
+                                       dt_maximo)
+        # Se corre con todos los procesadores disponibles
+        num_proc = mp.cpu_count()
+        pool = mp.Pool(processes=num_proc)
+        print('Se utilizan {} procesos'.format(num_proc))
+        # Argumento de 'agrupamiento_historia' como tupla
+        arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist)
+        Y_historias.append(pool.map(agrupamiento_historia_choice, arg_tupla))
     return Y_historias, dt_base
 
 
@@ -434,6 +474,8 @@ def genera_encabezados(dt_base, calculo, num_hist, tasas):
     diccionario_calculo = {
             'var_serie': '# Cáclulo de (var/mean - 1) en serie',
             'var_paralelo': '# Cálculo de (var_i/mean_i - 1) en paralelo',
+            'var_paralelo_choice': '# Cálculo de (var_i/mean_i - 1) en ' +
+                                                    'paralelo usando choice',
             'cov_paralelo': '# Cálculo de [cov_12/sqrt(mean_1*mean_2)] en paralelo',
             'sum_paralelo': '# Cálculo de (var/mean - 1) sumando detectores en paralelo',
                       }
@@ -493,7 +535,7 @@ def genera_nombre_archivos(Y_historias, calculo):
             id_det.append(_nom[-2])
             nombres_archivos.append(directorio + '/' + _nom[-3])
     # Para saber si se pidió var, cov o sum
-    id_calculo = calculo.split('_')[-2]
+    id_calculo = calculo.split('_')[0]
     _final = []
     for j in range(len(Y_historias)):
         if id_calculo == 'var':
@@ -574,6 +616,7 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
     diccionario_afey = {
             'var_serie': afey_varianza_serie,
             'var_paralelo': afey_varianza_paralelo,
+            'var_paralelo_choice': afey_varianza_paralelo_choice,
             'cov_paralelo': afey_covarianza_paralelo,
             'sum_paralelo': afey_suma_paralelo,
                       }
