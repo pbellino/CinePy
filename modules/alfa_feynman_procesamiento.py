@@ -118,7 +118,11 @@ def agrupamiento_historia(arg_tupla):
 def agrupamiento_historia_choice(arg_tupla):
     """ Técnica de agrupamiento para una historia """
 
-    p = 198  # Cantidad de intervalos tau que tomo para el promedio
+    p = 390  # Cantidad de intervalos tau que tomo para el promedio
+    print(80*"!")
+    print("Se toman {} puntos para cálculo de historias".format(p))
+    print("El archivo .Nk generado es incorrecto, se debe cambiar a mano")
+    print(80*"!")
     historia, maximos, datos_x_hist = arg_tupla
     Y_k = []
     for i in range(1, maximos+1):
@@ -536,10 +540,15 @@ def genera_nombre_archivos(Y_historias, calculo):
             nombres_archivos.append(directorio + '/' + _nom[-3])
     # Para saber si se pidió var, cov o sum
     id_calculo = calculo.split('_')[0]
+    id_method = calculo.split('_')[-1]
     _final = []
     for j in range(len(Y_historias)):
         if id_calculo == 'var':
-            _final.append(nombres_archivos[j] + '.' + id_det[j] + '.fey')
+            if id_method == 'choice':
+                _final.append(nombres_archivos[j] + '.' + id_det[j]
+                              + '_choice.fey')
+            else:
+                _final.append(nombres_archivos[j] + '.' + id_det[j] + '.fey')
         elif id_calculo == 'cov':
             if j != 2:
                 _final.append(nombres_archivos[j] + '.' + id_det[j]
