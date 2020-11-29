@@ -34,7 +34,9 @@ if __name__ == '__main__':
     # grafica_historias_afey(nombre)
     # plt.show()
     nombres = [
-               'resultados_afey/times.D1.fey',
+     #          'resultados_afey/times.D1.fey',
+     #          'resultados_afey/times.D1_choice.fey',
+                'resultados_afey/times.D1_mca.fey',
               ]
     # -------------------------------------------------------------------------
     #

@@ -34,5 +34,5 @@ nu_p    = p_prod*(0:7)';
 bet     = 0.05;   % Debe ser menor a 0.33(0.05 anda bien sec_temp)
 nu_d    = bet*nu_p/(1-bet);
 nu      = nu_p+nu_d;
-lam_d   = 0.01;                     % Constante de decaimiento de n. ret.
+lam_d   = 0.000001;                     % Constante de decaimiento de n. ret.
 

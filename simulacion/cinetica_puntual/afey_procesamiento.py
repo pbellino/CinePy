@@ -36,19 +36,20 @@ if __name__ == '__main__':
     # Armo la estructura de datos que necesito para procesar los datos
     leidos = []
     for x, y, nom in zip(time_win, binned, nombres):
-        plt.plot(x*dt_base, y, 's-', label=nom.split('/')[-1])
-        plt.xlabel(r"$t$ [s] ")
-        plt.ylabel(r"$N$ [pulsos]")
+        # plt.plot(x*dt_base, y, 's-', label=nom.split('/')[-1])
+        # plt.xlabel(r"$t$ [s] ")
+        # plt.ylabel(r"$N$ [pulsos]")
         leidos.append((y, dt_base))
-    plt.legend()
-    plt.title(r"$\Delta t_{{base}}$: {:.2e} s".format(dt_base))
-    plt.show()
+    # plt.legend()
+    # plt.title(r"$\Delta t_{{base}}$: {:.2e} s".format(dt_base))
+    # plt.show()
     # -------------------------------------------------------------------------
 
     calculos = [
                # 'var_serie',
+               'var_paralelo_mca',
                'var_paralelo_choice',
-               # 'var_paralelo',
+               'var_paralelo',
                # 'cov_paralelo',
                # 'sum_paralelo',
                # 'pirulo',
