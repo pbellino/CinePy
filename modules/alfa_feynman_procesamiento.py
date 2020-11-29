@@ -116,22 +116,76 @@ def agrupamiento_historia(arg_tupla):
 
 
 def agrupamiento_historia_choice(arg_tupla):
-    """ Técnica de agrupamiento para una historia """
+    """
+    Técnica de agrupamiento modificada para una historia
 
-    p = 390  # Cantidad de intervalos tau que tomo para el promedio
+    En vez de tomar todos los intervalos sintetizados para el promedio
+    se toma una muestra aleatoria. Se toma una fracción `frac` de la cantidad
+    total de intervalos para cada dt_i.
+
+    """
+
+    frac = 0.25  # Fracciones de intervalos que se tomarán para el promedio
+
     print(80*"!")
-    print("Se toman {} puntos para cálculo de historias".format(p))
-    print("El archivo .Nk generado es incorrecto, se debe cambiar a mano")
+    print("Se toman una fracción {} de puntos para el promedio".format(frac))
+    print("Se genera el archivo m_list_choice.Nk")
+    print("usarlo para reemplazar el generado <nombre_archivo>.Nk")
     print(80*"!")
     historia, maximos, datos_x_hist = arg_tupla
     Y_k = []
+    m_list = []
     for i in range(1, maximos+1):
         _partes = datos_x_hist // i
         _indice_exacto = _partes * i
         _matriz = historia[0:_indice_exacto].reshape(_partes, i)
         _intervalos = _matriz.sum(axis=1, dtype='uint32')
-        _intervalos = np.random.choice(_intervalos, p, replace=False)
+        m = int(np.shape(_intervalos)[0] // (1 / frac) )
+        _intervalos = np.random.choice(_intervalos, m, replace=False)
         Y_k.append(np.var(_intervalos, ddof=1) / np.mean(_intervalos) - 1)
+        m_list.append(m)
+    np.savetxt("resultados_afey/m_list_choice.Nk", m_list, fmt='%4u')
+    return Y_k
+
+
+def agrupamiento_historia_mca(arg_tupla):
+    """
+    Método para calcular una historia sin reutilizar intervalos base, con el
+    objetivo de eliminar la correlación que introduce el método de
+    agrupamiento.
+
+    Para mejorar la estdística sólo se analizan de a k intervalos dt_i
+
+    """
+
+    k = 2  # 
+
+    historia, maximos, datos_x_hist = arg_tupla
+
+    m = datos_x_hist / (1 + maximos * (maximos / k + 1) / 2)
+    m = int(np.floor(m))
+    print(80*"!")
+    print("Curva cada {} dt_base".format(k))
+    print("Se promediann {} puntos por intervalo".format(m))
+    print("Se genera el archivo m_list_choice.Nk")
+    print("usarlo para reemplazar el generado <nombre_archivo>.Nk")
+    print(80*"!")
+
+    indx = [i for i in range(k, maximos+1, k)]
+    indx = [1] + indx
+    start = 0
+    Y_k = []
+    m_list = []
+    for i in indx:
+        _matriz = historia[start:start + m*i].reshape(m, i)
+        _intervalos = _matriz.sum(axis=1, dtype='uint32')
+        start += i*m
+        if np.mean(_intervalos)!=0:
+            Y_k.append(np.var(_intervalos, ddof=1) / np.mean(_intervalos) - 1)
+        else:
+            Y_k.append(0.0)
+        m_list.append(m)
+    np.savetxt("resultados_afey/m_list_mca.Nk", m_list, fmt='%4u')
     return Y_k
 
 
@@ -275,6 +329,30 @@ def afey_varianza_paralelo_choice(leidos, numero_de_historias, dt_maximo):
         # Argumento de 'agrupamiento_historia' como tupla
         arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist)
         Y_historias.append(pool.map(agrupamiento_historia_choice, arg_tupla))
+    return Y_historias, dt_base
+
+
+def afey_varianza_paralelo_mca(leidos, numero_de_historias, dt_maximo):
+    """
+    Metodo de alfa-Feynman aplicado variance to mean, en paralelo.
+
+    Ver el DocString de "metodo_alfa_feynman" para parametros y resultados.
+
+    """
+
+    Y_historias = []
+    for leido in leidos:
+        a, dt_base = leido
+        historias, max_int, datos_x_hist = \
+            calcula_alfa_feynman_input(a, numero_de_historias, dt_base,
+                                       dt_maximo)
+        # Se corre con todos los procesadores disponibles
+        num_proc = mp.cpu_count()
+        pool = mp.Pool(processes=num_proc)
+        print('Se utilizan {} procesos'.format(num_proc))
+        # Argumento de 'agrupamiento_historia' como tupla
+        arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist)
+        Y_historias.append(pool.map(agrupamiento_historia_mca, arg_tupla))
     return Y_historias, dt_base
 
 
@@ -479,7 +557,9 @@ def genera_encabezados(dt_base, calculo, num_hist, tasas):
             'var_serie': '# Cáclulo de (var/mean - 1) en serie',
             'var_paralelo': '# Cálculo de (var_i/mean_i - 1) en paralelo',
             'var_paralelo_choice': '# Cálculo de (var_i/mean_i - 1) en ' +
-                                                    'paralelo usando choice',
+                                              'paralelo usando metodo choice',
+            'var_paralelo_mca': '# Cálculo de (var_i/mean_i - 1) en ' +
+                                              'paralelo usando metodo mca',
             'cov_paralelo': '# Cálculo de [cov_12/sqrt(mean_1*mean_2)] en paralelo',
             'sum_paralelo': '# Cálculo de (var/mean - 1) sumando detectores en paralelo',
                       }
@@ -547,6 +627,9 @@ def genera_nombre_archivos(Y_historias, calculo):
             if id_method == 'choice':
                 _final.append(nombres_archivos[j] + '.' + id_det[j]
                               + '_choice.fey')
+            elif id_method == 'mca':
+                _final.append(nombres_archivos[j] + '.' + id_det[j]
+                              + '_mca.fey')
             else:
                 _final.append(nombres_archivos[j] + '.' + id_det[j] + '.fey')
         elif id_calculo == 'cov':
@@ -622,10 +705,20 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
         'sum_paralelo' : Un elemento
     """
 
+    if 'var_paralelo_choice' in calculo:
+        print(80*"!")
+        print('ATENCION: La función "var_paralelo_choice" tiene hardcodeado parmátros')
+        print(80*"!")
+    elif 'var_paralelo_mca' in calculo:
+        print(80*"!")
+        print('ATENCION: La función "var_paralelo_mca" tiene hardcodeado parmátros')
+        print(80*"!")
+
     diccionario_afey = {
             'var_serie': afey_varianza_serie,
             'var_paralelo': afey_varianza_paralelo,
             'var_paralelo_choice': afey_varianza_paralelo_choice,
+            'var_paralelo_mca': afey_varianza_paralelo_mca,
             'cov_paralelo': afey_covarianza_paralelo,
             'sum_paralelo': afey_suma_paralelo,
                       }
