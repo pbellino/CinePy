@@ -34,43 +34,6 @@ def calcula_alfa_feynman_input(datos, numero_de_historias, dt_base, dt_maximo):
     print('\tNumero máximo de intervalos para agrupar: {}'.format(maximos_int_para_agrupar))
     print('='*50)
 
-    def _datos_por_intervalo(datos_por_historia, maximos_int_para_agrupar):
-        """
-        Dato usados para hacer estadística para cada intervalo agrupado
-
-        Para ser usado como corrección en el ajuste teórico. Como esto se
-        agregó la final, los datos son guardados en un archivo con
-        extensión *.Nk. El nombre de dicho archivo se lee del archivo
-        "archivos_leidos.tmp". Se graba uno para cada detector, aunque en
-        verdad son los mismos datos. Esto es por si en un futuro se necesita
-        diferenciarlos
-
-        """
-        N_k = [datos_por_historia // i for i in
-               range(1, maximos_int_para_agrupar + 1)]
-        nombres_archivos = []
-
-        directorio = 'resultados_afey'
-        if not os.path.exists(directorio):
-            os.makedirs(directorio)
-
-        with open('archivos_leidos.tmp', 'r') as f:
-            for line in f:
-                _nom = line.split('/')[-1]
-                _nom = _nom.rsplit('.', 1)
-                # Cuidado que 'resultados_afey' está hardcodeado y en la
-                # función genera_nombre_archivos() también aparece
-                nombres_archivos.append(directorio + '/' + _nom[-2] + '.Nk')
-        header = 'Cantidad de datos utilizados para hacer estadistica ' + \
-                 'con cada intervalo dt. Se usa para corregir la ' + \
-                 'funcion teorica durante el ajuste'
-        for nombre in nombres_archivos:
-            np.savetxt(nombre, N_k, fmt='%.i', header=header)
-
-        return None
-
-    # _datos_por_intervalo(datos_por_historia, maximos_int_para_agrupar)
-
     # Se dividen todos los datos en historias
     historias = np.split(datos[0:datos_por_historia*numero_de_historias],
                          numero_de_historias)
@@ -685,7 +648,7 @@ def genera_nombre_archivos(Y_historias, calculo):
 
 
 def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
-                        nombres):
+                        nombres, **kwargs):
     """
     Función principal para el método de alfa Feynman
 
