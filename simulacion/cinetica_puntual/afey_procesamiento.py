@@ -55,8 +55,9 @@ if __name__ == '__main__':
                # 'pirulo',
                 ]
 
+    # Parámetros extras para el cálculo mca y choice
+    extra = {'skip':2, 'fraction':0.25}
     for calculo in calculos:
         Y_historias = metodo_alfa_feynman(leidos, numero_de_historias,
-                                          dt_maximo, calculo, nombres)
-        #for Y_historia in Y_historias:
-        #    print(np.array(Y_historia)[9, :])
+                                          dt_maximo, calculo, nombres, **extra)
+
