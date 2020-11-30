@@ -705,15 +705,6 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
         'sum_paralelo' : Un elemento
     """
 
-    if 'var_paralelo_choice' in calculo:
-        print(80*"!")
-        print('ATENCION: La función "var_paralelo_choice" tiene hardcodeado parmátros')
-        print(80*"!")
-    elif 'var_paralelo_mca' in calculo:
-        print(80*"!")
-        print('ATENCION: La función "var_paralelo_mca" tiene hardcodeado parmátros')
-        print(80*"!")
-
     diccionario_afey = {
             'var_serie': afey_varianza_serie,
             'var_paralelo': afey_varianza_paralelo,
@@ -728,12 +719,27 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
         print('Se sale del programa')
         quit()
     else:
+        if calculo == 'var_paralelo_choice':
+            if kwargs.get('fraction') is None:
+                _msg = "Para calcular con el método {} es necesario "
+                _msg += "incluir el argumento 'fraction' como diccionario \n"
+                _msg += "Se sale del programa"
+                print(_msg.format(calculo))
+                quit()
+        elif calculo == 'var_paralelo_mca':
+            if kwargs.get('skip') is None:
+                _msg = "Para calcular con el método {} es necesario "
+                _msg += "incluir el argumento 'skip' como diccionario \n"
+                _msg += "Se sale del programa"
+                print(_msg.format(calculo))
+                quit()
+
+        # extr_args = {'skip':2, 'otro':3, 'fraction':0.25}
         # Escribe archivo temporal con nombres de archivos leidos
         escribe_nombres_leidos(nombres)
-        extr_args = {'skip':2, 'otro':3, 'fraction':0.25}
         Y_historias, dt_base, M_points = \
                 fun_seleccionada(leidos, numero_de_historias, dt_maximo,
-                                 **extr_args)
+                                 **kwargs)
 
         # Agrego la info de tasa de cuentas para ser grabada en el encabezado
         # Servirá para hacer correcciones en los parámetros estimados (por
