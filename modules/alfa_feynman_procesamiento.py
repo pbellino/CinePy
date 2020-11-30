@@ -281,7 +281,6 @@ def afey_varianza_paralelo_choice(leidos, numero_de_historias, dt_maximo,
         arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist, frac,
                                       M_points)
         Y_historias.append(pool.map(agrupamiento_historia_choice, arg_tupla))
-    np.savetxt("resultados_afey/m_list_choice.Nk", M_points, fmt='%4u')
     return Y_historias, dt_base, M_points
 
 
@@ -339,7 +338,6 @@ def afey_varianza_paralelo_mca(leidos, numero_de_historias, dt_maximo,
         # Asumo que todos los detectores van a tener el mismo tamaño de
         # historias
         M_points = [M for _ in range(np.shape(Y_historias[0])[1])]
-        np.savetxt("resultados_afey/m_list_mca.Nk", M_points, fmt='%4u')
     return Y_historias, dt_base, M_points
 
 
