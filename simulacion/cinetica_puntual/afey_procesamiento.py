@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
 
     calculos = [
-               # 'var_serie',
+               'var_serie',
                'var_paralelo_mca',
                'var_paralelo_choice',
                'var_paralelo',
@@ -58,5 +58,5 @@ if __name__ == '__main__':
     for calculo in calculos:
         Y_historias = metodo_alfa_feynman(leidos, numero_de_historias,
                                           dt_maximo, calculo, nombres)
-        for Y_historia in Y_historias:
-            print(np.array(Y_historia)[9, :])
+        #for Y_historia in Y_historias:
+        #    print(np.array(Y_historia)[9, :])
