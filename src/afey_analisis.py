@@ -47,7 +47,7 @@ if __name__ == '__main__':
     #
     # ------------------------------------------------------------------------
 
-    nombre = 'resultados_afey/nucleo_01.D1.fey'
+    nombre = 'resultados_afey/nucleo_01.D1_var.fey'
     # Camino absoluto del archivo que se quiere leer
     abs_nombre = os.path.join(script_dir, nombre)
     tau, Y, std_Y, num_hist, _ = lee_fey(abs_nombre)
