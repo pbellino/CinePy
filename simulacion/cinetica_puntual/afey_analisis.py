@@ -7,12 +7,7 @@ import os
 import sys
 sys.path.append('/home/pablo/CinePy')
 
-from modules.io_modules import lee_historias_completas, lee_fey
-from modules.funciones import alfa_feynman_lin_dead_time, \
-                              alfa_feynman_dos_exp, alfa_feynman_tres_exp, \
-                              alfa_feynman_lin_dead_time_lin_delayed, \
-                              alfa_feynman_dos_exp_delayed, \
-                              alfa_feynman_nldtime
+from modules.io_modules import lee_fey
 from modules.alfa_feynman_analisis import teo_variance_berglof, grafica_afey, \
                                           ajuste_afey_nldtime, ajuste_afey, \
                                           grafica_historias_afey, lee_Nk, \
@@ -34,9 +29,9 @@ if __name__ == '__main__':
     # grafica_historias_afey(nombre)
     # plt.show()
     nombres = [
-     #          'resultados_afey/times.D1.fey',
-     #          'resultados_afey/times.D1_choice.fey',
-                'resultados_afey/times.D1_mca.fey',
+                'resultados_afey/times.D1_var.fey',
+     #          'resultados_afey/times.D1_var_choice.fey',
+     #          'resultados_afey/times.D1_var_mca.fey',
               ]
     # -------------------------------------------------------------------------
     #
