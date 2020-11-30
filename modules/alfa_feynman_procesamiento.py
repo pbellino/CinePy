@@ -664,6 +664,13 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
             A cada elemento de leidos.
         'var_paralelo' : Método variance to mean paralelo
             A cada elemento de leídos
+        'var_paralelo_mca' : similar a 'var_paralelo' pero sin reutilizar datos
+            Ti para sintetizar nuevos intervalos. Reduce la correlación. Es
+            necesario pasarle el dato 'skip' para dict en kwargs.
+        'var_paralelo_choice' : similar a 'var_paralelo' pero tomando una
+            cantidad aleatoria de intervalos Ti para calcular el promedio.
+            Reduce la correlación. Es necesario pasarle el dato 'fraction' como
+            dict en kwargs.
         'cov_paralelo' : Método de la covarianza en paralelo
             Sólo toma los dos primeros elementos de leidos
         'sum_paralelo' : Suma los datos de todos los detectores
@@ -672,6 +679,18 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
     nombres : list of strings
         Lista con los nombres de archivos leidos. Se utiliza para generaar los
         archivos con los resultados del procesamiento
+
+    kwargs : dictionary
+        kwargs['skip'] : int
+            Cantidad de intervalos que se saltean cuando se usa el método _mca.
+            Se lo utiliza para tener una mejor estadística en los resultados
+            cuando se quiere reducir la correlación. Valores muy chicos hacen
+            que sea necesaario medir durante más tiempo.
+        kwargs['fraction'] : float
+            Fracción de los datos que se seleccionarán al calcular el promedio
+            para cada Ti al utilizar el método _choice.
+            Cuanto más chico menor correlación en los datos a expensas de
+            empeorar la estadística.
 
    Resultados
    ----------
