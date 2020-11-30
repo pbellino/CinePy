@@ -97,20 +97,6 @@ def calcula_alfa_feynman(datos, numero_de_historias, dt_base, dt_maximo):
     return Y_historias
 
 
-def escribe_nombres_leidos(nombres):
-    """ Escribe los nombres de los archivos leidos """
-
-    filename = 'archivos_leidos.tmp'
-    try:
-        os.remove(filename)
-    except OSError:
-        pass
-    with open(filename, 'a') as f:
-        for nombre in nombres:
-            f.write(nombre + '\n')
-    return None
-
-
 def wrapper_lectura(nombres, int_agrupar):
     """
     Función para leer los datos y agrupar intervalos
@@ -480,15 +466,15 @@ def ordena_tasas_encabezado(tasas, calculo):
     return tasas_ordenadas
 
 
-def escribe_archivos_promedios(mean_Y, std_mean_Y, dt_base,
-                               calculo, num_hist, tasas):
+def escribe_archivos_promedios(mean_Y, std_mean_Y, dt_base, calculo, num_hist,
+                               tasas, nombres_archivos):
     """
     Escribe los archivos que contienen el promedio y desvio de las historias
     """
 
     tasas_ordenadas = ordena_tasas_encabezado(tasas, calculo)
     #header = genera_encabezados(dt_base, calculo, num_hist)
-    nombres_archivos = genera_nombre_archivos(mean_Y, calculo)
+    # nombres_archivos = genera_nombre_archivos(mean_Y, calculo)
     # Para diferencia
     for j, nombre in enumerate(nombres_archivos):
         header = genera_encabezados(dt_base, calculo,
@@ -504,14 +490,15 @@ def escribe_archivos_promedios(mean_Y, std_mean_Y, dt_base,
     return nombres_archivos
 
 
-def escribe_archivos_completos(Y_historias, dt_base, calculo, num_hist, tasas):
+def escribe_archivos_completos(Y_historias, dt_base, calculo, num_hist, tasas,
+                               nombres_archivos):
     """
     Escribe los archivos que contienen a todas las historias
     """
 
     tasas_ordenadas = ordena_tasas_encabezado(tasas, calculo)
     #header = genera_encabezados(dt_base, calculo, num_hist)
-    nombres_archivos = genera_nombre_archivos(Y_historias, calculo)
+    # nombres_archivos = genera_nombre_archivos(Y_historias, calculo)
     # Para diferencia
     for j, nombre in enumerate(nombres_archivos):
         header = genera_encabezados(dt_base, calculo,
@@ -583,16 +570,16 @@ def genera_encabezados(dt_base, calculo, num_hist, tasas):
     return header_str
 
 
-def genera_nombre_archivos(Y_historias, calculo):
+def genera_nombre_archivos(nombres_in, lenYdt, calculo):
     """
     Genera los nombres de los archivos donde se guardarán los datos
 
     Parametros
     ----------
-        Y_historia : lista de numpy array
-            Se lo utiliza solamente para contar la cantidad de curvas Y(dt)
-            que se calcularon
-            TODO: Se puede pasar directamente len(Y_historias)
+        nombres_in : list of strings
+            Nombres de los archivos que fueron leidos
+        lenYdt : integer
+            Cantidad de curvas Y(dt) que se calcularon
         calculo : string
             Tipo de caĺculo utilizado (var, cov o sum)
 
@@ -604,24 +591,20 @@ def genera_nombre_archivos(Y_historias, calculo):
     """
 
     # Se guardan en la carpeta 'resultados_afey'
-    # Se crea si no existe
     directorio = 'resultados_afey'
-    if not os.path.exists(directorio):
-        os.makedirs(directorio)
-    # Lee el archivo donde se guardaron los nombres (wrapper_lectura)
     nombres_archivos = []
     id_det = []
-    with open('archivos_leidos.tmp', 'r') as f:
-        for line in f:
-            _nom = line.split('/')[-1]
-            _nom = _nom.rsplit('.')
-            id_det.append(_nom[-2])
-            nombres_archivos.append(directorio + '/' + _nom[-3])
+    for nombre in nombres_in:
+        _nom = nombre.split('/')[-1]
+        _nom = _nom.rsplit('.')
+        id_det.append(_nom[-2])
+        nombres_archivos.append(directorio + '/' + _nom[-3])
+
     # Para saber si se pidió var, cov o sum
     id_calculo = calculo.split('_')[0]
     id_method = calculo.split('_')[-1]
     _final = []
-    for j in range(len(Y_historias)):
+    for j in range(lenYdt):
         if id_calculo == 'var':
             if id_method == 'choice':
                 _final.append(nombres_archivos[j] + '.' + id_det[j]
@@ -660,9 +643,6 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
 
     Limitaciones: se asume que "leidos" proviene de una misma medición, por
     lo cual los parámetros del método son similares para todos los detectores
-
-    Escribe el archivo 'archivos_leidos.tmp' con los nombres de los
-    archivos leidos 'nombre'.
 
     Parametros
     ----------
@@ -734,9 +714,6 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
                 print(_msg.format(calculo))
                 quit()
 
-        # extr_args = {'skip':2, 'otro':3, 'fraction':0.25}
-        # Escribe archivo temporal con nombres de archivos leidos
-        escribe_nombres_leidos(nombres)
         Y_historias, dt_base, M_points = \
                 fun_seleccionada(leidos, numero_de_historias, dt_maximo,
                                  **kwargs)
@@ -761,16 +738,20 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
 
         tasas = _tasa_de_cuentas(leidos)
 
+        # Se generan los nombres de los archivos para guardar los datos
+        nom_archivos = genera_nombre_archivos(nombres, len(Y_historias),
+                                              calculo)
+
         # Escribe todas las historias
         escribe_archivos_completos(Y_historias, dt_base, calculo,
-                                   numero_de_historias, tasas)
+                                   numero_de_historias, tasas, nom_archivos)
         # Calcula estadistica sobre historias
         promedio, desvio = promedia_historias(Y_historias)
         # Escribe promedios y desvios
-        _noms = escribe_archivos_promedios(promedio, desvio, dt_base, calculo,
-                                            numero_de_historias, tasas)
+        escribe_archivos_promedios(promedio, desvio, dt_base, calculo,
+                                   numero_de_historias, tasas, nom_archivos)
         # Escribe la cantidad de puntos utilizados para el promedio de cada Ti
-        escribe_archivos_Mpoints(_noms, M_points)
+        escribe_archivos_Mpoints(nom_archivos, M_points)
 
         return Y_historias
 
