@@ -69,7 +69,7 @@ def calcula_alfa_feynman_input(datos, numero_de_historias, dt_base, dt_maximo):
 
         return None
 
-    _datos_por_intervalo(datos_por_historia, maximos_int_para_agrupar)
+    # _datos_por_intervalo(datos_por_historia, maximos_int_para_agrupar)
 
     # Se dividen todos los datos en historias
     historias = np.split(datos[0:datos_por_historia*numero_de_historias],
@@ -112,80 +112,6 @@ def agrupamiento_historia(arg_tupla):
         _matriz = historia[0:_indice_exacto].reshape(_partes, i)
         _intervalos = _matriz.sum(axis=1, dtype='uint32')
         Y_k.append(np.var(_intervalos, ddof=1) / np.mean(_intervalos) - 1)
-    return Y_k
-
-
-def agrupamiento_historia_choice(arg_tupla):
-    """
-    Técnica de agrupamiento modificada para una historia
-
-    En vez de tomar todos los intervalos sintetizados para el promedio
-    se toma una muestra aleatoria. Se toma una fracción `frac` de la cantidad
-    total de intervalos para cada dt_i.
-
-    """
-
-    frac = 0.25  # Fracciones de intervalos que se tomarán para el promedio
-
-    print(80*"!")
-    print("Se toman una fracción {} de puntos para el promedio".format(frac))
-    print("Se genera el archivo m_list_choice.Nk")
-    print("usarlo para reemplazar el generado <nombre_archivo>.Nk")
-    print(80*"!")
-    historia, maximos, datos_x_hist = arg_tupla
-    Y_k = []
-    m_list = []
-    for i in range(1, maximos+1):
-        _partes = datos_x_hist // i
-        _indice_exacto = _partes * i
-        _matriz = historia[0:_indice_exacto].reshape(_partes, i)
-        _intervalos = _matriz.sum(axis=1, dtype='uint32')
-        m = int(np.shape(_intervalos)[0] // (1 / frac) )
-        _intervalos = np.random.choice(_intervalos, m, replace=False)
-        Y_k.append(np.var(_intervalos, ddof=1) / np.mean(_intervalos) - 1)
-        m_list.append(m)
-    np.savetxt("resultados_afey/m_list_choice.Nk", m_list, fmt='%4u')
-    return Y_k
-
-
-def agrupamiento_historia_mca(arg_tupla):
-    """
-    Método para calcular una historia sin reutilizar intervalos base, con el
-    objetivo de eliminar la correlación que introduce el método de
-    agrupamiento.
-
-    Para mejorar la estdística sólo se analizan de a k intervalos dt_i
-
-    """
-
-    k = 2  # 
-
-    historia, maximos, datos_x_hist = arg_tupla
-
-    m = datos_x_hist / (1 + maximos * (maximos / k + 1) / 2)
-    m = int(np.floor(m))
-    print(80*"!")
-    print("Curva cada {} dt_base".format(k))
-    print("Se promediann {} puntos por intervalo".format(m))
-    print("Se genera el archivo m_list_choice.Nk")
-    print("usarlo para reemplazar el generado <nombre_archivo>.Nk")
-    print(80*"!")
-
-    indx = [i for i in range(k, maximos+1, k)]
-    indx = [1] + indx
-    start = 0
-    Y_k = []
-    m_list = []
-    for i in indx:
-        _matriz = historia[start:start + m*i].reshape(m, i)
-        _intervalos = _matriz.sum(axis=1, dtype='uint32')
-        start += i*m
-        if np.mean(_intervalos)!=0:
-            Y_k.append(np.var(_intervalos, ddof=1) / np.mean(_intervalos) - 1)
-        else:
-            Y_k.append(0.0)
-        m_list.append(m)
-    np.savetxt("resultados_afey/m_list_mca.Nk", m_list, fmt='%4u')
     return Y_k
 
 
@@ -263,7 +189,11 @@ def wrapper_lectura(nombres, int_agrupar):
     return agrupado_y_dt
 
 
-def afey_varianza_serie(leidos, numero_de_historias, dt_maximo):
+def datos_promedio_Ti_agrupamiento(datos_x_hist, max_int):
+    return [datos_x_hist // i for i in range(1, max_int + 1)]
+
+
+def afey_varianza_serie(leidos, numero_de_historias, dt_maximo, **kwargs):
     """
     Metodo de alfa-Feynman aplicado variance to mean, en serie.
 
@@ -276,15 +206,23 @@ def afey_varianza_serie(leidos, numero_de_historias, dt_maximo):
         a, dt_base = leido
         Y_historias.append(calcula_alfa_feynman(a, numero_de_historias,
                                                 dt_base, dt_maximo))
-    return Y_historias, dt_base
+
+    datos_totales = len(a)
+    datos_x_hist = datos_totales // numero_de_historias
+    max_int = int(dt_maximo / dt_base)
+
+    M_points = datos_promedio_Ti_agrupamiento(datos_x_hist, max_int)
+
+    return Y_historias, dt_base, M_points
 
 
-def agrupa_argumentos(a, b, c):
+def agrupa_argumentos(a, *args):
     """ Función para construir argumentos como tuplas al paralelizar """
-    return zip(a, itertools.repeat(b), itertools.repeat(c))
+    _lst_arg = [itertools.repeat(item) for item in args]
+    return zip(a, *_lst_arg)
 
 
-def afey_varianza_paralelo(leidos, numero_de_historias, dt_maximo):
+def afey_varianza_paralelo(leidos, numero_de_historias, dt_maximo, **kwargs):
     """
     Metodo de alfa-Feynman aplicado variance to mean, en paralelo.
 
@@ -305,16 +243,22 @@ def afey_varianza_paralelo(leidos, numero_de_historias, dt_maximo):
         # Argumento de 'agrupamiento_historia' como tupla
         arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist)
         Y_historias.append(pool.map(agrupamiento_historia, arg_tupla))
-    return Y_historias, dt_base
+
+    M_points = datos_promedio_Ti_agrupamiento(datos_x_hist, max_int)
+
+    return Y_historias, dt_base, M_points
 
 
-def afey_varianza_paralelo_choice(leidos, numero_de_historias, dt_maximo):
+def afey_varianza_paralelo_choice(leidos, numero_de_historias, dt_maximo,
+        **kwargs):
     """
     Metodo de alfa-Feynman aplicado variance to mean, en paralelo.
 
     Ver el DocString de "metodo_alfa_feynman" para parametros y resultados.
 
     """
+    # Fracción de puntos que se van a tomar para el promedio
+    frac = kwargs.get('fraction')
 
     Y_historias = []
     for leido in leidos:
@@ -326,21 +270,56 @@ def afey_varianza_paralelo_choice(leidos, numero_de_historias, dt_maximo):
         num_proc = mp.cpu_count()
         pool = mp.Pool(processes=num_proc)
         print('Se utilizan {} procesos'.format(num_proc))
-        # Argumento de 'agrupamiento_historia' como tupla
-        arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist)
+
+        # Construyo de ante-mano cuántos puntos se elijirán para cada
+        # agrupamiento, basado en la fracción especificada
+        M_points = []
+        for i in range(1, max_int + 1):
+            M_points.append(int((datos_x_hist // i) // (1. / frac )))
+
+        # Argumento de 'agrupamiento_historia_choice' como tupla
+        arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist, frac,
+                                      M_points)
         Y_historias.append(pool.map(agrupamiento_historia_choice, arg_tupla))
-    return Y_historias, dt_base
+    np.savetxt("resultados_afey/m_list_choice.Nk", M_points, fmt='%4u')
+    return Y_historias, dt_base, M_points
 
 
-def afey_varianza_paralelo_mca(leidos, numero_de_historias, dt_maximo):
+def agrupamiento_historia_choice(arg_tupla):
+    """
+    Técnica de agrupamiento modificada para una historia
+
+    En vez de tomar todos los intervalos sintetizados para el promedio
+    se toma una muestra aleatoria. Se toma una fracción `frac` de la cantidad
+    total de intervalos para cada dt_i.
+
+    """
+
+    historia, maximos, datos_x_hist, frac, M_points = arg_tupla
+    Y_k = []
+    for i, M in zip(range(1, maximos+1), M_points):
+        _partes = datos_x_hist // i
+        _indice_exacto = _partes * i
+        _matriz = historia[0:_indice_exacto].reshape(_partes, i)
+        _intervalos = _matriz.sum(axis=1, dtype='uint32')
+        _intervalos = np.random.choice(_intervalos, M, replace=False)
+        Y_k.append(np.var(_intervalos, ddof=1) / np.mean(_intervalos) - 1)
+    return Y_k
+
+
+def afey_varianza_paralelo_mca(leidos, numero_de_historias, dt_maximo,
+                               **kwargs):
     """
     Metodo de alfa-Feynman aplicado variance to mean, en paralelo.
 
     Ver el DocString de "metodo_alfa_feynman" para parametros y resultados.
 
     """
+    # Puntos que se van a saltear
+    k = kwargs.get('skip')
 
     Y_historias = []
+    M_list = []
     for leido in leidos:
         a, dt_base = leido
         historias, max_int, datos_x_hist = \
@@ -350,13 +329,51 @@ def afey_varianza_paralelo_mca(leidos, numero_de_historias, dt_maximo):
         num_proc = mp.cpu_count()
         pool = mp.Pool(processes=num_proc)
         print('Se utilizan {} procesos'.format(num_proc))
-        # Argumento de 'agrupamiento_historia' como tupla
-        arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist)
+
+        M = datos_x_hist / (1 + max_int * (max_int / k + 1) / 2)
+        M = int(np.floor(M))
+
+        # Argumento de 'agrupamiento_historia_mca' como tupla
+        arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist, k, M)
         Y_historias.append(pool.map(agrupamiento_historia_mca, arg_tupla))
-    return Y_historias, dt_base
+        # Asumo que todos los detectores van a tener el mismo tamaño de
+        # historias
+        M_points = [M for _ in range(np.shape(Y_historias[0])[1])]
+        np.savetxt("resultados_afey/m_list_mca.Nk", M_points, fmt='%4u')
+    return Y_historias, dt_base, M_points
 
 
-def afey_covarianza_paralelo(leidos, numero_de_historias, dt_maximo):
+def agrupamiento_historia_mca(arg_tupla):
+    """
+    Método para calcular una historia sin reutilizar intervalos base, con el
+    objetivo de eliminar la correlación que introduce el método de
+    agrupamiento.
+
+    Para mejorar la estdística sólo se analizan de a k intervalos dt_i
+
+    """
+
+    historia, maximos, datos_x_hist, k, M = arg_tupla
+
+    indx = [i for i in range(k, maximos + 1, k)]
+    indx = [1] + indx
+    start = 0
+    Y_k = []
+    for i in indx:
+        _matriz = historia[start:start + M*i].reshape(M, i)
+        _intervalos = _matriz.sum(axis=1, dtype='uint32')
+        start += i*M
+        # Si quedan pocos puntos para promediar, puede que se obtenga  un valor
+        # medio nulo (generalmente sólo para el primer dt)
+        if np.mean(_intervalos)!=0:
+            Y_k.append(np.var(_intervalos, ddof=1) / np.mean(_intervalos) - 1)
+        else:
+            print('Se fijó un punto con Y(tau) = 0')
+            Y_k.append(0.0)
+    return Y_k
+
+
+def afey_covarianza_paralelo(leidos, numero_de_historias, dt_maximo, **kwargs):
     """
     Metodo de alfa-Feynman aplicado la covarianza entre detectores, en paralelo.
 
@@ -400,10 +417,13 @@ def afey_covarianza_paralelo(leidos, numero_de_historias, dt_maximo):
     Y_historias = []
     for i in range(3):
         Y_historias.append(np.array(_Y_det)[:, i, :])
-    return Y_historias, dt_base
+
+    M_points = datos_promedio_Ti_agrupamiento(datos_x_hist, max_int)
+
+    return Y_historias, dt_base, M_points
 
 
-def afey_suma_paralelo(leidos, numero_de_historias, dt_maximo):
+def afey_suma_paralelo(leidos, numero_de_historias, dt_maximo, **kwargs):
     """
     Metodo de alfa-Feynman aplicado a la suma de detectores, en paralelo.
 
@@ -429,7 +449,8 @@ def afey_suma_paralelo(leidos, numero_de_historias, dt_maximo):
     print('Se utilizan {} procesos'.format(num_proc))
     arg_tupla = agrupa_argumentos(historias_sumadas, max_int, datos_x_hist)
     # Lo pongo comom lista de un elemento para homogenizar el formato
-    return [pool.map(agrupamiento_historia, arg_tupla)], dt_base
+    M_points = datos_promedio_Ti_agrupamiento(datos_x_hist, max_int)
+    return [pool.map(agrupamiento_historia, arg_tupla)], dt_base, M_points
 
 
 def promedia_historias(Y_historias):
@@ -519,6 +540,7 @@ def escribe_archivos_promedios(mean_Y, std_mean_Y, dt_base,
             ordenado = [mean_Y[j], std_mean_Y[j]]
             ordenado = np.vstack(ordenado)
             np.savetxt(f, ordenado.T)
+    return nombres_archivos
 
 
 def escribe_archivos_completos(Y_historias, dt_base, calculo, num_hist, tasas):
@@ -543,6 +565,22 @@ def escribe_archivos_completos(Y_historias, dt_base, calculo, num_hist, tasas):
             np.savetxt(f, np.array(Y_historias[j]).T)
         # TODO: se puede guardar comprimido, pero no es fácil hacer append
         # np.savetxt(_nombre, np.array(Y_historia).T)
+
+
+def escribe_archivos_Mpoints(nombres, Mpoints):
+    """
+    Escribe los archivos con la cantida de daatos utilizados para el promedio
+    del Ti en cada historia
+    """
+
+    for nombre in nombres:
+        # Cambio la extensión para diferenciarlo del promedio
+        nombre = nombre.rsplit('.', 1)[0] + '.Nk'
+
+        header = 'Cantidad de datos utilizados para hacer estadistica ' + \
+                 'con cada intervalo Ti. Se usa para corregir la ' + \
+                 'funcion teorica durante el ajuste'
+        np.savetxt(nombre, Mpoints, fmt='%.i', header=header)
 
 
 def genera_encabezados(dt_base, calculo, num_hist, tasas):
@@ -626,12 +664,13 @@ def genera_nombre_archivos(Y_historias, calculo):
         if id_calculo == 'var':
             if id_method == 'choice':
                 _final.append(nombres_archivos[j] + '.' + id_det[j]
-                              + '_choice.fey')
+                              + '_var_choice.fey')
             elif id_method == 'mca':
                 _final.append(nombres_archivos[j] + '.' + id_det[j]
-                              + '_mca.fey')
+                              + '_var_mca.fey')
             else:
-                _final.append(nombres_archivos[j] + '.' + id_det[j] + '.fey')
+                _final.append(nombres_archivos[j] + '.' + id_det[j]
+                              + '_var.fey')
         elif id_calculo == 'cov':
             if j != 2:
                 _final.append(nombres_archivos[j] + '.' + id_det[j]
@@ -730,8 +769,10 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
     else:
         # Escribe archivo temporal con nombres de archivos leidos
         escribe_nombres_leidos(nombres)
-        Y_historias, dt_base = fun_seleccionada(leidos, numero_de_historias,
-                                                dt_maximo)
+        extr_args = {'skip':2, 'otro':3, 'fraction':0.25}
+        Y_historias, dt_base, M_points = \
+                fun_seleccionada(leidos, numero_de_historias, dt_maximo,
+                                 **extr_args)
 
         # Agrego la info de tasa de cuentas para ser grabada en el encabezado
         # Servirá para hacer correcciones en los parámetros estimados (por
@@ -759,8 +800,11 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
         # Calcula estadistica sobre historias
         promedio, desvio = promedia_historias(Y_historias)
         # Escribe promedios y desvios
-        escribe_archivos_promedios(promedio, desvio, dt_base, calculo,
-                                   numero_de_historias, tasas)
+        _noms = escribe_archivos_promedios(promedio, desvio, dt_base, calculo,
+                                            numero_de_historias, tasas)
+        # Escribe la cantidad de puntos utilizados para el promedio de cada Ti
+        escribe_archivos_Mpoints(_noms, M_points)
+
         return Y_historias
 
 
