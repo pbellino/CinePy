@@ -129,6 +129,8 @@ def lee_historias_completas(nombre):
         Vector temporal de los dt para alfa-Feynman
     data: ndarray numpy
         Array en 2D donde cada columna es una de las historias calculadas
+    tasas: ndarray numpy
+        Tasa de cuenta promedio y su desvío
 
     """
 
@@ -142,7 +144,7 @@ def lee_historias_completas(nombre):
                     num_hist = np.uint32(next(f).rstrip())
                 elif line.startswith('# Tasa de cuentas'):
                     next(f)
-                    tasas = np.array(next(f).rstrip())
+                    tasas = next(f).rstrip()
                     break
             # Se leen todas las historias
             data = np.loadtxt(nombre, skiprows=15)
@@ -154,6 +156,9 @@ def lee_historias_completas(nombre):
     # Vector temporal
     vec_temp = np.arange(0, dt * data.shape[0], dt)
     vec_temp = vec_temp + dt
+
+    # Convierto a numpy array
+    tasas = np.asarray(tasas[1:-1].split(','), dtype=float)
 
     return vec_temp, data, num_hist, tasas
 
@@ -178,6 +183,8 @@ def lee_fey(nombre):
         Array con el valor medio de Y(Dt)
     std_Y : array numpy
         Array con la desviación estandar del valor medio de Y(Dt)
+    tasas : array numpy
+        Tasa de cuenta promedio y su desvío
 
     """
     vec_temp, data, num_hist, tasas = lee_historias_completas(nombre)
