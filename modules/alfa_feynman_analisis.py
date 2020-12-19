@@ -557,6 +557,19 @@ def teo_variance_berglof(Y, Nk):
     return 2*(Y+1)**2 / (Nk-1)
 
 
+def teo_variance_berglof_exacta(Y, Nk, tasa, tau):
+    """ Varianza teórica exacta """
+    c_mean = tasa * tau
+    print(c_mean)
+    return (1 + Y)**2 * ( (1 + Y) / (c_mean * Nk) + 2 / (Nk-1))
+
+
+def teo_variance_pacilio(Y, Nk, tasa, tau):
+    c_mean = tasa * tau
+    _arg  = (1 / Nk) * ( (4 + 3 / c_mean) / Y + (2 + 3 / c_mean) + Y / c_mean)
+    return Y**2 *  _arg
+
+
 def lee_Nk(nombre):
     Nk = np.loadtxt(nombre, dtype=np.uint32)
     return Nk
