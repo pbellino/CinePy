@@ -227,7 +227,7 @@ def afey_varianza_paralelo_choice(leidos, numero_de_historias, dt_maximo,
             M_points.append(int((datos_x_hist // i) // (1. / frac )))
 
         # Argumento de 'agrupamiento_historia_choice' como tupla
-        arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist, frac,
+        arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist,
                                       M_points)
         Y_historias.append(pool.map(agrupamiento_historia_choice, arg_tupla))
     return Y_historias, dt_base, M_points
@@ -243,7 +243,7 @@ def agrupamiento_historia_choice(arg_tupla):
 
     """
 
-    historia, maximos, datos_x_hist, frac, M_points = arg_tupla
+    historia, maximos, datos_x_hist, M_points = arg_tupla
     Y_k = []
     for i, M in zip(range(1, maximos+1), M_points):
         _partes = datos_x_hist // i
@@ -322,6 +322,8 @@ def afey_varianza_paralelo_mca(leidos, numero_de_historias, dt_maximo,
     """
     # Puntos que se van a saltear
     k = kwargs.get('skip_mca')
+    # Método utilizado para promediar los T_i
+    method_mca = kwargs.get('method_mca')
 
     Y_historias = []
     M_list = []
@@ -335,15 +337,22 @@ def afey_varianza_paralelo_mca(leidos, numero_de_historias, dt_maximo,
         pool = mp.Pool(processes=num_proc)
         print('Se utilizan {} procesos'.format(num_proc))
 
-        M = datos_x_hist * 2 * (1 + k) / (max_int + 1) / (max_int + k)
-        M = int(np.floor(M))
+        if method_mca=='constant':
+            M = datos_x_hist * 2 * (1 + k) / (max_int + 1) / (max_int + k)
+            M = int(np.floor(M))
+            # Se asume cantidad constante de datos por T_i
+            M_points = [M for _ in range(1, max_int + 1, k+1)]
+        elif method_mca=='A_over_k':
+            # Se asume que la cantidad de puntos para cada T_i tiene la forma
+            # funcional A/k. Se calcula el valor de A para utilizar todos los
+            # intervalos temporales de cada historia
+            A = datos_x_hist * (1 + k) / (max_int + k)
+            M_points = [int(A/s) for s in range(1, max_int + 1, k+1)]
 
         # Argumento de 'agrupamiento_historia_mca' como tupla
-        arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist, k, M)
+        arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist, k,
+                M_points)
         Y_historias.append(pool.map(agrupamiento_historia_mca, arg_tupla))
-        # Asumo que todos los detectores van a tener el mismo tamaño de
-        # historias
-        M_points = [M for _ in range(np.shape(Y_historias[0])[1])]
     return Y_historias, dt_base, M_points
 
 
@@ -357,13 +366,12 @@ def agrupamiento_historia_mca(arg_tupla):
 
     """
 
-    historia, maximos, datos_x_hist, k, M = arg_tupla
+    historia, maximos, datos_x_hist, k, M_points = arg_tupla
 
     indx = [i for i in range(1, maximos + 1, k+1)]
     start = 0
     Y_k = []
-    for i in indx:
-        #_matriz = historia[s1art:start + M*i].reshape(M, i)
+    for i, M in zip(indx, M_points):
         _matriz = historia[start:start + M*i].reshape(M, i)
         _intervalos = _matriz.sum(axis=1, dtype='uint32')
         start += i*M
@@ -748,6 +756,12 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
             Se lo utiliza para tener una mejor estadística en los resultados
             cuando se quiere reducir la correlación. Valores muy chicos hacen
             que sea necesaario medir durante más tiempo.
+        kwargs['method_mca'] : str ('contant', 'A_over_k')
+            String para identificar la forma en que se tomarán los intervalos.
+                'constant' : misma cantidad de puntos para cada T_i
+                'A_over_k' : se toman más punos para los primeros T_i.
+            En ambos casos se calcula el máximo valor del parámetro (M ó A)
+            para aprovechar todos los intervalos T_i por historia.
         kwargs['fraction'] : float
             Fracción de los datos que se seleccionarán al calcular el promedio
             para cada Ti al utilizar el método _choice.
@@ -796,6 +810,14 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
                 _msg += "Se sale del programa"
                 print(_msg.format(calculo))
                 quit()
+            if kwargs.get('method_mca') is None:
+                _msg = "Para calcular con el método {} es necesario "
+                _msg += "incluir el argumento 'method_mca' como diccionario \n"
+                _msg += "Los  valores posibles son 'constant' ó 'A_over_k' \n"
+                _msg += "Se sale del programa"
+                print(_msg.format(calculo))
+                quit()
+
         elif calculo == 'var_paralelo_skip':
             if kwargs.get('corr_time') is None:
                 _msg = "Para calcular con el método {} es necesario "
