@@ -348,6 +348,14 @@ def afey_varianza_paralelo_mca(leidos, numero_de_historias, dt_maximo,
             # intervalos temporales de cada historia
             A = datos_x_hist * (1 + k) / (max_int + k)
             M_points = [int(A/s) for s in range(1, max_int + 1, k+1)]
+            # No pueden haber intervalos con un sólo dato
+            if M_points[-1] == 1:
+                msg = "El tiempo de cada historia es pequeño para aplicar"
+                msg += " este método. Reducir la cantidad de historias"
+                msg += " o reducir el dt_max (apenas) \n"
+                msg += "Se sale."
+                print(msg)
+                quit()
 
         # Argumento de 'agrupamiento_historia_mca' como tupla
         arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist, k,
