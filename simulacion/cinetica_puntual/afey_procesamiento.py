@@ -24,8 +24,8 @@ if __name__ == '__main__':
     # Conversión listmode a ventana temporal
     dt_base = 5e-1            # intervalo base para binnear la lista de tiempos
     # Técnica de agrupamiento
-    numero_de_historias = 100 # Historias que se promediarán
-    dt_maximo = 5e+1          # másimo intervalo temporal para cada historia
+    numero_de_historias =  99 # Historias que se promediarán
+    dt_maximo = 5.0e+1        # másimo intervalo temporal para cada historia
     # -------------------------------------------------------------------------
     #
     # Lectura de archivo de lista de tiempos
@@ -46,9 +46,10 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
 
     calculos = [
-               'var_serie',
+               # 'var_serie',
                'var_paralelo_mca',
                'var_paralelo_choice',
+               'var_paralelo_skip',
                'var_paralelo',
                # 'cov_paralelo',
                # 'sum_paralelo',
@@ -56,7 +57,11 @@ if __name__ == '__main__':
                 ]
 
     # Parámetros extras para el cálculo mca y choice
-    extra = {'skip':2, 'fraction':0.25}
+    extra = {'skip_mca':0,
+             'method_mca':'A_over_k',
+             'fraction':0.10,
+             'corr_time':10.0,
+            }
     for calculo in calculos:
         Y_historias = metodo_alfa_feynman(leidos, numero_de_historias,
                                           dt_maximo, calculo, nombres, **extra)

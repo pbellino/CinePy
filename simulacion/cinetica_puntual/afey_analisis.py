@@ -13,7 +13,9 @@ from modules.alfa_feynman_analisis import teo_variance_berglof, grafica_afey, \
                                           grafica_historias_afey, lee_Nk, \
                                           ajuste_afey_2exp, ajuste_afey_3exp, \
                                           ajuste_afey_delayed, \
-                                          ajuste_afey_2exp_delayed
+                                          ajuste_afey_2exp_delayed, \
+                                          teo_variance_berglof_exacta, \
+                                          teo_variance_pacilio
 
 
 if __name__ == '__main__':
@@ -29,9 +31,10 @@ if __name__ == '__main__':
     # grafica_historias_afey(nombre)
     # plt.show()
     nombres = [
-                'resultados_afey/times.D1_var.fey',
-     #          'resultados_afey/times.D1_var_choice.fey',
-     #          'resultados_afey/times.D1_var_mca.fey',
+     #       'resultados_afey/times.D1_var.fey',
+     #       'resultados_afey/times.D1_var_choice.fey',
+     #       'resultados_afey/times.D1_var_skip.fey',
+             'resultados_afey/times.D1_var_mca.fey',
               ]
     # -------------------------------------------------------------------------
     #
@@ -45,10 +48,12 @@ if __name__ == '__main__':
     nombre = nombres[0]
     # Camino absoluto del archivo que se quiere leer
     abs_nombre = os.path.join(script_dir, nombre)
-    tau, Y, std_Y, num_hist, _ = lee_fey(abs_nombre)
+    tau, Y, std_Y, num_hist, tasas = lee_fey(abs_nombre)
 
     Nk = lee_Nk(nombre.rstrip('fey') + 'Nk')
     var_teo = teo_variance_berglof(Y, Nk)
+    var_teo_exac = teo_variance_berglof_exacta(Y, Nk, tasas[0], tau)
+    var_teo_pacilio = teo_variance_pacilio(Y, Nk, tasas[0], tau)
 
     ajuste_afey(tau, Y, std_Y, [0.5, 1, 0])
     # ajuste_afey_2exp(tau, Y, std_Y)
@@ -63,6 +68,8 @@ if __name__ == '__main__':
     ax8.set_ylabel(r'Var[Y($\tau$)]')
 
     ax8.plot(tau, var_teo, 'r', lw=2, label='Teoretical variance')
+    ax8.plot(tau, var_teo_exac, 'k', lw=2, label='Teoretical variance exact')
+    ax8.plot(tau, var_teo_pacilio, 'g', lw=2, label='Teoretical variance pacilio')
     ax8.grid(True)
     ax8.legend(loc='best')
 

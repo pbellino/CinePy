@@ -27,19 +27,27 @@ if __name__ == '__main__':
     # Parámetros de entrada
     # -------------------------------------------------------------------------
     # Archivos a leer
-    nombre = "resultados_afey/times.D1_var.dat"
-    nombre = "resultados_afey/times.D1_var_choice.dat"
+    #nombre = "resultados_afey/times.D1_var.dat"
+    #nombre = "resultados_afey/times.D1_var_choice.dat"
+    #nombre = "resultados_afey/times.D1_var_skip.dat"
     nombre = "resultados_afey/times.D1_var_mca.dat"
-
 
     vec_temp, data, num_hist, tasas = lee_historias_completas(nombre)
     coef = np.corrcoef(data)
     np.fill_diagonal(coef, np.nan)
-    ax = sns.heatmap(coef)
+    ax = sns.heatmap(coef, xticklabels=9, yticklabels=9)
+
+    labels = [item.get_text() for item in ax.get_xticklabels()]
+    labels = [str(int(item)+1) for item in labels]
+    ax.set_xticklabels(labels)
+    ax.set_yticklabels(labels, rotation='horizontal')
+    ax.set(xlabel=r'$T_i/T_1$', ylabel=r'$T_i/T_1$')
     ax.invert_yaxis()
+    ax.set_title('Correlation matrix')
 
     fig, ax1 =  plt.subplots(1, 1)
-    ax1.hist(coef.flatten(), bins=50)
+    ax1 = sns.distplot(coef.flatten(), bins=50, kde=True)
+    ax1.set_xlabel("Correlacion coefficients")
     plt.show()
     quit()
     grafica_historias_afey(nombre)
