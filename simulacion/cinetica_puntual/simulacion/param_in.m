@@ -25,10 +25,14 @@ cum_s   = cumsum(p_Sig);
 % Probabilidad de que se produzcan n partículas en una fisión p(n)
 % P_prod = [p(0) p(1) p(2) p(3) p(4) p(5) p(6) p(7)]
 p_prod  = [0.032 0.17 0.34 0.30 0.13 0.027 0.0026 0.0002]; % Experimental
+nu_prod = [0 1 2 3 4 5 6 7];
 p_prod  = p_prod./sum(p_prod);      % Normalizo por las dudas
 % p_prod = [0 0 1 0 0 0 0 0];      % Sólo se producen 2 partículas por fisión (Yule-Furry)
 cum_p   = cumsum(p_prod);
-nu_p    = p_prod*(0:7)';
+nu_p    = p_prod*nu_prod';
+% Diven factor (prompt)
+nu_p2   = p_prod*(nu_prod.**2)';
+D_p     = p_prod*(nu_prod.*(nu_prod-1))' / nu_p2;
 
 %-- Neutrones retardados
 bet     = 0.05;   % Debe ser menor a 0.33(0.05 anda bien sec_temp)

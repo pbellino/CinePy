@@ -11,14 +11,16 @@ teo.keff   = nu*Sig_f/(Sig_f+Sig_c+Sig_d1);
 % Reactividad
 teo.rho    = (teo.keff-1)/teo.keff;
 % Alfa de los instantáneos
-teo.alfa_p = (teo.rho-bet)/teo.Lambda;
+teo.alfa_p = -(teo.rho-bet)/teo.Lambda;
 % Alfa de los retardados
-teo.alfa_d = -lam_d*teo.rho/(teo.rho-bet);
+teo.alfa_d = +lam_d*teo.rho/(teo.rho-bet);
 % Eficiencia del detector
 teo.efi = Sig_d1/Sig_f;
+% Factor de Diven (para los instantáneos)
+teo.D_p = D_p;
 
 % Solución más exacta para los alfa
-[teo.ap , teo.ad]  = raices(lam_d,teo.Lambda,teo.rho,bet);
+[teo.ap_exacto , teo.ad_exacto]  = raices(lam_d,teo.Lambda,teo.rho,bet);
 
 % Si utilizo una fuente poissoniana, calculo valores estacionarios teóricos
 if strcmp(tpo_fte,'poisson')

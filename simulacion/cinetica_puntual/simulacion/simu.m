@@ -263,8 +263,8 @@ Lambda  = mean(DTff)./nu;       % Tiempo entre reproducciones
 lambda  = mean(DTfa);           % Vida media
 keff    = lambda/Lambda;        % k efectivo
 rho     = (keff-1)/keff;        % Reactividad
-alfa    = (rho-bet)/Lambda;     % Alfa de los instantáneos
-alfa_d  = -lam_d*rho/(rho-bet); % Alfa de los retardados
+alfa    = -(rho-bet)/Lambda;     % Alfa de los instantáneos
+alfa_d  = +lam_d*rho/(rho-bet); % Alfa de los retardados
 % Valores teóricos (válidos para un grupo de energías y reactor homogeneo)
 teo = teoricos;
 
@@ -307,9 +307,13 @@ fprintf('Tasa de detecciones    --> Simulado: %.4f   Teorico: %.4f\n',Rd,teo.Rd)
 fprintf('Tasa de absorciones    --> Simulado: %.4f   Teorico: %.4f\n',Ra,teo.Ra);  
 fprintf('Cocientes\t T.fis: %.4f \t T.Det: %.4f \t T.Abs: %.4f \n',teo.Rf/Rf,teo.Rd/Rd,teo.Ra/Ra);
 fprintf('beta                   --> Teorico: %.4f\n',bet);  
+fprintf('Fac. Diven (prompt)    --> Teórico: %.4f\n', D_p);
 
-fprintf('Alfa ret   --> Simulado: %.4f   Teorico: %.4f   Teorico_exacto: %.4f\n', alfa_d,teo.alfa_d, teo.ad);  
-fprintf('Alfa inst  --> Simulado: %.4f   Teorico: %.4f   Teorico exacto: %.4f\n', alfa, teo.alfa_p, teo.ap);  
+fprintf('Alfa ret   --> Simulado: %.4f   Teorico: %.4f   Teorico_exacto: %.4f\n', alfa_d,teo.alfa_d, teo.ad_exacto);  
+fprintf('Alfa inst  --> Simulado: %.4f   Teorico: %.4f   Teorico exacto: %.4f\n', alfa, teo.alfa_p, teo.ap_exacto);  
+
+% Escribe valores teóricos
+escribe_teoricos("val_teoricos.dat")
 
 %% Aplico los distintos métodos de ruido neutrónico
 % Sólo utilizo la variable local Td1. Tal vez alguna otra, pero sin
