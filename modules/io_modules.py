@@ -291,6 +291,34 @@ def read_timestamp_list_ascii(filenames):
     return data
 
 
+def read_val_teo(name):
+    """
+    Función para leer archivo con vaores teóricos de la simulación realizada en
+    octave.
+
+    Son valores teóricos basados en los parámetros de entrada, no en valores
+    calculados durante la simulación.
+
+    Parametros
+    ----------
+        name : string
+        Nombre del archivo para leer
+
+    Resultados
+    ----------
+        lst : dictionary
+            Diccionario con las claves que aparecen en el archivo y sus valores
+
+    """
+
+    lst = []
+    with open(name, 'r') as f:
+        for line in f:
+            key, val = line.split(':')
+            lst.append((key, float(val)))
+    return dict(lst)
+
+
 # ------------- Funciones para leer datos en binario --------------------------
 
 
