@@ -284,7 +284,7 @@ def afey_varianza_paralelo_skip(leidos, numero_de_historias, dt_maximo,
         for i in range(1, max_int + 1):
             _skipped  = int(np.ceil(corr_time / dt_base / i))
             skip_points.append(_skipped)
-            M_points.append(int((datos_x_hist // i) / _skipped))
+            M_points.append(int((datos_x_hist // i) /( _skipped + 1)))
 
         # Argumento de 'agrupamiento_historia_choice' como tupla
         arg_tupla = agrupa_argumentos(historias, max_int, datos_x_hist,
@@ -307,7 +307,7 @@ def agrupamiento_historia_skip(arg_tupla):
         _indice_exacto = _partes * i
         _matriz = historia[0:_indice_exacto].reshape(_partes, i)
         _intervalos = _matriz.sum(axis=1, dtype='uint32')
-        _intervalos = [_intervalos[k] for k in range(0, len(_intervalos), S)]
+        _intervalos = [_intervalos[k] for k in range(0, len(_intervalos), S + 1)]
         Y_k.append(np.var(_intervalos, ddof=1) / np.mean(_intervalos) - 1)
     return Y_k
 
