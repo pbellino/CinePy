@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 """
 Funciones utilizadas para relizar ajustes de datos experimentales
@@ -31,6 +30,26 @@ def alfa_feynman(tau, alfa, amplitud):
 
     """
     return amplitud * func_aux(alfa*tau)
+
+
+def alfa_feynman_lin_dead_time_Nk(tau, alfa, amplitud, offset, Nk):
+    """
+    Función del método de alfa-Feynman teórica teniendo en cuenta el número
+    finito de intervalos utilizados y tiempo muerto (lineal)
+
+
+    Y(tau) = amplitud * [1 - (1 - exp(-alfa*tau) ) / (alfa*tau)]x
+           - amplitud * [1 - (1 - exp(-alfa*tau*Nk) ) / (alfa*tau*Nk)] / Nk
+
+    donde:
+        amplitud = epsilon*Diven/(alfa^2 Lambda^2)
+            siendo epsilong la eficiencia y Lambda el tiempo entre
+            reproducciones
+        offset = 2 R d
+            siendo R la tasa de cuentas y d el tiempo muerto
+    """
+    return amplitud*(func_aux(alfa*tau) - func_aux(alfa*tau*Nk) / Nk) \
+            - offset * (Nk-1) / Nk - 1 / Nk
 
 
 def alfa_feynman_lin_dead_time(tau, alfa, amplitud, offset):
