@@ -297,20 +297,20 @@ efi = Rd/Rf; % Eficiencia absoluta del detector
 % Es relevante en el caso de estar con una fuente poissoniana (estacionaria)
 % Se lo contrario los valores no van a ser estacionarios.
 
-fprintf('Vida media (lambda)    --> Simulado: %.4f   Teorico: %.4f\n',lambda,teo.lambda);
-fprintf('Reproduciones (Lambda) --> Simulado: %.4f   Teorico: %.4f\n',Lambda,teo.Lambda);
-fprintf('k efectivo (keff)      --> Simulado: %.4f   Teorico: %.4f\n',keff,teo.keff);
-fprintf('Reactividad (rho)      --> Simulado: %.4f  Teorico: %.4f\n',rho,teo.rho);
-fprintf('Eficiencia detector    --> Simulado: %.4f   Teorico: %.4f\n',efi,teo.efi);
-fprintf('Tasa de fisiones       --> Simulado: %.4f   Teorico: %.4f\n',Rf,teo.Rf); 
-fprintf('Tasa de detecciones    --> Simulado: %.4f   Teorico: %.4f\n',Rd,teo.Rd); 
-fprintf('Tasa de absorciones    --> Simulado: %.4f   Teorico: %.4f\n',Ra,teo.Ra);  
+fprintf('Vida media (lambda)    --> Simulado: %.4e   Teorico: %.4e\n',lambda,teo.lambda);
+fprintf('Reproduciones (Lambda) --> Simulado: %.4e   Teorico: %.4e\n',Lambda,teo.Lambda);
+fprintf('k efectivo (keff)      --> Simulado: %.4e   Teorico: %.4e\n',keff,teo.keff);
+fprintf('Reactividad (rho)      --> Simulado: %.4e   Teorico: %.4e\n',rho,teo.rho);
+fprintf('Eficiencia detector    --> Simulado: %.4e   Teorico: %.4e\n',efi,teo.efi);
+fprintf('Tasa de fisiones       --> Simulado: %.4e   Teorico: %.4e\n',Rf,teo.Rf); 
+fprintf('Tasa de detecciones    --> Simulado: %.4e   Teorico: %.4e\n',Rd,teo.Rd); 
+fprintf('Tasa de absorciones    --> Simulado: %.4e   Teorico: %.4e\n',Ra,teo.Ra);  
 fprintf('Cocientes\t T.fis: %.4f \t T.Det: %.4f \t T.Abs: %.4f \n',teo.Rf/Rf,teo.Rd/Rd,teo.Ra/Ra);
-fprintf('beta                   --> Teorico: %.4f\n',bet);  
+fprintf('beta                   --> Teorico: %.4e\n',bet);  
 fprintf('Fac. Diven (prompt)    --> Teórico: %.4f\n', D_p);
 
-fprintf('Alfa ret   --> Simulado: %.4f   Teorico: %.4f   Teorico_exacto: %.4f\n', alfa_d,teo.alfa_d, teo.ad_exacto);  
-fprintf('Alfa inst  --> Simulado: %.4f   Teorico: %.4f   Teorico exacto: %.4f\n', alfa, teo.alfa_p, teo.ap_exacto);  
+fprintf('Alfa ret   --> Simulado: %.4e   Teorico: %.4e   Teorico_exacto: %.4e\n', alfa_d,teo.alfa_d, teo.ad_exacto);  
+fprintf('Alfa inst  --> Simulado: %.4e   Teorico: %.4e   Teorico exacto: %.4e\n', alfa, teo.alfa_p, teo.ap_exacto);  
 
 % Escribe valores teóricos
 escribe_teoricos("val_teoricos.dat")
