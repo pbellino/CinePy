@@ -1,6 +1,7 @@
 
-nf      = 1e6;          % Número de particulas de fuente
+nf      = 1e6;             % Número de particulas de fuente
 nbuf    = nf*2;            % Buffer para alojar nuevas partículas
+nf2     = nf*8;            % Buffer para alojar tiempos
 
 %-------- Definición de la fuente -----------------------------------------
 E0      = 1;               % Energía inicial de la fuente

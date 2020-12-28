@@ -56,7 +56,7 @@ fite  = nan(ite,1);	% Cantidad de fisiones
 d1ite = nan(ite,1);	% Cantidad de detecciones
 
 % Para guardar los tiempos, construyo vectores más grandes porque no sé cuán largos van a ser
-nf2 = nf*8;		% Número tentativo
+%nf2 = nf*8;		% Número tentativo
 % Tiempos en donde se produce cada interacción
 Ta  = nan(nf2,1);	% Absorción
 Tf  = nan(nf2,1);	% Fisión
