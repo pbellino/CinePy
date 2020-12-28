@@ -4,10 +4,13 @@ import numpy as np
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 import os
-from lmfit import Minimizer, Parameters, report_fit
+from lmfit import Minimizer, Parameters, report_fit, conf_interval, report_ci
+import uncertainties
+from uncertainties import ufloat
 
-from modules.io_modules import lee_historias_completas, lee_fey
+from modules.io_modules import lee_historias_completas, lee_fey, read_val_teo
 from modules.funciones import alfa_feynman_lin_dead_time, \
+                              alfa_feynman_lin_dead_time_Nk, \
                               alfa_feynman_dos_exp, alfa_feynman_tres_exp, \
                               alfa_feynman_lin_dead_time_lin_delayed, \
                               alfa_feynman_dos_exp_delayed, \
@@ -320,22 +323,56 @@ def ajuste_afey_2exp_delayed(tau, Y, std_Y, Y_ini, vary=6*[1]):
     return None
 
 
-def ajuste_afey(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1] ):
+def ajuste_afey(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1], **kwargs):
     """
     Ajuste no lineal de la curva de alfa-Feynman
 
     Se ajustan los datos de  Y vs tau con incerteza de stt_Y
     Se utiliza el paquete lmfit para realizar el ajuste
 
+    Parametros
+    ----------
+        tau : numpy array
+            Intervalos temporales
+        Y : numpy array
+            Valores de la curva de Y(tau)
+        std_Y : numpy array
+            Incertezas de Y(tau)
+        Y_ini : list (float)
+            Valores iniciales para el ajuste
+        vay : list (Boolean)
+            Indica cuáles parámetros se van a variar
+        kwargs : dict
+            'verbose' : Imprime resultados del ajuste
+            'plot' : grafica el ajuste
+            'conf_int' : calcula intervalos de confianza
+            'Nk? : vector con cantidad de puntus para cada T_i
+
+    Resultados
+    ----------
+        result : lmfit object
+            Objeto con todos los resultados del ajuste
+        alfa, eficiencia : list
+            Valores ajustados con sus incertezas
+        teo_val : list
+            Valores teóricos exactos (de la simulación)
     """
 
-    def residual(params, tau, data=None, sigma=None):
+    verbose = kwargs.get('verbose', True)
+    plot = kwargs.get('plot', True)
+    conf_int = kwargs.get('conf_int', True)
+    Nk = kwargs.get('Nk', None)
+
+    def residual(params, tau, data=None, sigma=None, Nk=None):
         parvals = params.valuesdict()
         alfa = parvals['alfa']
         amplitud = parvals['amplitud']
         offset = parvals['offset']
-
-        model = alfa_feynman_lin_dead_time(tau, alfa, amplitud, offset)
+        if Nk is None:
+            model = alfa_feynman_lin_dead_time(tau, alfa, amplitud, offset)
+        else:
+            model = alfa_feynman_lin_dead_time_Nk(tau, alfa, amplitud, offset,
+                                                  Nk)
 
         if data is None:
             return model
@@ -351,16 +388,36 @@ def ajuste_afey(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1] ):
     # Se define la minimización
     minner = Minimizer(residual, params,
                        fcn_args=(tau,),
-                       fcn_kws={'data': Y, 'sigma': std_Y}
+                       fcn_kws={'data': Y, 'sigma': std_Y, 'Nk': Nk}
                        )
     # Se realiza la minimización
     # Se puede usar directamente la función minimize como wrapper de Minimizer
     result = minner.minimize(method='leastsq')
-    report_fit(result)
 
-    _plot_fit(tau, Y, std_Y, result)
+    if verbose: report_fit(result)
+    if plot: _plot_fit(tau, Y, std_Y, result)
 
-    return None
+    if conf_int:
+        ci = conf_interval(minner, result)
+        print(2*'\n')
+        report_ci(ci)
+
+    # Propagación de incertezas
+
+    # Valores estimados
+    params_val = [result.params[s].value for s in result.var_names]
+    # Asocio con sus incertezas
+    alfa, ampl = uncertainties.correlated_values(params_val, result.covar,
+            tags=result.var_names)
+
+    teo = read_val_teo("./simulacion/val_teoricos.dat")
+    # TODO: falta considerar cuando se ajusta con offset
+    DIVEN = teo['D_p']
+    LAMBDA = teo['Lambda']
+    eficiencia =  ampl * alfa**2 * LAMBDA**2 / DIVEN
+    teo_val = [teo[item] for item in ['ap_exacto', 'efi']]
+
+    return result, [alfa, eficiencia], teo_val
 
 
 def ajuste_afey_nldtime(tau, Y, std_Y):
