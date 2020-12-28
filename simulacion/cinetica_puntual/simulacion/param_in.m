@@ -1,21 +1,22 @@
 
 nf      = 1e6;             % Número de particulas de fuente
 nbuf    = nf*2;            % Buffer para alojar nuevas partículas
-nf2     = nf*8;            % Buffer para alojar tiempos
+nf2     = nf*90;           % Buffer para alojar tiempos
 
 %-------- Definición de la fuente -----------------------------------------
 E0      = 1;               % Energía inicial de la fuente
 m       = 1;               % Masa de la partícula
 V0      = sqrt(2.*E0./m);  % Velocidad inicial
+V0      = 220000;
 Q       = 1; % Valor de la fuente de neutrones (si se usa una poissoniana)
 tpo_fte = 'poisson';
 %  tpo_fte = 'pulsada';
 
 %-------- Parámetros físicos del medio ------------------------------------
 % Sistema crítico con Sig_c=Sig_f=1 y nprod=2 (Asumiendo medio infinito)
-Sig_c   = 0.2;                  % Sección eficáz macroscópica de captura
-Sig_f   = 0.2;                  % Sección eficáz macroscópica de fisión
-Sig_d1  = 0.4;
+Sig_c   = 0.05297579873883343;                % Sección eficáz macroscópica de captura
+Sig_f   = 0.03733906613617596;                % Sección eficáz macroscópica de fisión
+Sig_d1  = Sig_f / 20;
 Sig_t   = Sig_c + Sig_f + Sig_d1;  % Sección eficáz macroscópica total
 prob_c  = Sig_c/Sig_t;
 prob_f  = Sig_f/Sig_t;
@@ -36,8 +37,8 @@ nu_p2   = p_prod*(nu_prod.**2)';
 D_p     = p_prod*(nu_prod.*(nu_prod-1))' / nu_p2;
 
 %-- Neutrones retardados
-bet     = 0.05;   % Debe ser menor a 0.33(0.05 anda bien sec_temp)
+bet     = 0.007;   % Debe ser menor a 0.33(0.05 anda bien sec_temp)
 nu_d    = bet*nu_p/(1-bet);
 nu      = nu_p+nu_d;
-lam_d   = 0.000001;                     % Constante de decaimiento de n. ret.
+lam_d   = 0.01;                     % Constante de decaimiento de n. ret.
 
