@@ -1,23 +1,25 @@
 
-nf      = 1e6;             % Número de particulas de fuente
+nf      = 2e6;             % Número de particulas de fuente
 nbuf    = nf*2;            % Buffer para alojar nuevas partículas
-nf2     = nf*90;           % Buffer para alojar tiempos
+nf2     = nf*50;           % Buffer para alojar tiempos
+nf3     = nf*5;            % Buffer para alojar tiempos de detección
 
+efi     = 4e-2             % Eficiencia del detector (R/F)
 %-------- Definición de la fuente -----------------------------------------
 E0      = 1;               % Energía inicial de la fuente
 m       = 1;               % Masa de la partícula
 V0      = sqrt(2.*E0./m);  % Velocidad inicial
 V0      = 220000;
-Q       = 1; % Valor de la fuente de neutrones (si se usa una poissoniana)
+Q       = 1.0e+3; % Valor de la fuente de neutrones (si se usa una poissoniana)
 tpo_fte = 'poisson';
 %  tpo_fte = 'pulsada';
 
 %-------- Parámetros físicos del medio ------------------------------------
 % Sistema crítico con Sig_c=Sig_f=1 y nprod=2 (Asumiendo medio infinito)
-Sig_c   = 0.05297579873883343;                % Sección eficáz macroscópica de captura
-Sig_f   = 0.03733906613617596;                % Sección eficáz macroscópica de fisión
-Sig_d1  = Sig_f / 20;
-Sig_t   = Sig_c + Sig_f + Sig_d1;  % Sección eficáz macroscópica total
+Sig_f   = 0.01866953306808798;             % Sección eficáz macroscópica de fisión
+Sig_t   = 0.04704545454545454;             % 5 dolares
+Sig_d1  = Sig_f * efi;
+Sig_c   = Sig_t - Sig_f - Sig_d1;          % Sección eficáz macroscópica de captura
 prob_c  = Sig_c/Sig_t;
 prob_f  = Sig_f/Sig_t;
 prob_d1 = Sig_d1/Sig_t;
@@ -33,12 +35,11 @@ p_prod  = p_prod./sum(p_prod);      % Normalizo por las dudas
 cum_p   = cumsum(p_prod);
 nu_p    = p_prod*nu_prod';
 % Diven factor (prompt)
-nu_p2   = p_prod*(nu_prod.**2)';
-D_p     = p_prod*(nu_prod.*(nu_prod-1))' / nu_p2;
+D_p     = p_prod*(nu_prod.*(nu_prod-1))' / nu_p**2;
 
 %-- Neutrones retardados
-bet     = 0.007;   % Debe ser menor a 0.33(0.05 anda bien sec_temp)
+bet     = 700e-5;                   % Debe ser menor a 0.33(0.05 anda bien sec_temp)
 nu_d    = bet*nu_p/(1-bet);
 nu      = nu_p+nu_d;
-lam_d   = 0.01;                     % Constante de decaimiento de n. ret.
+lam_d   = 0.01;                    % Constante de decaimiento de n. ret.
 
