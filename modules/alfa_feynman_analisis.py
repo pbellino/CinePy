@@ -124,7 +124,7 @@ def _plot_fit(tau, Y, std_Y, result):
     handles, labels = ax3.get_legend_handles_labels()
     ax3.legend(handles[::-1], labels[::-1], loc='best')
 
-    return None
+    return ax0
 
 
 def ajuste_afey_3exp(tau, Y, std_Y):
@@ -228,7 +228,8 @@ def ajuste_afey_2exp(tau, Y, std_Y):
     return None
 
 
-def ajuste_afey_delayed(tau, Y, std_Y, Y_ini=[300, 1, 1, 100]):
+def ajuste_afey_delayed(tau, Y, std_Y, Y_ini=[300, 1, 1, 100], vary=4*[1],
+                         **kwargs):
     """
     Ajuste no lineal de la curva de alfa-Feynman
 
@@ -236,6 +237,11 @@ def ajuste_afey_delayed(tau, Y, std_Y, Y_ini=[300, 1, 1, 100]):
     Se utiliza el paquete lmfit para realizar el ajuste
 
     """
+    verbose = kwargs.get('verbose', True)
+    plot = kwargs.get('plot', True)
+    conf_int = kwargs.get('conf_int', True)
+    Nk = kwargs.get('Nk', None)
+
 
     def residual(params, tau, data=None, sigma=None):
         parvals = params.valuesdict()
@@ -255,10 +261,10 @@ def ajuste_afey_delayed(tau, Y, std_Y, Y_ini=[300, 1, 1, 100]):
 
     # Se definen los parámetros del ajuste
     params = Parameters()
-    params.add('alfa', value=Y_ini[0], min=0)
-    params.add('amplitud', value=Y_ini[1], min=0)
-    params.add('offset', value=Y_ini[2])
-    params.add('slope', value=Y_ini[3], min=0)
+    params.add('alfa', value=Y_ini[0], min=0, vary=vary[0])
+    params.add('amplitud', value=Y_ini[1], min=0, vary=vary[1])
+    params.add('offset', value=Y_ini[2], vary=vary[2])
+    params.add('slope', value=Y_ini[3], min=0, vary=vary[3])
     # Se define la minimización
     minner = Minimizer(residual, params,
                        fcn_args=(tau,),
@@ -267,11 +273,32 @@ def ajuste_afey_delayed(tau, Y, std_Y, Y_ini=[300, 1, 1, 100]):
     # Se realiza la minimización
     # Se puede usar directamente la función minimize como wrapper de Minimizer
     result = minner.minimize(method='leastsq')
-    report_fit(result)
 
-    _plot_fit(tau, Y, std_Y, result)
+    if verbose: report_fit(result)
+    if plot: _plot_fit(tau, Y, std_Y, result)
 
-    return None
+    if conf_int:
+        ci = conf_interval(minner, result)
+        print(2*'\n')
+        report_ci(ci)
+
+    # Propagación de incertezas
+
+    # Valores estimados
+    params_val = [result.params[s].value for s in result.var_names]
+    # Asocio con sus incertezas
+    alfa, ampl, _ = uncertainties.correlated_values(params_val, result.covar,
+            tags=result.var_names)
+
+    teo = read_val_teo("./simulacion/val_teoricos.dat")
+    # TODO: falta considerar cuando se ajusta con offset
+    # TODO: No está completa esta función, faltan informar otros parámetros
+    DIVEN = teo['D_p']
+    LAMBDA = teo['Lambda']
+    eficiencia =  ampl * alfa**2 * LAMBDA**2 / DIVEN
+    teo_val = [teo[item] for item in ['ap_exacto', 'efi']]
+
+    return result, [alfa, eficiencia, _], teo_val
 
 
 def ajuste_afey_2exp_delayed(tau, Y, std_Y, Y_ini, vary=6*[1]):
@@ -394,8 +421,12 @@ def ajuste_afey(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1], **kwargs):
     # Se puede usar directamente la función minimize como wrapper de Minimizer
     result = minner.minimize(method='leastsq')
 
+    # Valores estimados
+    params_val = [result.params[s].value for s in result.var_names]
+
     if verbose: report_fit(result)
-    if plot: _plot_fit(tau, Y, std_Y, result)
+    if plot:
+        ax0 = _plot_fit(tau, Y, std_Y, result)
 
     if conf_int:
         ci = conf_interval(minner, result)
@@ -404,8 +435,6 @@ def ajuste_afey(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1], **kwargs):
 
     # Propagación de incertezas
 
-    # Valores estimados
-    params_val = [result.params[s].value for s in result.var_names]
     # Asocio con sus incertezas
     alfa, ampl = uncertainties.correlated_values(params_val, result.covar,
             tags=result.var_names)
@@ -414,8 +443,20 @@ def ajuste_afey(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1], **kwargs):
     # TODO: falta considerar cuando se ajusta con offset
     DIVEN = teo['D_p']
     LAMBDA = teo['Lambda']
-    eficiencia =  ampl * alfa**2 * LAMBDA**2 / DIVEN
+    BETA = teo['bet']
+    eficiencia =  ampl * alfa**2 * LAMBDA**2 / DIVEN / (1-BETA)**2
     teo_val = [teo[item] for item in ['ap_exacto', 'efi']]
+
+    if plot:
+        EFI = teo['efi']
+        ALFA_P = teo['ap_exacto']
+        _amp = DIVEN * EFI * (1-BETA)**2 / (ALFA_P*LAMBDA)**2
+        if Nk is None:
+            ax0.plot(tau, alfa_feynman_lin_dead_time(tau, ALFA_P, _amp, 0,),
+                                                      'bo')
+        else:
+            ax0.plot(tau, alfa_feynman_lin_dead_time_Nk(tau, ALFA_P, _amp, 0,
+                                                         Nk), 'bo')
 
     return result, [alfa, eficiencia], teo_val
 
