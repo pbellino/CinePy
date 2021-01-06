@@ -24,17 +24,22 @@ if __name__ == '__main__':
     # Lo uso por si quiero llamarlo desde otro dierectorio
     script_dir = os.path.dirname(__file__)
     # -------------------------------------------------------------------------
-    # Parámetros de entrada
+    # Gráfico de las historias
     # -------------------------------------------------------------------------
-    # Archivos a leer
-    # nombre = 'resultados/nucleo_01.D1D2_cov.dat'
+    # nombre = 'resultados_afey/times.D1_var_mca.dat'
+    # #nombre = 'resultados_afey/times.D1_var.dat'
+    # #nombre = 'resultados_afey/times.D1_var.dat'
+    # nombre = 'resultados_afey/times.D1_var_choice.dat'
+    # nombre = 'resultados_afey/times.D1_var_skip.dat'
     # grafica_historias_afey(nombre)
     # plt.show()
+    # quit()
+
     nombres = [
-     #       'resultados_afey/times.D1_var.fey',
-     #       'resultados_afey/times.D1_var_choice.fey',
-     #       'resultados_afey/times.D1_var_skip.fey',
-             'resultados_afey/times.D1_var_mca.fey',
+     #         'resultados_afey/times.D1_var.fey',
+     #         'resultados_afey/times.D1_var_choice.fey',
+               'resultados_afey/times.D1_var_skip.fey',
+     #         'resultados_afey/times.D1_var_mca.fey',
               ]
     # -------------------------------------------------------------------------
     #
@@ -49,17 +54,23 @@ if __name__ == '__main__':
     # Camino absoluto del archivo que se quiere leer
     abs_nombre = os.path.join(script_dir, nombre)
     tau, Y, std_Y, num_hist, tasas = lee_fey(abs_nombre)
-
+    print(std_Y / Y * 100)
     Nk = lee_Nk(nombre.rstrip('fey') + 'Nk')
     var_teo = teo_variance_berglof(Y, Nk)
     var_teo_exac = teo_variance_berglof_exacta(Y, Nk, tasas[0], tau)
     var_teo_pacilio = teo_variance_pacilio(Y, Nk, tasas[0], tau)
 
-    ajuste_afey(tau, Y, std_Y, [0.5, 1, 0])
+    _, val, teo = ajuste_afey(tau, Y, std_Y, [400, 10, 0], vary=[1, 1, 0],
+                               Nk=Nk)
+    #
+    #_, val, teo = ajuste_afey_delayed(tau, Y, std_Y, [500, 1, 0, 1],
+    #                                    vary=[1, 1, 0, 1])
+    print(2*'\n')
+    [print("Estimados: {:.4e} - Teóricos: {:.4e}".format(va, te))
+            for va, te in zip(val, teo)]
     # ajuste_afey_2exp(tau, Y, std_Y)
     # ajuste_afey_3exp(tau, Y, std_Y)
-    # ajuste_afey_delayed(tau, Y, std_Y, [0.5, 1, 0, 1])
-    # ajuste_afey_2exp_delayed(tau, Y, std_Y)
+    # ajuste_afey_2exp_delayed(tau, Y, std_Y, [0.5, 1, 0, 3, 1, 1])
     # ajuste_afey_nldtime(tau, Y, std_Y)
 
     fig8, ax8 = plt.subplots(1, 1)

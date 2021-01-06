@@ -22,10 +22,10 @@ if __name__ == '__main__':
               './simulacion/times.D1.gz',
               ]
     # Conversión listmode a ventana temporal
-    dt_base = 5e-1            # intervalo base para binnear la lista de tiempos
+    dt_base = 5e-5            # intervalo base para binnear la lista de tiempos
     # Técnica de agrupamiento
-    numero_de_historias =  99 # Historias que se promediarán
-    dt_maximo = 5.0e+1        # másimo intervalo temporal para cada historia
+    numero_de_historias = 50  # Historias que se promediarán
+    dt_maximo = 1e-2          # másimo intervalo temporal para cada historia
     # -------------------------------------------------------------------------
     #
     # Lectura de archivo de lista de tiempos
@@ -33,6 +33,7 @@ if __name__ == '__main__':
     # Conversión de lista de tiempos a ventana temporal 
     binned, time_win = timestamp_to_timewindow(datos, dt_base, 'segundos',
                                                'pulsos', 1)
+    print(np.shape(binned[0]))
     # Armo la estructura de datos que necesito para procesar los datos
     leidos = []
     for x, y, nom in zip(time_win, binned, nombres):
@@ -47,20 +48,19 @@ if __name__ == '__main__':
 
     calculos = [
                # 'var_serie',
-               'var_paralelo_mca',
+               'var_paralelo',
                'var_paralelo_choice',
                'var_paralelo_skip',
-               'var_paralelo',
+               'var_paralelo_mca',
                # 'cov_paralelo',
                # 'sum_paralelo',
-               # 'pirulo',
                 ]
 
     # Parámetros extras para el cálculo mca y choice
     extra = {'skip_mca':0,
              'method_mca':'A_over_k',
              'fraction':0.10,
-             'corr_time':10.0,
+             'corr_time':dt_maximo*2,
             }
     for calculo in calculos:
         Y_historias = metodo_alfa_feynman(leidos, numero_de_historias,
