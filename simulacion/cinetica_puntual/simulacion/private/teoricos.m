@@ -18,6 +18,10 @@ teo.alfa_d = +lam_d*teo.rho/(teo.rho-bet);
 teo.efi = Sig_d1/Sig_f;
 % Factor de Diven (para los instantáneos)
 teo.D_p = D_p;
+% Fracción de neutrones retardados efectiva
+teo.bet = bet;
+% Constante de decaimiento de neutrones retardados (a un grupo)
+teo.lam_d = lam_d;
 
 % Solución más exacta para los alfa
 [teo.ap_exacto , teo.ad_exacto]  = raices(lam_d,teo.Lambda,teo.rho,bet);
