@@ -21,7 +21,7 @@ E_nvo = E_vjo;
 T_nvo = T_vjo;
 
 % Fijo semmilla de números pseudoaleatorios  para reproducir resultados
-SEED = 1;
+SEED = 7;
 rand ("state", SEED);
 
 %% ------------------ FUENTE DE NEUTRONES ---------------------------------
@@ -60,11 +60,11 @@ d1ite = nan(ite,1);	% Cantidad de detecciones
 % Tiempos en donde se produce cada interacción
 Ta  = nan(nf2,1);	% Absorción
 Tf  = nan(nf2,1);	% Fisión
-Td1 = nan(nf2,1);	% Detección
+Td1 = nan(nf3,1);	% Detección
 % Tiempos entre que nace el neutrón y realiza alguna reacción
 DTfa  = nan(nf2,1);	% Absorción
 DTff  = nan(nf2,1);	% Fisión
-DTfd1 = nan(nf2,1);	% Detección
+DTfd1 = nan(nf3,1);	% Detección
 
 %%----------------- COMIENZO DE LA SIMULACIÓN -----------------------------
 j = 1;
@@ -260,7 +260,9 @@ Td1(isnan(Td1))     = [];
 % Calculo alguno de los parámetros cinéticos más relevantes, tomando
 % valores medios de los tiempos característicos simulados
 Lambda  = mean(DTff)./nu;       % Tiempo entre reproducciones
+Lambda_std  = std(DTff)./nu/sqrt(length(DTff));       % Tiempo entre reproducciones
 lambda  = mean(DTfa);           % Vida media
+lambda_std  = std(DTfa)/sqrt(length(DTfa));           % Vida media
 keff    = lambda/Lambda;        % k efectivo
 rho     = (keff-1)/keff;        % Reactividad
 alfa    = -(rho-bet)/Lambda;     % Alfa de los instantáneos
@@ -297,8 +299,8 @@ efi = Rd/Rf; % Eficiencia absoluta del detector
 % Es relevante en el caso de estar con una fuente poissoniana (estacionaria)
 % Se lo contrario los valores no van a ser estacionarios.
 
-fprintf('Vida media (lambda)    --> Simulado: %.4e   Teorico: %.4e\n',lambda,teo.lambda);
-fprintf('Reproduciones (Lambda) --> Simulado: %.4e   Teorico: %.4e\n',Lambda,teo.Lambda);
+fprintf('Vida media (lambda)    --> Simulado: %.4e (%.4e)   Teorico: %.4e\n',lambda,lambda_std, teo.lambda);
+fprintf('Reproduciones (Lambda) --> Simulado: %.4e (%.4e)   Teorico: %.4e\n',Lambda, Lambda_std,teo.Lambda);
 fprintf('k efectivo (keff)      --> Simulado: %.4e   Teorico: %.4e\n',keff,teo.keff);
 fprintf('Reactividad (rho)      --> Simulado: %.4e   Teorico: %.4e\n',rho,teo.rho);
 fprintf('Eficiencia detector    --> Simulado: %.4e   Teorico: %.4e\n',efi,teo.efi);
