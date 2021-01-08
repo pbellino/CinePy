@@ -570,9 +570,6 @@ def escribe_archivos_completos(Y_historias, dt_base, calculo, num_hist, tasas,
     """
 
     tasas_ordenadas = ordena_tasas_encabezado(tasas, calculo)
-    #header = genera_encabezados(dt_base, calculo, num_hist)
-    # nombres_archivos = genera_nombre_archivos(Y_historias, calculo)
-    # Para diferencia
     for j, nombre in enumerate(nombres_archivos):
         header = genera_encabezados(dt_base, calculo,
                                     num_hist, tasas_ordenadas[j])
@@ -645,7 +642,7 @@ def genera_encabezados(dt_base, calculo, num_hist, tasas):
     return header_str
 
 
-def genera_nombre_archivos(nombres_in, lenYdt, calculo):
+def genera_nombre_archivos(nombres_in, lenYdt, calculo, carpeta):
     """
     Genera los nombres de los archivos donde se guardarán los datos
 
@@ -657,6 +654,8 @@ def genera_nombre_archivos(nombres_in, lenYdt, calculo):
             Cantidad de curvas Y(dt) que se calcularon
         calculo : string
             Tipo de caĺculo utilizado (var, cov o sum)
+        carpeta : string
+            Nombre de la carpeta donde se guardarán los resultados
 
    Resultados
    ----------
@@ -665,15 +664,13 @@ def genera_nombre_archivos(nombres_in, lenYdt, calculo):
 
     """
 
-    # Se guardan en la carpeta 'resultados_afey'
-    directorio = 'resultados_afey'
     nombres_archivos = []
     id_det = []
     for nombre in nombres_in:
         _nom = nombre.split('/')[-1]
         _nom = _nom.rsplit('.')
         id_det.append(_nom[-2])
-        nombres_archivos.append(directorio + '/' + _nom[-3])
+        nombres_archivos.append(carpeta + '/' + _nom[-3])
 
     # Para saber si se pidió var, cov o sum
     id_calculo = calculo.split('_')[0]
@@ -776,6 +773,8 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
             Cuanto más chico menor correlación en los datos a expensas de
             empeorar la estadística.
         kwargs['corr_time'] : float
+        kwargs['carpeta_resultados'] : str ("resultados_afey" default)
+            Nombre de la carpeta donde se guardarán los resultados
 
    Resultados
    ----------
@@ -858,9 +857,11 @@ def metodo_alfa_feynman(leidos, numero_de_historias, dt_maximo, calculo,
 
         tasas = _tasa_de_cuentas(leidos)
 
+        carpeta = kwargs.get('carpeta_resultados', 'resultados_afey')
+        if not os.path.exists(carpeta): os.makedirs(carpeta)
         # Se generan los nombres de los archivos para guardar los datos
         nom_archivos = genera_nombre_archivos(nombres, len(Y_historias),
-                                              calculo)
+                                              calculo, carpeta)
 
         # Escribe todas las historias
         escribe_archivos_completos(Y_historias, dt_base, calculo,
