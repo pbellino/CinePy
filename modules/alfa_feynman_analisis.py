@@ -4,7 +4,8 @@ import numpy as np
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 import os
-from lmfit import Minimizer, Parameters, report_fit, conf_interval, report_ci
+from lmfit import Minimizer, Parameters, report_fit, conf_interval, \
+                  report_ci, conf_interval2d
 import uncertainties
 from uncertainties import ufloat
 
@@ -389,6 +390,7 @@ def ajuste_afey(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1], **kwargs):
     plot = kwargs.get('plot', True)
     conf_int = kwargs.get('conf_int', True)
     Nk = kwargs.get('Nk', None)
+    tasa = kwargs.get("tasa", None)
 
     def residual(params, tau, data=None, sigma=None, Nk=None):
         parvals = params.valuesdict()
@@ -429,9 +431,17 @@ def ajuste_afey(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1], **kwargs):
         ax0 = _plot_fit(tau, Y, std_Y, result)
 
     if conf_int:
-        ci = conf_interval(minner, result)
+        ci, _trace = conf_interval(minner, result, trace=True, verbose=False)
         print(2*'\n')
         report_ci(ci)
+        # plot confidence intervals (a1 vs t2 and a2 vs t2)
+        # print(_trace)
+        # fig, axes = plt.subplots(1, 1, figsize=(12.8, 4.8))
+        # cx, cy, grid = conf_interval2d(minner, result, 'alfa', 'amplitud', 50, 50)
+        # ctp = axes.contourf(cx, cy, grid, np.linspace(0, 1, 21))
+        # fig.colorbar(ctp, ax=axes)
+        # axes.set_xlabel('alfa')
+        # axes.set_ylabel('amplitud')
 
     # Propagación de incertezas
 
@@ -445,7 +455,13 @@ def ajuste_afey(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1], **kwargs):
     LAMBDA = teo['Lambda']
     BETA = teo['bet']
     eficiencia =  ampl * alfa**2 * LAMBDA**2 / DIVEN / (1-BETA)**2
-    teo_val = [teo[item] for item in ['ap_exacto', 'efi']]
+    if tasa is None:
+        fis_rate = None
+        print("No se especificó tasa de cuenta para calcular tasa de fisiones")
+    else:
+        tasa = ufloat(tasa[0], tasa[1])
+        fis_rate = tasa / eficiencia
+    teo_val = [teo[item] for item in ['ap_exacto', 'efi', 'Rf']]
 
     if plot:
         EFI = teo['efi']
@@ -458,7 +474,7 @@ def ajuste_afey(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1], **kwargs):
             ax0.plot(tau, alfa_feynman_lin_dead_time_Nk(tau, ALFA_P, _amp, 0,
                                                          Nk), 'bo')
 
-    return result, [alfa, eficiencia], teo_val
+    return result, [alfa, eficiencia, fis_rate], teo_val
 
 
 def ajuste_afey_nldtime(tau, Y, std_Y):
