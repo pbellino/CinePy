@@ -545,6 +545,38 @@ def lee_Nk(nombre):
     return Nk
 
 
+def grafica_Nk(datos, labels=None):
+    """
+    Grafica los valores de Nk para cada batch (historia)
+
+    Parámetros
+    ----------
+        datos : dictionary
+            Cada valor es una tupla (tau, Nk). Si no se especifica 'labels' se
+            usan las claves para identificar cada gráfico
+        labels : list of strings
+            Nombre para identificar cada curva
+
+    Resultados
+    ----------
+        fig, ax del gráfico
+    """
+
+    if labels is None:
+       labels = datos.keys()
+
+    fig, ax = plt.subplots(1, 1)
+    for dato, label in zip(datos.values(), labels):
+        ax.plot(*dato, '.-', label=label)
+
+    ax.set_xlabel(r"$\tau$ [s]")
+    ax.set_ylabel(r"$N_{batch}$")
+    ax.set_yscale("log")
+    ax.legend()
+
+    return fig, ax
+
+
 if __name__ == '__main__':
 
     # Carpeta donde se encuentra este script
