@@ -29,8 +29,8 @@ if __name__ == '__main__':
     # Archivos a leer
     #nombre = "resultados_afey/times.D1_var.dat"
     #nombre = "resultados_afey/times.D1_var_choice.dat"
-    #nombre = "resultados_afey/times.D1_var_skip.dat"
-    nombre = "resultados_afey/times.D1_var_mca.dat"
+    nombre = "resultados_afey/times.D1_var_skip.dat"
+    #nombre = "resultados_afey/times.D1_var_mca.dat"
 
     vec_temp, data, num_hist, tasas = lee_historias_completas(nombre)
     coef = np.corrcoef(data)
@@ -44,12 +44,10 @@ if __name__ == '__main__':
     ax.set(xlabel=r'$T_i/T_1$', ylabel=r'$T_i/T_1$')
     ax.invert_yaxis()
     ax.set_title('Correlation matrix')
+    plt.tight_layout()
 
     fig, ax1 =  plt.subplots(1, 1)
     ax1 = sns.distplot(coef.flatten(), bins=50, kde=True)
     ax1.set_xlabel("Correlacion coefficients")
-    plt.show()
-    quit()
-    grafica_historias_afey(nombre)
     plt.show()
 
