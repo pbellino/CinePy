@@ -795,6 +795,102 @@ def lee_tally_E_card(archivo):
     return datos, nombres, bins
 
 
+def lee_tally_E_card_tagged(archivo):
+    """
+    Función para leer los datos al utilizar la tarjeta e en un tally de MCNP
+
+    Se hace una búsqueda de la palabra '1tally' seguidoa de 'nps'. De leen
+    todas las tallies del archivo
+
+    Está hecha para leer tallies que poseen un FT TAG, aunque funciona igual si
+    no lo tiene. Se diferencia de "lee_tally_E_card()" en que devuelve un
+    diccionario de diccionarios.
+
+    Parámetros
+    ----------
+    archivo : string
+        Nombre del archivo de salida de MCNP
+
+    Resultados
+    ----------
+    datos : dictionary of dictionaries
+        Diccionario donde cada clave es un string con el número del tally, y el
+        valor es un diccionario para los tags. Las claves de éstos últimos son
+        los códigos con que se especifican los tags (ver manual MCNP pg 3-245)
+        Si el tally no tiene tag, devuelve un diccionario con la clave 'total'.
+    bins : dictionary
+        Diccionario donde cada clave es un string con el número del tally, y el
+        valor es un ndarray con [valor_bin_inferior valor_bin_superior]
+    nombres : list of strings
+        Lista con strings correspondientes a cada tally leída. Sólo para
+        debuggear. Deben coincidir con los keys del diccionario 'datos'.
+    """
+
+    nombres = []
+    datos = {}
+    bins = {}
+    with open(archivo, 'r') as f:
+        for line in f:
+            if line.startswith('1tally'):
+                line_sep = line.split()
+                # Lee los resultados de las tallies
+                if line_sep[2] == 'nps':
+                    _tally_n = line_sep[1]
+                    nombres.append(_tally_n)
+                    _tally_tag = {}
+                    while True:
+                        _line = f.readline()
+                        if _line.startswith(' user bin'):
+                            tag = _line.split()[-1]
+                            _line= f.readline()
+                        elif _line.startswith(' ======'):
+                            # print('No se lee valor de tally. Sin energías.')
+                            break
+                        else:
+                            tag = None
+                        if _line.startswith('      energy'):
+                            _un_tally = []
+                            while True:
+                                val_line = f.readline()
+                                if 'total' in val_line:
+                                    break
+                                else:
+                                    _un_tally.append(val_line.rsplit())
+                            if tag is None:
+                                _tally_tag['total'] = np.asarray(_un_tally, dtype=float)
+                            else:
+                                _tally_tag[tag] = np.asarray(_un_tally, dtype=float)
+                    datos[_tally_n] = _tally_tag
+                # Lee los bins de las tallies
+                elif line_sep[2] == 'print':
+                    _tally_n = line_sep[1]
+                    _un_bin = []
+                    _cont = 0
+                    while True:
+                        _cont += 1
+                        _line = f.readline()
+                        if _line.startswith(' energy bins'):
+                            while True:
+                                bin_line = f.readline()
+                                if '-i' in bin_line:
+                                    _un_bin.append([-1, 0])
+                                    # print('Se simula un bin negativo')
+                                    bin_line = f.readline()
+                                if 'total' in bin_line:
+                                    break
+                                else:
+                                    _un_bin.append([bin_line.rsplit()[j] for j
+                                                    in [0, 2]])
+                            break
+                        elif _cont >= 10:
+                            print('Tally sin energías')
+                            break
+                        # print('No se encontraaron bines de energía')
+                        # _un_bin = []
+                    bins[_tally_n] = np.asarray(_un_bin, dtype=float)
+    return datos, nombres, bins
+
+
 def read_kcode_out(filename):
     """
     Lee parámetros de la salida de MCNP6 cuando se corre con KCODE
