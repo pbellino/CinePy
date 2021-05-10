@@ -446,8 +446,8 @@ def ajuste_afey(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1], **kwargs):
     # Propagación de incertezas
 
     # Asocio con sus incertezas
-    alfa, ampl = uncertainties.correlated_values(params_val, result.covar,
-            tags=result.var_names)
+    alfa, ampl, offset = uncertainties.correlated_values(params_val,
+                                        result.covar, tags=result.var_names)
 
     teo = read_val_teo("./simulacion/val_teoricos.dat")
     # TODO: falta considerar cuando se ajusta con offset
@@ -457,22 +457,26 @@ def ajuste_afey(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1], **kwargs):
     eficiencia =  ampl * alfa**2 * LAMBDA**2 / DIVEN / (1-BETA)**2
     if tasa is None:
         fis_rate = None
-        print("No se especificó tasa de cuenta para calcular tasa de fisiones")
+        dead_time = None
+        print("No se especificó tasa de cuentas")
     else:
         tasa = ufloat(tasa[0], tasa[1])
         fis_rate = tasa / eficiencia
+        dead_time = offset / 2 / tasa
     teo_val = [teo[item] for item in ['ap_exacto', 'efi', 'Rf']]
 
-    if plot:
-        EFI = teo['efi']
-        ALFA_P = teo['ap_exacto']
-        _amp = DIVEN * EFI * (1-BETA)**2 / (ALFA_P*LAMBDA)**2
-        if Nk is None:
-            ax0.plot(tau, alfa_feynman_lin_dead_time(tau, ALFA_P, _amp, 0,),
-                                                      'bo')
-        else:
-            ax0.plot(tau, alfa_feynman_lin_dead_time_Nk(tau, ALFA_P, _amp, 0,
-                                                         Nk), 'bo')
+    # Bloque para graficar la solución teórica
+    # TODO: Escribirlo mejor en otro lado. Sólo sirve para simulaciones
+    # if plot:
+    #     EFI = teo['efi']
+    #     ALFA_P = teo['ap_exacto']
+    #     _amp = DIVEN * EFI * (1-BETA)**2 / (ALFA_P*LAMBDA)**2
+    #     if Nk is None:
+    #         ax0.plot(tau, alfa_feynman_lin_dead_time(tau, ALFA_P, _amp,
+    #                                                   offset.n), 'bo')
+    #     else:
+    #         ax0.plot(tau, alfa_feynman_lin_dead_time_Nk(tau, ALFA_P, _amp,
+    #                                                     offset.n, Nk), 'bo')
 
     return result, [alfa, eficiencia, fis_rate], teo_val
 
