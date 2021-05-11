@@ -283,23 +283,24 @@ def ajuste_afey_delayed(tau, Y, std_Y, Y_ini=[300, 1, 1, 100], vary=4*[1],
         print(2*'\n')
         report_ci(ci)
 
-    # Propagación de incertezas
+    ### Propagación de incertezas
 
-    # Valores estimados
-    params_val = [result.params[s].value for s in result.var_names]
-    # Asocio con sus incertezas
-    alfa, ampl, _ = uncertainties.correlated_values(params_val, result.covar,
-            tags=result.var_names)
+    ### Valores estimados
+    ##params_val = [result.params[s].value for s in result.var_names]
+    ### Asocio con sus incertezas
+    ##alfa, ampl, _ = uncertainties.correlated_values(params_val, result.covar,
+    ##        tags=result.var_names)
 
-    teo = read_val_teo("./simulacion/val_teoricos.dat")
-    # TODO: falta considerar cuando se ajusta con offset
-    # TODO: No está completa esta función, faltan informar otros parámetros
-    DIVEN = teo['D_p']
-    LAMBDA = teo['Lambda']
-    eficiencia =  ampl * alfa**2 * LAMBDA**2 / DIVEN
-    teo_val = [teo[item] for item in ['ap_exacto', 'efi']]
+    ##teo = read_val_teo("./simulacion/val_teoricos.dat")
+    ### TODO: falta considerar cuando se ajusta con offset
+    ### TODO: No está completa esta función, faltan informar otros parámetros
+    ##DIVEN = teo['D_p']
+    ##LAMBDA = teo['Lambda']
+    ##eficiencia =  ampl * alfa**2 * LAMBDA**2 / DIVEN
+    ##teo_val = [teo[item] for item in ['ap_exacto', 'efi']]
 
-    return result, [alfa, eficiencia, _], teo_val
+    ##return result, [alfa, eficiencia, _], teo_val
+    return result
 
 
 def ajuste_afey_2exp_delayed(tau, Y, std_Y, Y_ini, vary=6*[1]):
@@ -456,15 +457,26 @@ def calcula_parametros_cineticos(result, reactor, **kwargs):
     # Valores estimados
     params_val = [result.params[s].value for s in result.var_names]
 
+    # Nombre de las variables ajustadas
+    _names = result.var_names
     # Asocio con sus incertezas
-    if 'offset' in result.var_names:
-        alfa, ampl, offset = uncertainties.correlated_values(params_val,
-                                        result.covar, tags=result.var_names)
+    if ('offset' in _names)  and ('slope' in _names):
+        alfa, ampl, offset, slope = uncertainties.correlated_values(params_val,
+                                          result.covar, tags=result.var_names)
     else:
-        alfa, ampl = uncertainties.correlated_values(params_val, result.covar,
-                                        tags=result.var_names)
-        offset = None
-
+        if 'offset' in _names:
+            alfa, ampl, offset = uncertainties.correlated_values(params_val,
+                                          result.covar, tags=result.var_names)
+            slope = None
+        elif 'slope' in _names:
+            alfa, ampl, slope = uncertainties.correlated_values(params_val,
+                                          result.covar, tags=result.var_names)
+            offset = None
+        else:
+            alfa, ampl = uncertainties.correlated_values(params_val,
+                                          result.covar, tags=result.var_names)
+            slope = None
+            offset = None
 
     # Constantes del reactor
     DIVEN = reactor.FACTOR_DIVEN
@@ -490,6 +502,7 @@ def calcula_parametros_cineticos(result, reactor, **kwargs):
                   'eficiencia': eficiencia,
                   'tasa_fisiones': fis_rate,
                   'tiempo_muerto': dead_time,
+                  'slope': slope,
                   }
 
     return parametros
