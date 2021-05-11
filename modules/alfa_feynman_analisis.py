@@ -351,8 +351,154 @@ def ajuste_afey_2exp_delayed(tau, Y, std_Y, Y_ini, vary=6*[1]):
     return None
 
 
+def ajuste_afey_new(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1], **kwargs):
+    """
+    TODO
+
+    ES UN BORRADOR MEJORAR Y REPENSAR TODA LA FUNCION
+
+    Ajuste no lineal de la curva de alfa-Feynman
+
+    Se ajustan los datos de  Y vs tau con incerteza de stt_Y
+    Se utiliza el paquete lmfit para realizar el ajuste
+
+    Parametros
+    ----------
+        tau : numpy array
+            Intervalos temporales
+        Y : numpy array
+            Valores de la curva de Y(tau)
+        std_Y : numpy array
+            Incertezas de Y(tau)
+        Y_ini : list (float)
+            Valores iniciales para el ajuste
+        vay : list (Boolean)
+            Indica cuáles parámetros se van a variar
+        kwargs : dict
+            'verbose' : Imprime resultados del ajuste
+            'plot' : grafica el ajuste
+            'conf_int' : calcula intervalos de confianza
+            'Nk? : vector con cantidad de puntus para cada T_i
+
+    Resultados
+    ----------
+        result : lmfit object
+            Objeto con todos los resultados del ajuste
+        alfa, eficiencia : list
+            Valores ajustados con sus incertezas
+        teo_val : list
+            Valores teóricos exactos (de la simulación)
+    """
+
+    verbose = kwargs.get('verbose', True)
+    plot = kwargs.get('plot', True)
+    conf_int = kwargs.get('conf_int', True)
+    Nk = kwargs.get('Nk', None)
+
+    def residual(params, tau, data=None, sigma=None, Nk=None):
+        parvals = params.valuesdict()
+        alfa = parvals['alfa']
+        amplitud = parvals['amplitud']
+        offset = parvals['offset']
+        if Nk is None:
+            model = alfa_feynman_lin_dead_time(tau, alfa, amplitud, offset)
+        else:
+            model = alfa_feynman_lin_dead_time_Nk(tau, alfa, amplitud, offset,
+                                                  Nk)
+
+        if data is None:
+            return model
+        if sigma is None:
+            return model - data
+        return (model - data) / sigma
+
+    # Se definen los parámetros del ajuste
+    params = Parameters()
+    params.add('alfa', value=Y_ini[0], min=0, vary=vary[0])
+    params.add('amplitud', value=Y_ini[1], min=0, vary=vary[1])
+    params.add('offset', value=Y_ini[2], vary=vary[2])
+    # Se define la minimización
+    minner = Minimizer(residual, params,
+                       fcn_args=(tau,),
+                       fcn_kws={'data': Y, 'sigma': std_Y, 'Nk': Nk}
+                       )
+    # Se realiza la minimización
+    # Se puede usar directamente la función minimize como wrapper de Minimizer
+    result = minner.minimize(method='leastsq')
+
+    if verbose: report_fit(result)
+    if plot:
+        ax0 = _plot_fit(tau, Y, std_Y, result)
+
+    if conf_int:
+        ci, _trace = conf_interval(minner, result, trace=True, verbose=False)
+        print(2*'\n')
+        report_ci(ci)
+        # plot confidence intervals (a1 vs t2 and a2 vs t2)
+        # print(_trace)
+        # fig, axes = plt.subplots(1, 1, figsize=(12.8, 4.8))
+        # cx, cy, grid = conf_interval2d(minner, result, 'alfa', 'amplitud', 50, 50)
+        # ctp = axes.contourf(cx, cy, grid, np.linspace(0, 1, 21))
+        # fig.colorbar(ctp, ax=axes)
+        # axes.set_xlabel('alfa')
+        # axes.set_ylabel('amplitud')
+
+    return result
+
+
+def calcula_parametros_cineticos(result, reactor, **kwargs):
+    """
+    TODO
+    """
+
+    tasa = kwargs.get("tasa", None)
+
+    # Valores estimados
+    params_val = [result.params[s].value for s in result.var_names]
+
+    # Asocio con sus incertezas
+    if 'offset' in result.var_names:
+        alfa, ampl, offset = uncertainties.correlated_values(params_val,
+                                        result.covar, tags=result.var_names)
+    else:
+        alfa, ampl = uncertainties.correlated_values(params_val, result.covar,
+                                        tags=result.var_names)
+        offset = None
+
+
+    # Constantes del reactor
+    DIVEN = reactor.FACTOR_DIVEN
+    LAMBDA = reactor.LAMBDA_REDUCIDO
+    BETA = reactor.BETA_EFECTIVO
+    ENG_FISS = reactor.ENERGIA_FISION
+
+    # Cálculo de eficiencia
+    eficiencia =  ampl * alfa**2 * LAMBDA**2 / DIVEN / (1-BETA)**2
+    if tasa is None:
+        fis_rate = None
+        dead_time = None
+        print("No se especificó tasa de cuentas")
+    else:
+        tasa = ufloat(tasa[0], tasa[1])
+        fis_rate = tasa / eficiencia
+        if offset is not None:
+            dead_time = offset / 2 / tasa
+        else:
+            dead_time = None
+
+    parametros = {'alfa_1': alfa,
+                  'eficiencia': eficiencia,
+                  'tasa_fisiones': fis_rate,
+                  'tiempo_muerto': dead_time,
+                  }
+
+    return parametros
+
+
 def ajuste_afey(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1], **kwargs):
     """
+    ES UN BORRADOR ESTÁ PENSADA PARA ANALIZAR RESULTADOS DE SIMULLACIONES
+
     Ajuste no lineal de la curva de alfa-Feynman
 
     Se ajustan los datos de  Y vs tau con incerteza de stt_Y
@@ -446,8 +592,8 @@ def ajuste_afey(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1], **kwargs):
     # Propagación de incertezas
 
     # Asocio con sus incertezas
-    alfa, ampl, offset = uncertainties.correlated_values(params_val,
-                                        result.covar, tags=result.var_names)
+    alfa, ampl = uncertainties.correlated_values(params_val, result.covar,
+            tags=result.var_names)
 
     teo = read_val_teo("./simulacion/val_teoricos.dat")
     # TODO: falta considerar cuando se ajusta con offset
@@ -457,26 +603,22 @@ def ajuste_afey(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1], **kwargs):
     eficiencia =  ampl * alfa**2 * LAMBDA**2 / DIVEN / (1-BETA)**2
     if tasa is None:
         fis_rate = None
-        dead_time = None
-        print("No se especificó tasa de cuentas")
+        print("No se especificó tasa de cuenta para calcular tasa de fisiones")
     else:
         tasa = ufloat(tasa[0], tasa[1])
         fis_rate = tasa / eficiencia
-        dead_time = offset / 2 / tasa
     teo_val = [teo[item] for item in ['ap_exacto', 'efi', 'Rf']]
 
-    # Bloque para graficar la solución teórica
-    # TODO: Escribirlo mejor en otro lado. Sólo sirve para simulaciones
-    # if plot:
-    #     EFI = teo['efi']
-    #     ALFA_P = teo['ap_exacto']
-    #     _amp = DIVEN * EFI * (1-BETA)**2 / (ALFA_P*LAMBDA)**2
-    #     if Nk is None:
-    #         ax0.plot(tau, alfa_feynman_lin_dead_time(tau, ALFA_P, _amp,
-    #                                                   offset.n), 'bo')
-    #     else:
-    #         ax0.plot(tau, alfa_feynman_lin_dead_time_Nk(tau, ALFA_P, _amp,
-    #                                                     offset.n, Nk), 'bo')
+    if plot:
+        EFI = teo['efi']
+        ALFA_P = teo['ap_exacto']
+        _amp = DIVEN * EFI * (1-BETA)**2 / (ALFA_P*LAMBDA)**2
+        if Nk is None:
+            ax0.plot(tau, alfa_feynman_lin_dead_time(tau, ALFA_P, _amp, 0,),
+                                                      'bo')
+        else:
+            ax0.plot(tau, alfa_feynman_lin_dead_time_Nk(tau, ALFA_P, _amp, 0,
+                                                         Nk), 'bo')
 
     return result, [alfa, eficiencia, fis_rate], teo_val
 
