@@ -480,19 +480,21 @@ def calcula_parametros_cineticos(result, reactor, **kwargs):
 
     # Constantes del reactor
     DIVEN = reactor.FACTOR_DIVEN
-    LAMBDA = reactor.LAMBDA_REDUCIDO
     BETA = reactor.BETA_EFECTIVO
+    LAMBDA = reactor.LAMBDA_REDUCIDO * BETA
     ENG_FISS = reactor.ENERGIA_FISION
 
     # Cálculo de eficiencia
     eficiencia =  ampl * alfa**2 * LAMBDA**2 / DIVEN / (1-BETA)**2
     if tasa is None:
         fis_rate = None
+        potencia = None
         dead_time = None
         print("No se especificó tasa de cuentas")
     else:
         tasa = ufloat(tasa[0], tasa[1])
         fis_rate = tasa / eficiencia
+        potencia = fis_rate * ENG_FISS
         if offset is not None:
             dead_time = offset / 2 / tasa
         else:
@@ -501,6 +503,7 @@ def calcula_parametros_cineticos(result, reactor, **kwargs):
     parametros = {'alfa_1': alfa,
                   'eficiencia': eficiencia,
                   'tasa_fisiones': fis_rate,
+                  'potencia': potencia,
                   'tiempo_muerto': dead_time,
                   'slope': slope,
                   }
