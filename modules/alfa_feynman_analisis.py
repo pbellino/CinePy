@@ -273,7 +273,8 @@ def ajuste_afey_delayed(tau, Y, std_Y, Y_ini=[300, 1, 1, 100], vary=4*[1],
                        )
     # Se realiza la minimización
     # Se puede usar directamente la función minimize como wrapper de Minimizer
-    result = minner.minimize(method='leastsq')
+    #result = minner.minimize(method='leastsq')
+    result = minner.minimize(method='bfgs')
 
     if verbose: report_fit(result)
     if plot: _plot_fit(tau, Y, std_Y, result)
@@ -481,11 +482,13 @@ def calcula_parametros_cineticos(result, reactor, **kwargs):
     # Constantes del reactor
     DIVEN = reactor.FACTOR_DIVEN
     BETA = reactor.BETA_EFECTIVO
-    LAMBDA = reactor.LAMBDA_REDUCIDO * BETA
+    LAMBDA_RED = reactor.LAMBDA_REDUCIDO
+    LAMBDA = LAMBDA_RED * BETA
     ENG_FISS = reactor.ENERGIA_FISION
 
     # Cálculo de eficiencia
     eficiencia =  ampl * alfa**2 * LAMBDA**2 / DIVEN / (1-BETA)**2
+    reactivity = - alfa * LAMBDA_RED + 1
     if tasa is None:
         fis_rate = None
         potencia = None
@@ -502,6 +505,7 @@ def calcula_parametros_cineticos(result, reactor, **kwargs):
 
     parametros = {'alfa_1': alfa,
                   'eficiencia': eficiencia,
+                  'reactividad': reactivity,
                   'tasa_fisiones': fis_rate,
                   'potencia': potencia,
                   'tiempo_muerto': dead_time,
