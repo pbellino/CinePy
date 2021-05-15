@@ -38,9 +38,9 @@ class RA3(Constantes_Nucleares):
 
 
 class RA4(Constantes_Nucleares):
-    LAMBDA_REDUCIDO = 0.0065  # [s]
+    LAMBDA_REDUCIDO = 0.006531 # [s]
     FACTOR_FORMA_L = 1.18
-    BETA_EFECTIVO = 0.0073
+    BETA_EFECTIVO = 0.00768
 
 
 class RA6(Constantes_Nucleares):
