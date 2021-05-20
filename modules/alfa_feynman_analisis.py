@@ -396,6 +396,7 @@ def ajuste_afey_new(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1], **kwargs):
     plot = kwargs.get('plot', True)
     conf_int = kwargs.get('conf_int', True)
     Nk = kwargs.get('Nk', None)
+    title = kwargs.get('title', None)
 
     def residual(params, tau, data=None, sigma=None, Nk=None):
         parvals = params.valuesdict()
@@ -431,6 +432,7 @@ def ajuste_afey_new(tau, Y, std_Y, Y_ini=[300, 1, 1], vary=3*[1], **kwargs):
     if verbose: report_fit(result)
     if plot:
         ax0 = _plot_fit(tau, Y, std_Y, result)
+        ax0.set_title(title)
 
     if conf_int:
         ci, _trace = conf_interval(minner, result, trace=True, verbose=False)
