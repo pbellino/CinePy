@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 """
 Escribe los resultados del procesamiento con el método de alfa-Rossi.
@@ -124,7 +123,8 @@ def escribe_datos_completos(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
                     'cada historia \n')
             f.write('# tau [s] P(tau)_#1   ...   P(tau)_#N_hist \n')
         # Vector temporal
-        tau = np.linspace(0, dtmax_s, int(dtmax_s / dt_s), endpoint=False)
+        _nbins = np.int(np.rint(dtmax_s / dt_s))
+        tau = np.linspace(0, dtmax_s, _nbins, endpoint=False)
         tau += dt_s / 2  # Centrado en el bin
         _hist = np.transpose(list(np.asarray(resultado[:, 0])))
         _tod = np.column_stack((tau, _hist))
@@ -175,7 +175,8 @@ def escribe_datos_promedio(resultados, nombres, Nhist, dt_s, dtmax_s, tb,
             f.write('{:1.6}\n'.format(N_trig_std))
             f.write('# Tau centrado [s]    <P(tau)>    std(<P(tau)>) \n')
         # Vector temporal
-        tau = np.linspace(0, dtmax_s, int(dtmax_s / dt_s), endpoint=False)
+        _nbins = np.int(np.rint(dtmax_s / dt_s))
+        tau = np.linspace(0, dtmax_s, _nbins, endpoint=False)
         tau += dt_s / 2  # Centrado en el bin
         # Todas las historias
         _historias = resultado[:, 0]

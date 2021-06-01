@@ -98,7 +98,11 @@ def arossi_una_historia_I(data, dt_s, dtmax_s, tb, trigs='compute'):
     # print('dt=', dt)
     dtmax = np.float64(dtmax_s / tb)
     # print('dtmax=', dtmax)
-    N_bin = np.int(dtmax / dt)
+    # A veces puede haber problemas de redondeo, por eso lo siguiente:
+    # Redondea al entero más cercano (devuelve float)
+    N_bin = np.rint(dtmax / dt)
+    # Convierte en entero
+    N_bin = np.int(N_bin)
     # print('N_bin=', N_bin)
     # Primero selecciona hasta qué indice se puede recorrer `data`
     t_tot_hist = data[-1]   # Tiempo total de la historia
@@ -128,9 +132,13 @@ def arossi_una_historia_I(data, dt_s, dtmax_s, tb, trigs='compute'):
         i_max = np.searchsorted(data, trigger + dtmax, side='left')
         # Construyo el bloque y fijo t=0 en el trigger
         data_bin = (data[i:i_max] - data[i]) // dt
+        # print(N_bin, p_hist.shape)
         # Cuento los pulsos en cada bin
         # Debo forzar 'int64' porque a veces hay problemas (bug)
         p_hist = np.bincount(data_bin.astype('int64'), minlength=N_bin)
+        # A veces toma un bin de más. Con esto lo arreglo, pero no sé si
+        # habría que revisar lo anterior para que esto no sea necesario...
+        p_hist = p_hist[0:N_bin]
         # Como np.bincount() cuenta al pulso del trigger, se lo resto
         p_hist[0] -= 1
         P_trigger.append(p_hist)
@@ -253,7 +261,10 @@ def arossi_inspecciona_resultados(resultados, nombres, N_hist, dt_s, dtmax_s):
 
     # Gráfico de la curva de alfa-Rossi
     # Vector temporal
-    tau = np.linspace(0, dtmax_s, int(dtmax_s / dt_s), endpoint=False)
+    # Cantidad de bines
+    # Lo hago así para resolver errores de redondeo
+    _nbins = np.int(np.rint(dtmax_s / dt_s))
+    tau = np.linspace(0, dtmax_s, _nbins, endpoint=False)
     # Lo hago centrado en el bin
     tau += dt_s / 2
     fig3, ax1 = plt.subplots(1, 1)
