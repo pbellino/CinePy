@@ -933,7 +933,7 @@ def read_kcode_out(filename):
                 # Busca qué se pidió en la entrada
                 if "* Random Number Generator" in line:
                     _eco_input = False
-                if "kopts" in line.split():
+                if "kopts" in [it.lower() for it in line.split()]:
                     if re.search(r"kinetics *= *yes", line, re.IGNORECASE):
                         _flag_kin = True
                     if re.search(r"precursor *= *yes", line, re.IGNORECASE):
