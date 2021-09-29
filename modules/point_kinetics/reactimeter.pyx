@@ -75,4 +75,4 @@ def reactimetro(double[:] n, double dt, double[:] lam, double[:] b, double Lstar
         rho[k] = 1 + Lstar / n[k] *(D[k] - Q[k])
     t = np.arange(0, Nr) * dt
 
-    return rho, t, D
+    return np.asarray(rho), np.asarray(t), np.asarray(D)
