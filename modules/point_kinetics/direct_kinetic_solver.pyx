@@ -59,10 +59,12 @@ def cinetica_directa(double[:] rho, double n_0, double dt, double[:] lam, double
     # Initial reactivity
     if Q[0] == 0.0:
         # Reactor is critical
-        rho[0] = 0.0
+        if rho[0] != 0.0:
+            raise ValueError("El reactor no está crítico")
     else:
         # Reactor is subcritical
-        rho[0] = - Lstar * Q[0] / n[0]
+        print("Se modificó n0 para que comience estacionario")
+        n[0] = - Lstar * Q[0] / rho[0]
 
     e = np.zeros(Ng)
     for j in range(Ng):
@@ -70,11 +72,13 @@ def cinetica_directa(double[:] rho, double n_0, double dt, double[:] lam, double
     for k in range(1, Nr):
         _suma_1, _suma_2, _suma_3 = 0, 0, 0
         for j in range(Ng):
-            _temp = b[j] * (1- e[j]) / lam[j]
+            _temp = b[j] * (1 - e[j]) / lam[j]
             _suma_1 += _temp * (1 + lam[j] * dt)
             _suma_2 += lam[j] * c[j, k-1] * e[j]
             _suma_3 += _temp
-        n[k] = ( n[k-1] * ( 1- Lstar / dt - _suma_1 / dt) - Lstar * _suma_2) / (rho[k] - Lstar / dt - _suma_3 / dt)
+        n[k] = ( n[k-1] * ( 1 - Lstar / dt - _suma_1 / dt) - Lstar * _suma_2 - Lstar * Q[k]) / (rho[k] - Lstar / dt - _suma_3 / dt)
+        for j in range(Ng):
+            c[j, k] = c[j, k-1] * e[j] + b[j] / lam[j] / Lstar * (n[k-1]*(1-e[j]) - (1-e[j])*(n[k]-n[k-1]) / lam[j] / dt + n[k] - n[k-1])
     t = np.arange(0, Nr) * dt
 
     return np.asarray(n), np.asarray(t)
