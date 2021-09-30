@@ -35,7 +35,6 @@ def reactimetro(double[:] n, double dt, double[:] lam, double[:] b, double Lstar
     """
 
     cdef int Nr, Ng, k, j
-    cdef double lam_c_sum, lam_c_sum_LabVIEW
     cdef double[:] rho, Q, e, D, t
     cdef double[:,:] c
 
