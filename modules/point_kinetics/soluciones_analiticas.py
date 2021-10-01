@@ -357,6 +357,48 @@ def solucion_analitica_Ic(t, t0, rho0, Q0, constantes):
     return np.concatenate((n_pre, n_pos))
 
 
+def rho_analitica_01(t, t0, omega, constantes):
+    """
+    Solución analítica de rho(t) para
+
+            n(t) = n0 exp(omega * (t-t0))
+
+    Para un reactor inicialmente crítico y estacionario. Sin fuente de
+    neutrones.
+
+    Ver informe Estabilidades para su deducción
+
+    Parameters
+    ----------
+        t : numpy array
+            Time where the reactivity is evaluated
+        t0 : float
+            Time offset
+        omega : float
+            Parameter of the test function
+        constantes : touple or list (b, lambda, L*)
+            b (list), lambda (list), reduced Lambda (float)
+            b_i = beta_i / beta_eff
+            L* = L/beta_eff
+
+    Returns
+    -------
+        rho : numpy array
+            Reactivity as a function of time
+
+    """
+    bs, lams, Lambda_red = constantes
+    _sum = 0
+    for b, lam in zip(bs, lams):
+        _sum += b / (lam + omega) * (1- np.exp((-omega-lam) * t))
+    _rho_origin = np.asarray(omega * (Lambda_red + _sum))
+    # Corro el resultado hasta t0
+    rho = np.zeros_like(t)
+    _indx = t > t0
+    rho[_indx] = _rho_origin[0:sum(_indx)]
+    return rho
+
+
 if __name__ == "__main__":
 
     pass
