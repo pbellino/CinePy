@@ -201,6 +201,54 @@ def solucion_analitica_IIb(t, t0, rho0, Q0, constantes):
     return np.concatenate((n_pre, n_pos))
 
 
+def solucion_analitica_IIc(t, t0, rho0, Qf, constantes):
+    """
+    Función analítica para un salto en la fuente en t0 desde Q=0 hasta Q=Qf
+    en un reactor no crítico, inicialmente sin neutrones, donde no se modifica
+    la reactividad.
+
+    Simula la introducción de una fuente en un reactor sin neutrones.
+
+    Si el reactor está crítico, se obtiene el caso IIb.
+
+    Parámetros
+    ----------
+          t : np array of floats
+            Tiempos donde se evalúa la solución
+        t0 : float
+            Tiempo donde se produce el saalto
+      rho0 : float (negativa)
+            Reactividad del reactor
+        Qf : Valor de la fuente de neutrones
+        constantes : touple or list (b, lambda, L*)
+            b (list), lambda (list), reduced Lambda (float)
+            b_i = beta_i / beta_eff
+            L* = L/beta_eff
+
+    Resultados
+    ----------
+        n : numpy array
+            Solución de la densidad neutrónica n(t)
+
+    """
+
+    b, lam, Lambda_red = constantes
+    # Coeficientes de las exponenciales
+    roots = solucion_in_hour_equation(rho0, constantes)
+    B = []
+    for root in roots:
+        B.append(1.0 / root / (Lambda_red + np.sum(b * lam/(root + lam)**2)))
+    # Suma de exponenciales para t>=t0
+    n_pos = 0.
+    for root, amp in zip(roots, B):
+        n_pos += amp * np.exp(root*(t[t >= t0] - t0))
+    n_pos += - 1 / rho0
+    n_pos *= Lambda_red * Qf
+    # Constante para t<t0
+    n0 = 0.0
+    n_pre = n0 * np.ones(np.shape(t[t < t0]))
+
+    return np.concatenate((n_pre, n_pos))
 
 if __name__ == "__main__":
 
