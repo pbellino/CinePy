@@ -55,16 +55,13 @@ def direct_pk_ODE_solver(rho, n0, dt, tmax, constants, source):
 
     if source(0)[0] == 0.0:
         if rho(0) != 0:
-            _msg = "Advertencia: la única solución estacionaria para un \n"
-            _msg += "sin fuente y no crítico es n=0"
-            print(_msg)
             n0 = 0
         else:
             n0 = 5
     else:
         if rho(0) >= 0:
             _msg = "Error: el reactor no se encuentra inicialmente \n"
-            _msg += " estacionario (S!=0 y rho>=0)"
+            _msg += "estacionario (S!=0 y rho>=0)"
             raise Exception(_msg)
         else:
             n0 = -Lambda_red * source(0)[0] / rho(0)
