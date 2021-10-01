@@ -47,8 +47,12 @@ if __name__ == "__main__":
     # Valor inicial
     n0 = 5
     # Reactividad en función del tiempo
-    reactividad = rho_f * np.ones_like(t)
-    reactividad[t<=t0] = rho_i
+    rho_t = rho_f * np.ones_like(t)
+    rho_t[ t<=t0 ] = rho_i
+    # Fuente en función del tiempo
+    Q_t = Q_f * np.ones_like(t)
+    Q_t[t <= t0] = Q_i
+
 
     n_analitica = solucion_analitica_Ia(t, rho_f, t0, n0, constants)
 
@@ -72,15 +76,19 @@ if __name__ == "__main__":
     t_ode, n_ode, _ = direct_pk_ODE_solver(rho, n0, dt, tmax, constants, S)
 
     # Graficación
-    fig, ax = plt.subplots(2, 1, figsize=(7,6), sharex=True)
-    ax[0].plot(t, reactividad, 'o', label="Original")
-    ax[0].set_ylabel(r'$\$$(t)')
+    fig, ax = plt.subplots(3, 1, figsize=(8,7), sharex=True)
 
-    ax[1].plot(t, n_analitica, 'o', label='analítica_Ia')
-    ax[1].plot(t_ode, n_ode, '.-', label='scipy.integrate.ode')
-    ax[1].set_ylabel('n(t)')
-    ax[1].set_xlabel('Tiempo [s]')
-    ax[1].legend()
+    ax[0].plot(t, n_analitica, 'o', label='analítica_Ia')
+    ax[0].plot(t_ode, n_ode, '.-', label='scipy.integrate.ode')
+    ax[0].set_ylabel('n(t)')
+    ax[0].legend()
+
+    ax[1].plot(t, rho_t, 'o')
+    ax[1].set_ylabel(r'$\$$(t)')
+
+    ax[2].plot(t, Q_t, 'o')
+    ax[2].set_ylabel(r'Q(t)')
+    ax[2].set_xlabel('Tiempo [s]')
 
     fig.tight_layout()
     plt.show()
