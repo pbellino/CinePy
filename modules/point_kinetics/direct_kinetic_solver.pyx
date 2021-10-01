@@ -60,7 +60,9 @@ def cinetica_directa(double[:] rho, double n_0, double dt, double[:] lam, double
     if Q[0] == 0.0:
         # Reactor is critical
         if rho[0] != 0.0:
-            raise ValueError("El reactor no está crítico")
+            # raise ValueError("El reactor no está crítico")
+            print("Advertencia: el valor rho[0] no es nulo ")
+            print("Se asume un salto instantáneo en t=0")
     else:
         # Reactor is subcritical
         print("Se modificó n0 para que comience estacionario")
