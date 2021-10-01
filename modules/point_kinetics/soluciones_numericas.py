@@ -51,6 +51,7 @@ def direct_pk_ODE_solver(rho, n0, dt, tmax, constants, source):
 
     """
 
+    b, lam, Lambda_red = constants
 
     if source(0)[0] == 0.0:
         if rho(0) != 0:
@@ -67,8 +68,6 @@ def direct_pk_ODE_solver(rho, n0, dt, tmax, constants, source):
             raise Exception(_msg)
         else:
             n0 = -Lambda_red * source(0)[0] / rho(0)
-
-    b, lam, Lambda_red = constants
 
     def func_ode(t, X, P, U):
         # Y = A*X + S
