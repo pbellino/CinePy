@@ -394,7 +394,7 @@ def rho_analitica_01(t, t0, omega, constantes):
     _rho_origin = np.asarray(omega * (Lambda_red + _sum))
     # Corro el resultado hasta t0
     rho = np.zeros_like(t)
-    _indx = t > t0
+    _indx = t >= t0
     rho[_indx] = _rho_origin[0:sum(_indx)]
     return rho
 
