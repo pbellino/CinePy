@@ -77,7 +77,7 @@ if __name__ == "__main__":
     # Graficación
     fig, ax = plt.subplots(3, 1, figsize=(8,7), sharex=True)
 
-    ax[0].plot(t, n_analitica, 'o', label='analítica_Ia')
+    ax[0].plot(t, n_analitica, 'o', label='analítica_IIa')
     ax[0].plot(t_ode, n_ode, '.-', label='scipy.integrate.ode')
     ax[0].set_ylabel('n(t)')
     ax[0].legend()
