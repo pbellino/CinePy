@@ -255,7 +255,7 @@ def solucion_analitica_Ib(t, t0, rho0, rhof, Q0, constantes):
     """
     Función analítica para un salto en la reactividad en t0 desde rho0 hasta
     rhof en un reactor con fuente Q0, inicialmente sin neutrones, donde no se
-    modifica la reactividad.
+    modifica la fuente de neutrones.
 
     rho0 debe ser negativa para que esté inicialmente estacionario
 
@@ -273,6 +273,11 @@ def solucion_analitica_Ib(t, t0, rho0, rhof, Q0, constantes):
       rhof : float (!=0)
             Reactividad final
         Qf : Valor de la fuente de neutrones
+        constantes : touple or list (b, lambda, L*)
+            b (list), lambda (list), reduced Lambda (float)
+            b_i = beta_i / beta_eff
+            L* = L/beta_eff
+
     Resultados
     ----------
         n : numpy array
@@ -291,6 +296,59 @@ def solucion_analitica_Ib(t, t0, rho0, rhof, Q0, constantes):
         n_pos += amp * np.exp(root*(t[t >= t0] - t0))
     n_pos *= (1 - rhof / rho0)
     n_pos += - 1 / rhof
+    n_pos *= Lambda_red * Q0
+    # Constante para t<t0
+    n0 = - Lambda_red * Q0 / rho0
+    n_pre = n0 * np.ones(np.shape(t[t < t0]))
+
+    return np.concatenate((n_pre, n_pos))
+
+
+def solucion_analitica_Ic(t, t0, rho0, Q0, constantes):
+    """
+    Función analítica para un salto en la reactividad en t0 desde rho0 hasta
+    rhof=0 en un reactor con fuente Q0, inicialmente sin neutrones, donde no se
+    modifica la fuente de neutrones.
+
+    rho0 debe ser negativa para que esté estacionario inicialmente
+
+    rhof no puede ser cero
+
+
+    Parámetros
+    ----------
+          t : np array of floats
+            Tiempos donde se evalúa la solución
+        t0 : float
+            Tiempo donde se produce el saalto
+      rho0 : float (negativa)
+            Reactividad del reactor
+        Qf : Valor de la fuente de neutrones
+        constantes : touple or list (b, lambda, L*)
+            b (list), lambda (list), reduced Lambda (float)
+            b_i = beta_i / beta_eff
+            L* = L/beta_eff
+
+    Resultados
+    ----------
+        n : numpy array
+            Solución de la densidad neutrónica n(t)
+
+    """
+
+    b, lam, Lambda_red = constantes
+    # Coeficientes de las exponenciales
+    roots = solucion_in_hour_equation(0.0, constantes)
+    B = []
+    for root in roots[:-1]:
+        B.append(1.0 / root**2 / ( -np.sum(b/(root+lam)**2)))
+    # Suma de exponenciales para t>=t0
+    n_pos = 0.
+    for root, amp in zip(roots[:-1], B):
+        n_pos += amp * np.exp(root*(t[t >= t0] - t0))
+    n_pos += np.sum(b / lam**2) / (Lambda_red + np.sum(b / lam))**2
+    n_pos += (t[t >= t0] -t0) / np.sum(b / lam)
+    n_pos += - 1/ rho0
     n_pos *= Lambda_red * Q0
     # Constante para t<t0
     n0 = - Lambda_red * Q0 / rho0
