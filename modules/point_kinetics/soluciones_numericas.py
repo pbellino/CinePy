@@ -4,7 +4,7 @@ import numpy as np
 from scipy.integrate import ode
 
 
-def direct_pk_ODE_solver(rho, n0, dt, tmax, constants, source):
+def direct_pk_ODE_solver(rho, n0, dt, tmax, constants, Q):
     """
     Solver for the direct point kinetic equation using the scipy.ingegrate.ode
     solver.
@@ -23,10 +23,8 @@ def direct_pk_ODE_solver(rho, n0, dt, tmax, constants, source):
             b (list), lambda (list), reduced Lambda (float)
             b_i = beta_i / beta_eff
             L* = L/beta_eff
-        source : callable (returns array)
+        Q : callable (returns float)
             Strength of the neutron sources as a function of time.
-            The length of the returned array should match the number of
-            delayed neutron precursors plus one
 
     Returns
     -------
@@ -44,16 +42,17 @@ def direct_pk_ODE_solver(rho, n0, dt, tmax, constants, source):
     >>>       return rho_i
     >>>
     >>> def S(t):
-    >>>     _vect = np.zeros(len(b) +1 )
-    >>>     if  True:
-    >>>         _vect[0]= 0
-    >>>     return _vect
+    >>>    if t>= 2:
+    >>>       return Q_f
+    >>>    elif t<= 2:
+    >>>       return Q_i
 
     """
 
     b, lam, Lambda_red = constants
 
-    if source(0)[0] == 0.0:
+
+    if Q(0) == 0.0:
         if rho(0) != 0:
             n0 = 0
         else:
@@ -64,7 +63,13 @@ def direct_pk_ODE_solver(rho, n0, dt, tmax, constants, source):
             _msg += "estacionario (S!=0 y rho>=0)"
             raise Exception(_msg)
         else:
-            n0 = -Lambda_red * source(0)[0] / rho(0)
+            n0 = -Lambda_red * Q(0) / rho(0)
+
+    # Vector fuente (S)
+    def source(t):
+        _tmp = np.zeros(len(b) + 1)
+        _tmp[0] = Q(t)
+        return _tmp
 
     def func_ode(t, X, P, U):
         # Y = A*X + S
