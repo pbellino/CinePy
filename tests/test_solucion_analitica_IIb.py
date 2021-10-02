@@ -64,12 +64,10 @@ if __name__ == "__main__":
 
     # Definición de la fuente 
     def S(t):
-        _vect = np.zeros(len(b) +1)
         if  t >=t0:
-            _vect[0] = Q_f
+            return Q_f
         elif t < t0:
-            _vect[0] = Q_i
-        return _vect
+            return Q_i
 
     # Resuelve con scipy.integrate.ode
     t_ode, n_ode, _ = direct_pk_ODE_solver(rho, n0, dt, tmax, constants, S)
