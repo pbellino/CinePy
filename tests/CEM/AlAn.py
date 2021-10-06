@@ -19,6 +19,22 @@ from modules.point_kinetics.ajuste_CEM import lee_archivo_CIN, \
                                             salto_instantaneo_espacial, \
                                             ajuste_simulacion_espacial
 
+def archivo_referencia(fname):
+    """
+    Función auxiliar para leer archivo con resultados del FERCIN4
+    """
+    #data = np.loadtxt(fname, skiprows=2, usecols=(1,2,3))
+    with open(fname, 'r') as f:
+        datas = []
+        for line in f:
+            if not line.startswith('archivo'):
+                if line.strip():
+                    datas.append(line.split())
+    datas.pop(-1)
+    _dic = {}
+    for data in datas:
+        _dic[data[0]] = data[1:]
+    return _dic
 
 
 if __name__ == "__main__":
@@ -36,6 +52,11 @@ if __name__ == "__main__":
 
     t_cin, n_cin = lee_archivo_CIN(file_path)
 
+    # Archivo para comparar resultados
+    name = os.path.join("./data/", "resultados_fercin4.txt")
+    dic_ref = archivo_referencia(name)
+    ref_vals = dic_ref[archivo.rstrip('.CIN')]
+
     # Se leen juego de cosntantes nucleares de neutrones retardados
     b, lam , beta = lee_constantes_retardados('Tuttle')
 
@@ -49,14 +70,16 @@ if __name__ == "__main__":
 
     constantes_cineticas = b, lam, Lambda_red
 
-    # Normalizo con el promedio 
+    # Intervalo que se toma de referencia para normalizar y para obtener el t0
     t_i_ref = 0.1
     t_f_ref = 3
     ind_ref = (t_cin >= t_i_ref) & (t_cin <= t_f_ref)
+    # Normalización de la señal medida
     n_cin_nor = n_cin / np.mean(n_cin[ind_ref])
     # Calcula tiempo cuando empieza a caer la barra
     t_cero = deteccion_borde(t_cin, n_cin_nor, (t_i_ref, t_f_ref))
     print(f"t_cero = {t_cero}")
+    print(f"t_cero = {ref_vals[0]} (FERCIN4)")
 
     # -------------------------------------------------------------------------
     # 3. Ajuste para obtener A_3^(1)
@@ -66,7 +89,7 @@ if __name__ == "__main__":
                   't_ajuste': (t_fit_i, t_fit_f),
                   'constantes_cineticas': constantes_cineticas,
                   't1_vary': True,
-                  'A1_vary': False,
+                  'A1_vary': True,
                   'A3_vary': True,
                   }
 
@@ -74,6 +97,7 @@ if __name__ == "__main__":
 
     A3 = ufloat(result.params['A3'].value, result.params['A3'].stderr)
     print(f"A3 = {A3:.3e}")
+    print(f"A3 (final) = {ref_vals[2]} (FERCIN4)")
 
     # -------------------------------------------------------------------------
     # 4.  Cinética inversa para obtener $op
@@ -115,7 +139,7 @@ if __name__ == "__main__":
                       't_ajuste': (t_fit_i, t_fit_f),
                       'constantes_cineticas': constantes_cineticas,
                       't1_vary': True,
-                      'A3_vary': False,
+                      'A3_vary': True,
                       }
 
         result = ajuste_simulacion_espacial(t_sim, n_sim, **parametros)
@@ -125,7 +149,7 @@ if __name__ == "__main__":
         rho_om = ufloat(result.params['rho'].value,
                         result.params['rho'].stderr)
         print(f"t_b = {tb:.3e} s")
-        print(f"$_{{om_new}} = {rho_om:.3e}")
+        print(f"$_{{om^0}} = {rho_om:.3e}")
 
         # ---------------------------------------------------------------------
         # 8. Ajuste para obtener $om^i y A_3^i
@@ -144,8 +168,8 @@ if __name__ == "__main__":
         rho_new = ufloat(result.params['rho'].value ,
                                     result.params['rho'].stderr)
         A3 = ufloat(result.params['A3'].value, result.params['A3'].stderr)
+        print(f"$_{{om^i}} = {rho_new:.3e}")
         print(f"A3_new = {A3:.3e}")
-        print(f"$_{{om_new}} = {rho_new:.3e}")
         print(80*'-')
         if np.absolute(rho_old - rho_new.n) < 0.01 * rho_new.s:
             _corta = True
@@ -153,7 +177,13 @@ if __name__ == "__main__":
         rho_old = rho_new.n
 
     # -------------------------------------------------------------------------
+    print(20*' ' + "Fin de la iteración")
     print(80*'-')
+    print(f"t_b (final) = {ref_vals[1]} (FERCIN4)")
+    print(f"$_om (final) = {ref_vals[3]} (FERCIN4)")
+    print(f"A3 (final) = {ref_vals[2]} (FERCIN4)")
+    print(80*'-')
+    print("Se usa el último A3 para volver a aplicar el reactímetro")
     # Con el nuevo A3 se calcula nuevamente la $op
     rho_r, t_r, _ = reactimetro(n_cin_nor - A3.n, dt, lam, b, Lambda_red)
     # Se estima el tiempo que tarda en caer la barra
@@ -162,5 +192,6 @@ if __name__ == "__main__":
     # Estimar la reactividad promedio en una zona constante
     rho_op, t_in_ajuste = estima_reactividad_reactimetro(t_r, rho_r, t_caida)
     print(f"$_op (final) = {rho_op}")
+    print(f"$_op (final) = {ref_vals[6]} (FERCIN4)")
 
     print(archivo)
