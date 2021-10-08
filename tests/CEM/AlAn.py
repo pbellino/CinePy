@@ -17,13 +17,12 @@ from modules.point_kinetics.ajuste_CEM import lee_archivo_CIN, \
                                             deteccion_tiempo_caida, \
                                             estima_reactividad_reactimetro, \
                                             salto_instantaneo_espacial, \
-                                            ajuste_simulacion_espacial
+                                            ajuste_cinetica_espacial
 
 def archivo_referencia(fname):
     """
     Función auxiliar para leer archivo con resultados del FERCIN4
     """
-    #data = np.loadtxt(fname, skiprows=2, usecols=(1,2,3))
     with open(fname, 'r') as f:
         datas = []
         for line in f:
@@ -94,7 +93,7 @@ if __name__ == "__main__":
                   'A3_vary': True,
                   }
 
-    result = ajuste_simulacion_espacial(t_cin, n_cin_nor, **parametros)
+    result = ajuste_cinetica_espacial(t_cin, n_cin_nor, **parametros)
 
     t1 = ufloat(result.params['t1'].value, result.params['t1'].stderr)
     tb = t1 - t_cero
@@ -150,7 +149,7 @@ if __name__ == "__main__":
                       'A3_vary': True,
                       }
 
-        result = ajuste_simulacion_espacial(t_sim, n_sim, **parametros)
+        result = ajuste_cinetica_espacial(t_sim, n_sim, **parametros)
 
         t1 = ufloat(result.params['t1'].value, result.params['t1'].stderr)
         tb = t1 - t_cero
@@ -169,7 +168,7 @@ if __name__ == "__main__":
                       'A3_vary': True,
                       }
 
-        result = ajuste_simulacion_espacial(t_cin, n_cin_nor, **parametros)
+        result = ajuste_cinetica_espacial(t_cin, n_cin_nor, **parametros)
 
         rho_new = ufloat(result.params['rho'].value ,
                                     result.params['rho'].stderr)
