@@ -163,16 +163,72 @@ def deteccion_tiempo_caida(t, rho, t_cero):
         raise ValueError("No se pudo determinar el tiempo de caída de barra")
 
 
-def ajuste_simulacion_espacial(t, n, **kargs):
+def ajuste_cinetica_espacial(t, n, n_err=None, **kargs):
     """
-    TODO
+    Ajusta utilizacion como modelo la cinética espacial.
+
+    Se usa la función:
+                f(t) = A1 sum_i B_i e^{-omega_i (t-t1)} + A3
+
+    donde omega_i son las soluciones de la ecuación in-hour, t1 es el tiempo en
+    donde se produce el salto instantáneo y A3 el offset de la señal. La
+    función asume que los datos están normalizados.
+
+    Admite un ajuste variando los parámetros: rho, A1, A3 y t1. También pueden
+    dejarse fijos algunos de ellos.
+
+    Las condiciones iniciales por defecto son:
+         rho = -1 $
+          tb = 2 s
+          A1 = 1
+          A3 = 0
+
+    Se utiliza el paquete lmfit. El método es 'leastsq' iLevenberg-Marquardt,
+    ver documentación de lmfit para más datos)
+
+    Parameters
+    ----------
+        t : numpy array
+            Vector temporal
+        n : numpy array
+            Datos que se quieren ajustar
+        n_err : numpy array (Optativo)
+            Incerteza en los datos
+        kargs : dict
+            Parámetros para definir el ajuste. Pueden ser:
+
+            't_ajuste' : tupla (t_i, t_f)
+                Tiempos iniciales y finales del rango de ajuste
+            'constantes_cineticas' : touple or list (b, lambda, L*)
+                            b (list), lambda (list), reduced Lambda (float)
+                            b_i = beta_i / beta_eff
+                            L* = L/beta_eff
+            'param_ini' : touple or array
+                Parámetros iniciales del ajuste. Si no se varía algún
+                parámetro, su valor lo fija el valor inicial, salvo Si se
+                especifica "t1_value" (se toma este valor).
+            't1_vary' : Boolean
+                Si se quiere variar t1
+            't1_value' : float
+                Valor inicial de t1. Si no se varía t1 es el valor que se fija
+                (sobreescribe a la condición inicial)
+            'A1_vary' : Boolean
+                Si se quiere variar A1. Si es Falsa, se fija A1=1
+            'A3_vary' : Boolean
+                Si se quiere variar A3. Si es Falsa, se fija A3=0
+
+    Result
+    ------
+        result : lmfit result
+            Todos los datos del ajuste, característimo de lmfit
+
     """
 
     t_inicio, t_final = kargs.get('t_ajuste')
     constantes_cineticas = kargs.get('constantes_cineticas')
-    init_values = kargs.get("init_values")
+    param_ini = kargs.get("init_values", [-1, 2, 1, 1, 0])
     t1_vary = kargs.get("t1_vary")
-    t1_value = kargs.get('t1_value', 1)
+    param_ini[1] = kargs.get('t1_value', 1)
     A1_vary = kargs.get("A1_vary", True)
     A3_vary = kargs.get("A3_vary", True)
 
@@ -192,8 +248,6 @@ def ajuste_simulacion_espacial(t, n, **kargs):
             return model - data
         return (model - data) / sigma
 
-    # Parametros iniciales
-    param_ini = -1, t1_value, 1, 1, 0
     # Se definen los parámetros del ajuste
     params = Parameters()
     params.add('rho', value=param_ini[0])
@@ -210,13 +264,13 @@ def ajuste_simulacion_espacial(t, n, **kargs):
     minner = Minimizer(residual_analitico, params,
                        fcn_args=(t_fit,),
                        fcn_kws={'data': n_fit,
+                                'sigma': n_err,
                                 'constantes': constantes_cineticas,
                                }
                        )
 
     metodo = 'leastsq'
     result = minner.minimize(method=metodo)
-    #report_fit(result)
 
     return result
 
