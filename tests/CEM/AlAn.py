@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
     # Se leen constantes características de cada reactor
     Lambda_red = REACTOR.LAMBDA_REDUCIDO
-
+    print(Lambda_red)
     constantes_cineticas = b, lam, Lambda_red
 
     # Intervalo que se toma de referencia para normalizar y para obtener el t0
@@ -89,21 +89,26 @@ if __name__ == "__main__":
                   't_ajuste': (t_fit_i, t_fit_f),
                   'constantes_cineticas': constantes_cineticas,
                   't1_vary': True,
+                  't1_value': t_cero + 0.27,
                   'A1_vary': True,
                   'A3_vary': True,
                   }
 
     result = ajuste_simulacion_espacial(t_cin, n_cin_nor, **parametros)
 
+    t1 = ufloat(result.params['t1'].value, result.params['t1'].stderr)
+    tb = t1 - t_cero
+    print(f"t_b = {tb:.3e} s (Primer ajuste)")
+    print(f"t_b = 0.124 s (FERCIN-4 Primer ajuste)")
+    print("")
     A3 = ufloat(result.params['A3'].value, result.params['A3'].stderr)
-    print(f"A3 = {A3:.3e}")
+    print(f"A3 = {A3:.3e} (Primer ajuste")
+    print(f"A3 = -1.027E-5 (FERCIN-4 Primer ajuste)")
     print(f"A3 (final) = {ref_vals[2]} (FERCIN4)")
 
+    print(80*'-')
     # -------------------------------------------------------------------------
     # 4.  Cinética inversa para obtener $op
-    ########
-    # A3 = ufloat(-0.7972e-4, 0)
-    ########
     dt = t_cin[1]
     rho_r, t_r, _ = reactimetro(n_cin_nor - A3.n, dt, lam, b, Lambda_red)
 
@@ -119,21 +124,24 @@ if __name__ == "__main__":
 
     # Se obtiene R(t)
     rho_en_t_caida = rho_r[t_r == t_caida][-1]
-    R_t = rho_r / rho_en_t_caida
-    #TODO: comparar con la R_t obtenida con el fercin4
+    # Se inicia en zero
+    R_t = np.zeros_like(rho_r)
+    # índices donde R(t) es distinto de cero y de uno
+    ind_rt = (t_r >= t_cero) & (t_r <= t_caida)
+    R_t[ind_rt] = rho_r[ind_rt] / rho_en_t_caida
+    R_t[t_r > t_caida] = 1.0
 
 
-    rho_old = rho_op.n
+    print(20*' ' + "Comienzo de la iteración")
+    rho_old = rho_op
     _corta = False
     while not _corta:
-
+        # ---------------------------------------------------------------------
         # 6. Simulación cinética directa
-
-        rho_pk = rho_old * R_t
-
+        rho_pk = rho_old.n * R_t
         n_sim, t_sim = cinetica_directa(rho_pk, 1, dt, lam, b, Lambda_red, 0)
 
-        # -----
+        # ---------------------------------------------------------------------
         # 7.Ajuste para obtener t_b^1 y $om^(0)
         parametros = {
                       't_ajuste': (t_fit_i, t_fit_f),
@@ -146,10 +154,10 @@ if __name__ == "__main__":
 
         t1 = ufloat(result.params['t1'].value, result.params['t1'].stderr)
         tb = t1 - t_cero
-        rho_om = ufloat(result.params['rho'].value,
+        rho_om0 = ufloat(result.params['rho'].value,
                         result.params['rho'].stderr)
         print(f"t_b = {tb:.3e} s")
-        print(f"$_{{om^0}} = {rho_om:.3e}")
+        print(f"$_{{om^0}} = {rho_om0:.3e}")
 
         # ---------------------------------------------------------------------
         # 8. Ajuste para obtener $om^i y A_3^i
@@ -158,8 +166,6 @@ if __name__ == "__main__":
                       'constantes_cineticas': constantes_cineticas,
                       't1_vary': False,
                       't1_value': t1.n,
-                      # con el valor dado por fercin4
-                      #'t1_value': t_cero + 0.278,
                       'A3_vary': True,
                       }
 
@@ -171,10 +177,10 @@ if __name__ == "__main__":
         print(f"$_{{om^i}} = {rho_new:.3e}")
         print(f"A3_new = {A3:.3e}")
         print(80*'-')
-        if np.absolute(rho_old - rho_new.n) < 0.01 * rho_new.s:
+        if np.absolute(rho_old - rho_new.n) < 0.001 * rho_new.s:
             _corta = True
         # TODO: Comparar los A3's
-        rho_old = rho_new.n
+        rho_old = rho_new
 
     # -------------------------------------------------------------------------
     print(20*' ' + "Fin de la iteración")
