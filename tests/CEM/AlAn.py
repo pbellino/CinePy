@@ -176,7 +176,7 @@ if __name__ == "__main__":
         print(f"$_{{om^i}} = {rho_new:.3e}")
         print(f"A3_new = {A3:.3e}")
         print(80*'-')
-        if np.absolute(rho_old - rho_new.n) < 0.001 * rho_new.s:
+        if np.absolute(rho_old.n - rho_new.n) < 0.00001 * rho_new.s:
             _corta = True
         # TODO: Comparar los A3's
         rho_old = rho_new
