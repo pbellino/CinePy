@@ -4,11 +4,15 @@ import numpy as np
 import os
 from lmfit import Minimizer, Parameters, report_fit
 from uncertainties import ufloat
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set()
 
 import sys
 sys.path.append("/home/pablo/CinePy")
 from modules.point_kinetics.soluciones_analiticas import solucion_in_hour_equation
-
+from modules.point_kinetics.reactimeter import reactimetro
+from modules.point_kinetics.direct_kinetic_solver import cinetica_directa
 
 def lee_archivo_CIN(name):
     """
@@ -332,6 +336,254 @@ def estima_reactividad_reactimetro(t, rho, t_caida, metodo='Angel'):
         raise ValueError(_msg)
 
     return rho_op, t_in_ajuste
+
+
+def archivo_referencia(fname):
+    """
+    Función auxiliar para leer archivo con resultados del FERCIN4
+    """
+    with open(fname, 'r') as f:
+        datas = []
+        for line in f:
+            if not line.startswith('archivo'):
+                if line.strip():
+                    datas.append(line.split())
+    datas.pop(-1)
+    _dic = {}
+    for data in datas:
+        _dic[data[0]] = data[1:]
+    return _dic
+
+
+def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
+    """
+    Algoritmo para obtener la reactividad basado en la cinética espacial
+    durante un experimento de rod-drop
+
+    Parameters
+    ----------
+        t : numpy array
+            Vector temporal
+        x : numpy array
+            Valores proporcionales a la densidad neutrónica
+        constantes : touple or list (b, lambda, L*)
+            b (list), lambda (list), reduced Lambda (float)
+            b_i = beta_i / beta_eff
+            L* = L/beta_eff
+        kargs :
+            Parámetros para definir el algoritmo
+            "t_ref" : tupla (t_ref_i, t_ref_f) (0.1, 3)
+                Define el rango que se utilizará para la normalización. Tiempos
+                previos a la caída de la barra
+            "t_fit" : tupla (t_fit_i, t_fit_f) (6, 80)
+                Define el rango que se utilizará para el ajuste modal. Tiempos
+                a partir del comienzo de la caída de la barra (t_cero)
+            "epsilon": float (1e-4)
+                Define el criterio de convergencia
+            "n_iter_max" : int (20)
+                Máximo número de iteraciones permitidas
+            "verbose": boolean (False)
+                Indica si se quieren imprimir en pantalla los resultados
+                parciales de cada iteración
+            "plot": boolean (False)
+                Indica si se quieren graficar los resultados
+
+
+    TODO: ver por qué el error en tb es tan chicho
+    TODO: ver promedios por bloque para evitar bias por correlación el datos
+    """
+
+    t_i_ref, t_f_ref = kargs.get("t_ref", (0.1, 3.0))
+    t_i_fit, t_f_fit = kargs.get("t_fit", (6.0, 80.0))
+    epsilon = kargs.get("epsilon", 1e-4)
+    n_iter_max = kargs.get("n_iter_max", 20)
+    verbose = kargs.get("verbose", False)
+    plot = kargs.get("plot", False)
+
+    b, lam, Lambda_red = constantes
+
+    # Intervalo que se toma de referencia para normalizar y para obtener el t0
+    ind_ref = (t >= t_i_ref) & (t <= t_f_ref)
+    x_ref = np.mean(x[ind_ref])
+    # Normalización de la señal medida
+    x_nor = x / x_ref
+    # Calcula tiempo cuando empieza a caer la barra
+    t_cero = deteccion_borde(t, x_nor, (t_i_ref, t_f_ref))
+
+    # -------------------------------------------------------------------------
+    # 3. Ajuste para obtener A_3^(1)
+    t_fit_i = t_cero + t_i_fit
+    t_fit_f = t_cero + t_f_fit
+    parametros = {
+                  't_ajuste': (t_fit_i, t_fit_f),
+                  'constantes_cineticas': constantes,
+                  't1_vary': True,
+                  'A1_vary': True,
+                  'A3_vary': True,
+                  }
+
+    result = ajuste_cinetica_espacial(t, x_nor, **parametros)
+
+    t1 = ufloat(result.params['t1'].value, result.params['t1'].stderr)
+    tb = t1 - t_cero
+    A3 = ufloat(result.params['A3'].value, result.params['A3'].stderr)
+    if verbose:
+        print(f"t_cero = {t_cero}")
+        print(f"t_b = {tb:.3e} s (Primer ajuste)")
+        print(f"A3 = {A3:.3e} (Primer ajuste")
+
+        print(80*'-')
+    # -------------------------------------------------------------------------
+    # 4.  Cinética inversa para obtener $op
+    dt = t[1] - t[0]
+    rho_r, t_r, _ = reactimetro(x_nor - A3.n, dt, lam, b, Lambda_red)
+
+    # Se estima el tiempo que tarda en caer la barra
+    t_caida, indx_t_caida = deteccion_tiempo_caida(t_r, rho_r, t_cero)
+
+    # Estimar la reactividad promedio en una zona constante
+    rho_op, t_in_ajuste = estima_reactividad_reactimetro(t_r, rho_r, t_caida)
+
+    if verbose:
+        print("t_caida = {:.2f} s".format(t_caida))
+        print(f"rho_op = {rho_op} obtenido a partir de t={t_in_ajuste:.2f} s")
+        print(80*'-')
+
+    # Se obtiene R(t)
+    rho_en_t_caida = rho_r[t_r == t_caida][-1]
+    # Se inicia en zero
+    R_t = np.zeros_like(rho_r)
+    # índices donde R(t) es distinto de cero y de uno
+    ind_rt = (t_r >= t_cero) & (t_r <= t_caida)
+    R_t[ind_rt] = rho_r[ind_rt] / rho_en_t_caida
+    R_t[t_r > t_caida] = 1.0
+
+    print(20*' ' + "Comienzo de la iteración")
+    rho_old = rho_op
+    _corta = False
+    n_iter = 1
+    while not _corta:
+        print(f"Iteración {n_iter}")
+        # ---------------------------------------------------------------------
+        # 6. Simulación cinética directa
+        rho_pk = rho_old.n * R_t
+        n_sim, t_sim = cinetica_directa(rho_pk, 1, dt, lam, b, Lambda_red, 0)
+
+        # ---------------------------------------------------------------------
+        # 7.Ajuste para obtener t_b^1 y $om^(0)
+        parametros = {
+                      't_ajuste': (t_fit_i, t_fit_f),
+                      'constantes_cineticas': constantes,
+                      't1_vary': True,
+                      'A3_vary': False,
+                      }
+
+        result = ajuste_cinetica_espacial(t_sim, n_sim, **parametros)
+
+        t1 = ufloat(result.params['t1'].value, result.params['t1'].stderr)
+        tb = t1 - t_cero
+        rho_om0 = ufloat(result.params['rho'].value,
+                        result.params['rho'].stderr)
+        if verbose:
+            print(f"t_b = {tb:.4e} s")
+            print(f"$_{{om^0}} = {rho_om0:.3e}")
+
+        # ---------------------------------------------------------------------
+        # 8. Ajuste para obtener $om^i y A_3^i
+        parametros = {
+                      't_ajuste': (t_fit_i, t_fit_f),
+                      'constantes_cineticas': constantes,
+                      't1_vary': False,
+                      't1_value': t1.n,
+                      'A3_vary': True,
+                      }
+
+        result = ajuste_cinetica_espacial(t, x_nor, **parametros)
+
+        rho_new = ufloat(result.params['rho'].value ,
+                                    result.params['rho'].stderr)
+        A3 = ufloat(result.params['A3'].value, result.params['A3'].stderr)
+        if verbose:
+            print(f"$_{{om^i}} = {rho_new:.3e}")
+            print(f"A3_new = {A3:.3e}")
+            print(80*'-')
+
+        n_iter += 1
+
+        # Condiciones para detener la iteración
+        if np.absolute(rho_old.n - rho_new.n) < epsilon * rho_new.s:
+            _corta = True
+        if n_iter > n_iter_max:
+            _corte = True
+            print(f"No se obtuvo convergencia con {n_iter_max} iteraciones")
+            print(f"Aumentar n_iter_max")
+            quit()
+        rho_old = rho_new
+
+    # -------------------------------------------------------------------------
+    print(20*' ' + "Fin de la iteración")
+    print(80*'-')
+    print("Se usa el último A3 para volver a aplicar el reactímetro")
+    # Con el nuevo A3 se calcula nuevamente la $op
+    rho_r, t_r, _ = reactimetro(x_nor - A3.n, dt, lam, b, Lambda_red)
+    # Se estima el tiempo que tarda en caer la barra
+    t_caida, indx_t_caida = deteccion_tiempo_caida(t_r, rho_r, t_cero)
+    print("t_caida = {:.2f} s".format(t_caida))
+    # Estimar la reactividad promedio en una zona constante
+    rho_op, t_in_ajuste = estima_reactividad_reactimetro(t_r, rho_r, t_caida)
+    print(f"$_op (final) = {rho_op}")
+
+    if plot:
+        from mpl_toolkits.axes_grid1.inset_locator import (inset_axes,
+                            InsetPosition, mark_inset)
+
+        ind_fit = (t >= t_fit_i) & (t <= t_fit_f)
+        best_fit = x_nor[ind_fit] + result.residual
+
+        fig1, (ax1, ax2) = plt.subplots(2, 1, sharex=True,
+                                       gridspec_kw={'height_ratios': [3, 1]},
+                                       figsize=(9,7)
+                                       )
+        # Grafico de ajuste
+        ax1.errorbar(t, x_nor, fmt='.', elinewidth=2, label='Mediciones',
+                     capsize=4)
+        ax1.plot(t[ind_fit], best_fit, 'r', zorder=3, label='Ajuste', lw=2)
+        ax1.set_ylabel(r'$n(t)/n(0)$')
+        # Gráfico de los límites el ajuste
+        # ax1.vlines((t_fit_i, t_fit_f), ymin=-0.02, ymax=0.1, colors='g')
+        # Create a set of inset Axes
+        ax9 = plt.axes([0,0,1,1])
+        # Manually set the position and relative size of the inset axes 
+        ip = InsetPosition(ax1, [0.3,0.3,0.6,0.6])
+        ax9.set_axes_locator(ip)
+        # Mark the region corresponding to the inset axes on ax1 and draw lines
+        mark_inset(ax1, ax9, loc1=2, loc2=4, fc="none", ec='0.5')
+        ax9.errorbar(t, x_nor, fmt='.')
+        ax9.set_xlim(t_cero - 0.5, t_caida + 0.4)
+        ax9.set_ylim(0, 1.02)
+        # Grafico los tiempos característicos
+        lin_ts = [t_cero, t1.n, t_caida]
+        lin_strs = [r"$t_o$", r"$t_o + t_b$", r"$t_{caida}$"]
+        for lin_t, lin_str in zip(lin_ts, lin_strs):
+            ax9.axvline(lin_t, lw=1, label=lin_str, c='k')
+            ax9.text(lin_t+0.02, 0.5, lin_str, {'color':'k'})
+        ax9.set_xlabel("t [s]")
+        ax9.set_ylabel(r'$n(t)/n(0)$')
+
+        handles,labels = ax1.get_legend_handles_labels()
+        handles = handles[::-1]
+        labels = labels[::-1]
+        ax1.legend(handles, labels, loc="upper center", ncol=2)
+
+        # Gráfico de residuos
+        ax2.plot(t[ind_fit], result.residual )
+        ax2.set_xlabel(r'$t$ [s]')
+        ax2.set_ylabel(r'Residuos')
+        fig1.subplots_adjust(hspace=0.1)
+        fig1.tight_layout()
+        plt.show()
+
+    return None
 
 
 if __name__ == "__main__":
