@@ -588,9 +588,5 @@ def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
 
 if __name__ == "__main__":
 
+    pass
 
-    folder = "data"
-    archivo = "S-B23A-1.CIN"
-    file_path = os.path.join(folder, archivo)
-
-    t, n = lee_archivo_CIN(file_path)
