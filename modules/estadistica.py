@@ -1,7 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def agrupa_datos(data, n_datos=1, dt=None):
@@ -181,6 +181,151 @@ def timestamp_to_timewindow(datos, dt, units_in, units_out, tb):
         tiempos = tiempos[0]
 
     return datos_binned, tiempos
+
+
+def promedio_por_bloques(x, metodo=None, *args, **kargs):
+    """
+    Función para obtener la incerteza del promedio de los datos
+
+    Es de utilidad cuando los datos están correlacionados, y deja de ser válido
+    tomar el desvío del promedio como std/sqrt(N).
+
+    Se basa en el método propuesto en http://dx.doi.org/10.1063/1.457480
+
+    Se calculan promedios agrupando los datos en bloques. Se busca el punto
+    donde cambiar el agrupamiento no modifique la incerteza obtenida.
+
+    Además se implementan métodos para buscar la parte constante de forma
+    automática (se podría hacer directamente mirando el gráfico). Es algo
+    optativo.
+
+    TODO: completar los métodos para obtener el valor constante
+
+    Parameters
+    ----------
+        x : numpy arra
+            Datos. Deben tener un valor medio constante.
+        metodo : string ("ajuste_en_segmentos", "ajuste_lim_inf")
+            Método para calcular de forma automática el punto donde el desvío
+            estandar es independiente del agrupamiento.
+            "ajuste_en_segmentos" : realiza ajustes lineales tomando segmentos
+            de datos
+            'ajuste_lim_inf" : realiza ajustes lineales cambiando el límite
+            inferior del ajuste, siempre hasta el último dato
+        kargs :
+            "pts_por_ajuste" : float (5 por defecto)
+                Cantidad de puntos que se utilizan para el ajuste lineal si se
+                selecciona metodo="ajuste_en_segmentos"
+
+    """
+
+    # Promedio y desvío del promedio asumiendo que son independientes
+    x_m, x_m_std = np.mean(x), np.std(x) / np.sqrt(len(x))
+
+    fig1, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10,8))
+    ax1.plot(x, '.')
+    ax1.set_xlabel("Índice de los dastos")
+    ax1.set_ylabel("Datos")
+    ax1.set_title(f"Asumiendo independencia $x$ = {x_m:.4f} +/- {x_m_std:.4f}")
+
+    # Cantidad de datos
+    n_x = len(x)
+    std_estimate = []
+    std_std_estimate = []
+    n_points = []
+    # Cantidad máxima de puntos por bloque que puedo tomar
+    max_ptos_bloques = n_x // 2
+    # Loop sobre la cantidad de puntos por bloque
+    for pts_per_block in range(1, max_ptos_bloques + 1):
+        # Cantidad de bloques
+        num_blocks = n_x // pts_per_block
+        # Cantida de datos máximo para hacer una división entera
+        num_max = num_blocks * pts_per_block
+        # Separo en bloques
+        bloques = np.split(x[:num_max], num_blocks)
+        # Promedio de cada bloque
+        x_transformado = [np.mean(d) for d in bloques]
+        # Desvío estandar de cada bloque
+        _std_estimate = np.std(x_transformado) / np.sqrt(num_blocks - 1)
+        std_estimate.append(_std_estimate)
+        # Desvío estandar del desvío estandar de cada bloque (asumiendo indep.)
+        std_std_estimate.append(_std_estimate / np.sqrt( 2 * (num_blocks - 1)))
+        n_points.append(pts_per_block)
+
+    std_estimate = np.asarray(std_estimate)
+    std_std_estimate = np.asarray(std_std_estimate)
+    n_points = np.asarray(n_points)
+
+    ax2.errorbar(n_points, std_estimate, yerr=std_std_estimate, fmt='.',
+                  capsize=5)
+    ax2.set_xlabel("Tamaño del bloque")
+    ax2.set_ylabel(r"$\sigma( \langle x \rangle)$")
+
+    # Una vez con los valores por bloques, se busca un criterio para
+    # seleccionar de forma automática el rango en donde tomar el sigma.
+    # Se puede hacer a ojo, y es relativamente fácil.
+
+    if metodo == "ajuste_en_segmentos":
+        # ---------------------------------------------------------------------
+        # Partiendo el gráfico en bloques y haciendo ajustes lineales
+        # ---------------------------------------------------------------------
+        # Cantidad de puntos que se utilizan para el ajuste lineal
+        len_line = kargs.get("pts_por_ajuste", 5)
+        # Cantidad de ajustes que se harán
+        num_splits = len(std_estimate) // len_line
+        # ültimo elemento que se utilizrá para hacer el split 
+        max_data = len_line * num_splits
+        # Se parten los datos en num_splits bloques
+        est_splits = np.split(std_estimate[:max_data], num_splits)
+        err_est_splits = np.split(std_std_estimate[:max_data], num_splits)
+        points_split = np.split(n_points[:max_data], num_splits)
+        # Para cada bloque se hace un ajuste lineal
+        ps = []
+        for pts, est, err_est in zip(points_split, est_splits, err_est_splits):
+            p = np.polyfit(pts, est, deg=1,  w=1/err_est)
+            ps.append(p)
+        n_points = np.arange(1, num_splits + 1)
+
+        ps = np.asarray(ps)
+        # Busco los puntos cuya pendiente no sea muy grande
+        ind_sel = abs(ps[:, 0]) <= 5e10
+        #ax3.plot(n_points[ind_sel], ps[ind_sel, 0], '.')
+        _label = f"Ajustando con {len_line} puntos"
+        ax3.plot(n_points[ind_sel], ps[ind_sel, 1], '.', label=_label)
+        #ax3.set_yscale('log')
+        ax3.set_ylabel(r"$\sigma( \langle \$_{op} \rangle)$")
+        ax3.set_xlabel(r"Segmento ajustado")
+        ax3.legend()
+
+    elif metodo == "ajuste_lim_inf":
+        # ---------------------------------------------------------------------
+        # Ajustes lineales variando el punto inferior del rango de ajuste
+        # ---------------------------------------------------------------------
+        ps = []
+        lim_inf = []
+        for i in range(len(std_estimate) - 5):
+            p = np.polyfit(n_points[i:], std_estimate[i:], deg=1,
+                           w=1/std_std_estimate[i:])
+            ps.append(p)
+            lim_inf.append(i)
+
+        ps = np.asarray(ps)
+        lim_inf = np.asarray(lim_inf)
+        # Busco los puntos cuya pendiente no sea muy grande
+        ind_sel = abs(ps[:, 0]) <= 3e20
+        #ax3.plot(n_points[ind_sel], ps[ind_sel, 0], '.')
+        ax3.plot(lim_inf[ind_sel], ps[ind_sel, 1], '.')
+        #ax3.set_yscale('log')
+        ax3.set_ylabel(r"$\sigma( \langle \$_{op} \rangle)$")
+        ax3.set_xlabel(r"Inicio del ajuste")
+    else:
+        print("Método no reconocido")
+        pass
+
+    fig1.tight_layout()
+    plt.show()
+
+    return None
 
 
 if __name__ == "__main__":
