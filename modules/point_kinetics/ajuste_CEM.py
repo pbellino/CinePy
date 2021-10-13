@@ -14,6 +14,7 @@ from modules.point_kinetics.soluciones_analiticas import solucion_in_hour_equati
 from modules.point_kinetics.reactimeter import reactimetro
 from modules.point_kinetics.direct_kinetic_solver import cinetica_directa
 
+
 def lee_archivo_CIN(name):
     """
     Función para leer los archivos .CIN
@@ -388,6 +389,10 @@ def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
             "plot": boolean (False)
                 Indica si se quieren graficar los resultados
 
+    Returns
+    -------
+        results :
+            Objeto de lmfit con los datos del ajuste
 
     TODO: ver por qué el error en tb es tan chicho
     TODO: ver promedios por bloque para evitar bias por correlación el datos
@@ -517,21 +522,19 @@ def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
             _corte = True
             print(f"No se obtuvo convergencia con {n_iter_max} iteraciones")
             print(f"Aumentar n_iter_max")
-            quit()
+            return None
         rho_old = rho_new
 
     # -------------------------------------------------------------------------
     print(20*' ' + "Fin de la iteración")
     print(80*'-')
-    print("Se usa el último A3 para volver a aplicar el reactímetro")
-    # Con el nuevo A3 se calcula nuevamente la $op
-    rho_r, t_r, _ = reactimetro(x_nor - A3.n, dt, lam, b, Lambda_red)
-    # Se estima el tiempo que tarda en caer la barra
-    t_caida, indx_t_caida = deteccion_tiempo_caida(t_r, rho_r, t_cero)
-    print("t_caida = {:.2f} s".format(t_caida))
-    # Estimar la reactividad promedio en una zona constante
-    rho_op, t_in_ajuste = estima_reactividad_reactimetro(t_r, rho_r, t_caida)
-    print(f"$_op (final) = {rho_op}")
+    print(20*' ' + "Estimación por cinética inversa")
+    rho_op, t_i_fit, t_c = estima_reactimetro_CEM(t, x_nor, result, constantes,
+                                                  t_cero)
+    print(f"$_op = {rho_op}")
+    print(f"t_ajuste_rho >= {t_i_fit:.4f} s")
+    print(f"t_caida = {t_c:.4f} s")
+    print(80*'-')
 
     if plot:
         from mpl_toolkits.axes_grid1.inset_locator import (inset_axes,
@@ -558,7 +561,7 @@ def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
         ax9.set_axes_locator(ip)
         # Mark the region corresponding to the inset axes on ax1 and draw lines
         mark_inset(ax1, ax9, loc1=2, loc2=4, fc="none", ec='0.5')
-        ax9.errorbar(t, x_nor, fmt='.')
+        ax9.errorbar(t, x_nor, fmt='.-')
         ax9.set_xlim(t_cero - 0.5, t_caida + 0.4)
         ax9.set_ylim(0, 1.02)
         # Grafico los tiempos característicos
@@ -581,9 +584,91 @@ def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
         ax2.set_ylabel(r'Residuos')
         fig1.subplots_adjust(hspace=0.1)
         fig1.tight_layout()
-        plt.show()
+    plt.show()
 
-    return None
+    return result
+
+
+def estima_reactimetro_CEM(t, n_nor, result, constantes, t_o, *args, **kargs):
+    """
+    Estima la reactividad usando cinética invera junto con la cinética modal.
+
+    Se corrige el offset en los datos medidos utilizando el valor A3 obtenido
+    del algoritmo para la CEM
+
+    TODO: Falta calcular mejor la incerteza en $_op (ver promedios por bloque)
+
+    Parameters
+    ----------
+        t : numpy array
+            Vector temporal
+        n : numpy array
+            Valores medidos y normalizados
+        result : lmfit object
+            Resultados del último ajuste (t1 está fijo)
+        constantes : touple or list (b, lambda, L*)
+            b (list), lambda (list), reduced Lambda (float)
+            b_i = beta_i / beta_eff
+            L* = L/beta_eff
+        t_o : float
+            Tiempo estimado en donde comienza a insertarse la barra
+
+    Returns
+    -------
+        rho_op : ufloat
+            Reactividad estimada
+        t_in_rho : float
+            Tiempo a partir del cual se promedia la reactividad
+        t_caida : float
+            Tiempo estimado donde finaliza la inserción de barra
+
+    """
+    b, lam, Lambda_red = constantes
+    A3 = ufloat(result.params['A3'].value, result.params['A3'].stderr)
+    t1 = result.params['t1'].value
+    dt = t[1] - t[0]
+    # Con el nuevo A3 se calcula nuevamente la $op
+    rho_r, t_r, _ = reactimetro(n_nor - A3.n, dt, lam, b, Lambda_red)
+    # Se estima el tiempo que tarda en caer la barra
+    t_caida, indx_t_caida = deteccion_tiempo_caida(t_r, rho_r, t_o)
+    # Estimar la reactividad promedio en una zona constante
+    rho_op, t_in_rho = estima_reactividad_reactimetro(t_r, rho_r, t_caida)
+
+    fig, (ax1, ax2) = plt.subplots(2, 1)
+    # Gráfico de la reactividad
+    ax1.plot(t_r, rho_r, '.')
+    in_rho_op = t >= t_in_rho
+    _lab = r"$\$_{{op}}$ = {:.4f}".format(rho_op)
+    _lab = f"$\$_{{op}}$ = {rho_op:.3f}"
+    ax1.plot(t_r[in_rho_op], rho_op.n * np.ones(sum(in_rho_op)), 'r',
+             label=_lab, lw=2)
+    ax1.set_xlabel(r"Tiempo [s]")
+    ax1.set_ylabel(r"$(t)")
+    ax1.legend()
+    ax1.set_title("TODO: falta estimar correctamente la incerteza")
+
+    # Gráfico de la R(t)
+
+    # Se obtiene R(t)
+    rho_en_t_caida = rho_r[t_r == t_caida][-1]
+    # índices donde R(t) es distinto de cero y de uno
+    ind_rt = (t_r >= t_o) & (t_r <= t_caida)
+    R_t = rho_r[ind_rt] / rho_en_t_caida
+    ax2.plot(t_r[ind_rt], R_t, '.')
+    # Gráfico te tiempos característicos
+    lin_ts = [t_o, t1, t_caida]
+    lin_strs = [r"$t_o$", r"$t_o + t_b$", r"$t_{caida}$"]
+    _of = [0.02, 0.02, -0.15]
+    for lin_t, lin_str, of in zip(lin_ts, lin_strs, _of):
+        ax2.axvline(lin_t, lw=1, label=lin_str, c='r')
+        ax2.text(lin_t + of, 0.5, lin_str, {'color':'r'})
+
+    ax2.set_xlabel(r"Tiempo [s]")
+    ax2.set_ylabel(r"R(t)")
+
+    fig.tight_layout()
+
+    return rho_op, t_in_rho, t_caida
 
 
 if __name__ == "__main__":

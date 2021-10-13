@@ -20,7 +20,7 @@ if __name__ == "__main__":
     archivo = "S-B23A-1.CIN"
     #archivo = "S-B23A-2.CIN"
     #archivo = "SCT-13-1.CIN"
-    #archivo = "SCT-13-2.CIN"
+    archivo = "SCT-13-2.CIN"
 
     file_path = os.path.join(folder, archivo)
 
@@ -47,7 +47,8 @@ if __name__ == "__main__":
                    "plot": True,
                   }
 
-    algoritmo_angel_CEM(t_cin, n_cin, constantes_cineticas, **_parametros)
+    result = algoritmo_angel_CEM(t_cin, n_cin, constantes_cineticas,
+                                 **_parametros)
 
     # Archivo para comparar resultados
     name = os.path.join("./data/", "resultados_fercin4.txt")
