@@ -535,6 +535,10 @@ def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
     print(f"t_ajuste_rho >= {t_i_fit:.4f} s")
     print(f"t_caida = {t_c:.4f} s")
     print(80*'-')
+    print(20*' ' + "Estimación por método integral")
+    rho_oi = estima_integral_CEM(result, constantes)
+    print(f"$_op = {rho_oi}")
+    print(80*'-')
 
     if plot:
         from mpl_toolkits.axes_grid1.inset_locator import (inset_axes,
@@ -638,7 +642,6 @@ def estima_reactimetro_CEM(t, n_nor, result, constantes, t_o, *args, **kargs):
     # Gráfico de la reactividad
     ax1.plot(t_r, rho_r, '.')
     in_rho_op = t >= t_in_rho
-    _lab = r"$\$_{{op}}$ = {:.4f}".format(rho_op)
     _lab = f"$\$_{{op}}$ = {rho_op:.3f}"
     ax1.plot(t_r[in_rho_op], rho_op.n * np.ones(sum(in_rho_op)), 'r',
              label=_lab, lw=2)
@@ -669,6 +672,74 @@ def estima_reactimetro_CEM(t, n_nor, result, constantes, t_o, *args, **kargs):
     fig.tight_layout()
 
     return rho_op, t_in_rho, t_caida
+
+
+def estima_integral_CEM(result, constantes, *args, **kargs):
+    """
+    Estima la reactividad usando método integral junto con la cinética modal.
+
+    Para la integración se utiliza la función f(t) con los mejores parámetros
+    del ajuste CEM.
+
+    Se corrige el offset en los datos medidos utilizando el valor A3 obtenido
+    del algoritmo para la CEM.
+
+    Se toma el tiempo inicial de la integración como t1 = t0 + tb
+
+    Se toma el tiempo final como t1 + 600s
+
+    TODO: Falta calcular la incerteza en $_oi
+
+    Parameters
+    ----------
+        result : lmfit object
+            Resultados del último ajuste (t1 está fijo)
+        constantes : touple or list (b, lambda, L*)
+            b (list), lambda (list), reduced Lambda (float)
+            b_i = beta_i / beta_eff
+            L* = L/beta_eff
+
+    Returns
+    -------
+        rho_oi : loat
+            Reactividad estimada
+
+    """
+
+    rho = result.params['rho'].value
+    t1 = result.params['t1'].value
+    n0 = result.params['n0'].value
+    A1 = result.params['A1'].value
+    A3 = result.params['A3'].value
+    _args = rho, t1, n0, A1, A3
+
+    # Tiempos en que se va a integrar, (t1 = t_o + t_b , t1 + 10min)
+    t_int = np.linspace(t1, t1 + 600, 100000)
+    f_t_int = salto_instantaneo_espacial(t_int, *_args, constantes)
+    n_t_int = f_t_int - A3 / (1 - A3)
+
+    b, lam, Lambda_red = constantes
+    # calculo la integral
+    int_n = np.trapz(n_t_int, t_int)
+    # Calculo la reactividad
+    rho_oi = (Lambda_red + np.dot(b, 1/lam)) / int_n
+    # Gráficos
+    fig, ax = plt.subplots(1, 1)
+    # Función n(t) en todo el rango
+    t = np.linspace(0, t1 + 600, 100000)
+    f_t = salto_instantaneo_espacial(t, *_args, constantes)
+    n_t = f_t - A3 / (1 - A3)
+
+    ax.plot(t, n_t, label="Ajuste CEM", lw=3)
+    _lab = f"$\$_{{op}}$ = {rho_oi:.3f}"
+    ax.fill_between(t_int, n_t_int, color='r', label=_lab)
+
+    ax.set_xlabel(r"Tiempo [s]")
+    ax.set_ylabel(r'$n_{CEM}(t)$')
+    ax.set_yscale('log')
+    ax.legend()
+
+    return rho_oi
 
 
 if __name__ == "__main__":

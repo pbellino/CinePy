@@ -44,7 +44,7 @@ if __name__ == "__main__":
                    "epsilon": 1e-3,
                    "n_iter_max": 20,
                    "verbose": True,
-                   "plot": True,
+                   "plot": False,
                   }
 
     result = algoritmo_angel_CEM(t_cin, n_cin, constantes_cineticas,
@@ -56,12 +56,13 @@ if __name__ == "__main__":
     ref_vals = dic_ref[archivo.rstrip('.CIN')]
 
     print(80*'-')
-    print(20*' ' + "Valores de referencia")
+    print(20*' ' + "Valores de referencia (FERCIN-4)")
     print(80*'-')
-    print(f"t_cero = {ref_vals[0]} (FERCIN4)")
-    print(f"t_b = 0.124 s (FERCIN-4 Primer ajuste)")
-    print(f"t_b (final) = {ref_vals[1]} (FERCIN4)")
-    print(f"$_om (final) = {ref_vals[3]} (FERCIN4)")
-    print(f"A3 (final) = {ref_vals[2]} (FERCIN4)")
-    print(f"$_op (final) = {ref_vals[6]} (FERCIN4)")
+    print(f"t_cero = {ref_vals[0]} ")
+    print(f"t_b = 0.124 s (Primer ajuste)")
+    print(f"t_b (final) = {ref_vals[1]}")
+    print(f"$_om (final) = {ref_vals[3]}")
+    print(f"A3 (final) = {ref_vals[2]}")
+    print(f"$_op (final) = {ref_vals[6]}")
+    print(f"$_oi (final) = {ref_vals[4]}")
     print(80*'-')
