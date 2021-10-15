@@ -37,7 +37,7 @@ def lee_archivo_CIN(name):
     return time, data
 
 
-def salto_instantaneo_espacial(t, rho, t1, n0, A1, A3, constantes):
+def salto_instantaneo_espacial(t, rho, t1, n0, A1, A3, constantes, **kargs):
     """
     Función analítica para un salto en escalón considerando cinética espacial
 
@@ -57,6 +57,10 @@ def salto_instantaneo_espacial(t, rho, t1, n0, A1, A3, constantes):
             Offset
         constantes: tuple
             Deben estar en el orden: b_i, lam_i, Lambda_reducido
+        kargs :
+            "Salto instantaneo" : boolean
+                Hace la aproximación del salto instantáneo. Se asume
+                instantánea la evolución de los neutrones instantáneos.
 
     Resultados
     ----------
@@ -64,6 +68,7 @@ def salto_instantaneo_espacial(t, rho, t1, n0, A1, A3, constantes):
             Solución de la densidad neutrónica n(t)
 
     """
+    salto_instantaneo = kargs.get("Salto instantaneo", False)
 
     b, lam, Lambda_red = constantes
     # Coeficientes de las exponenciales
@@ -73,6 +78,10 @@ def salto_instantaneo_espacial(t, rho, t1, n0, A1, A3, constantes):
         _numerador = Lambda_red + np.sum(b / (root + lam))
         B.append(rho / root / (Lambda_red + np.sum(b * lam / (root + lam)**2)))
     # Suma de exponenciales para t>=t1
+    if salto_instantaneo:
+        # Aproximación del salto instantáneo
+        roots[0] = - 1e20
+        B[0] = 0
     n_pos = 0.
     for root, amp in zip(roots, B):
         n_pos += amp * np.exp(root*(t[t >= t1] - t1))
@@ -774,7 +783,6 @@ def estima_salto_instantaneo_CEM(result, constantes, *args, **kargs):
     Se toma al tiempo del salto instantáneo como t1 =  t0 + tb
 
     TODO: Falta calcular la incerteza en $_oi
-    TODO: El méotdo para estiar el salto instantáneo no parece ser muy robusto
 
 
     Parameters
@@ -809,12 +817,12 @@ def estima_salto_instantaneo_CEM(result, constantes, *args, **kargs):
     b, lam, Lambda_red = constantes
     # Tiempo del salto instantáneo pasado a numpy array para ser evaluado en
     # la función f(t)
-    t1_np = np.linspace(t1, t1+1, 50)
+    t1_np = np.asarray([t1])
     # Evaluación
-    f_t_salto = salto_instantaneo_espacial(t1_np, *_args, constantes)
+    _kargs = {"Salto instantaneo": True}
+    f_t_salto = salto_instantaneo_espacial(t1_np, *_args, constantes, **_kargs)
     # Puede haber problemas en t1
-    f_t_salto = f_t_salto[t1_np > t1][0]
-    n_t_salto = (f_t_salto - A3) / (1 - A3)
+    n_t_salto = (f_t_salto[0] - A3) / (1 - A3)
     # Calculo la reactividad
     rho_od = 1 / n_t_salto - 1
 
@@ -834,7 +842,6 @@ def estima_salto_instantaneo_CEM(result, constantes, *args, **kargs):
     ax.set_xlabel(r"Tiempo [s]")
     ax.set_ylabel(r'$n_{CEM}(t)$')
     ax.set_xlim(t1-4, t1 + 5)
-    # ax.set_yscale('log')
     ax.legend()
 
     return rho_od

@@ -18,7 +18,7 @@ if __name__ == "__main__":
     folder = "data"
 
     archivo = "S-B23A-1.CIN"
-    archivo = "S-B23A-2.CIN"
+    #archivo = "S-B23A-2.CIN"
     #archivo = "SCT-13-1.CIN"
     archivo = "SCT-13-2.CIN"
 
