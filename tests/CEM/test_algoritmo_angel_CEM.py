@@ -44,7 +44,8 @@ if __name__ == "__main__":
                    "epsilon": 1e-3,
                    "n_iter_max": 20,
                    "verbose": True,
-                   "plot": True,
+                   "plot": False,
+                   "incertezas": True,
                   }
 
     result = algoritmo_angel_CEM(t_cin, n_cin, constantes_cineticas,

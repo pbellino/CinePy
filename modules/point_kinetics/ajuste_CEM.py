@@ -397,6 +397,8 @@ def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
                 parciales de cada iteración
             "plot": boolean (False)
                 Indica si se quieren graficar los resultados
+            "incertezas": boolean (False)
+                Indica si se calculan incertezas en los métodos con MRP
 
     Returns
     -------
@@ -413,6 +415,7 @@ def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
     n_iter_max = kargs.get("n_iter_max", 20)
     verbose = kargs.get("verbose", False)
     plot = kargs.get("plot", False)
+    incertezas = kargs.get("incertezas", False)
 
     b, lam, Lambda_red = constantes
 
@@ -548,7 +551,7 @@ def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
 
     # Parámetros para el cálculo de reactividad con el MRP basado en CEM
     _kargs = {'t_med': t , 'n_med_nor': x_nor}
-    #_kargs['t1_std'] = t1.s
+    if incertezas: _kargs['t1_std'] = t1.s
 
     print(20*' ' + "Estimación por método integral")
     rho_oi = estima_integral_CEM(result, constantes, **_kargs)
