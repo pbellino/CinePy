@@ -554,6 +554,7 @@ def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
 
     print(20*' ' + "Estimación por salto instantáneo")
     print(80*'-')
+    _kargs = {'t_med': t , 'n_med_nor': x_nor, 't1_std': t1.s}
     rho_od = estima_salto_instantaneo_CEM(result, constantes, **_kargs)
     print(f"$_od = {rho_od}")
     print(80*'-')
@@ -782,7 +783,11 @@ def estima_salto_instantaneo_CEM(result, constantes, *args, **kargs):
 
     Se toma al tiempo del salto instantáneo como t1 =  t0 + tb
 
-    TODO: Falta calcular la incerteza en $_oi
+    Se calculan incertezas muestreando los parámetros del ajuste con una
+    multinormal. Considerando a t0 independiente.
+
+    TODO: Las incertezas son estadísticas, revisar si las sistemáticas dominan.
+    Se hace sobre la curva f(t) estimada con el último ajuste del algoritmo.
 
 
     Parameters
@@ -796,16 +801,20 @@ def estima_salto_instantaneo_CEM(result, constantes, *args, **kargs):
         kargs :
             't_med' : Vector temporal de la medición
             'n_med_nor' : Vector de datos medidos y normalizados
+            't1_std' : Incerteza en t1, si se especifica, se calculan
+            incertezas.
 
     Returns
     -------
-        rho_od : loat
-            Reactividad estimada
+        rho_od : ufloat
+            Reactividad estimada. Si no se especifica 't1_std' la incerteza es
+            nula
 
     """
 
     t_med = kargs.get('t_med')
     n_med_nor = kargs.get('n_med_nor')
+    t1_std = kargs.get('t1_std', None)
 
     rho = result.params['rho'].value
     t1 = result.params['t1'].value
@@ -821,10 +830,35 @@ def estima_salto_instantaneo_CEM(result, constantes, *args, **kargs):
     # Evaluación
     _kargs = {"Salto instantaneo": True}
     f_t_salto = salto_instantaneo_espacial(t1_np, *_args, constantes, **_kargs)
-    # Puede haber problemas en t1
     n_t_salto = (f_t_salto[0] - A3) / (1 - A3)
     # Calculo la reactividad
     rho_od = 1 / n_t_salto - 1
+    # No se calculan incertezas
+    rho_od = ufloat(rho_od, 0.0)
+
+    # Estimación de incertezas
+    if t1_std:
+        """Genera t1's y A3's de una normal"""
+        # Tamaño de la muestra
+        N_s = 500
+        # Los parámetros rho, A1 y A3 están correlacionados por el ajuste
+        _p_n = rho, A1, A3
+        _cov = result.covar
+        rho_s, A1_s, A3_s = np.random.multivariate_normal(_p_n, _cov, N_s).T
+        # Se asume que t1 es independiente del resto (mentira)
+        t1_s = np.random.normal(t1, t1_std, N_s)
+        _kargs = {"Salto instantaneo": True}
+        rho_od_s = []
+        for rho_i, t1_i, A1_i, A3_i in zip(rho_s, t1_s, A1_s, A3_s):
+            t1_np = np.asarray([t1_i])
+            # Evaluación
+            f_t_salto = salto_instantaneo_espacial(t1_np, rho_i, t1_i, n0,
+                                            A1_i, A3_i, constantes, **_kargs)
+            _n_t_salto = (f_t_salto[0] - A3_i) / (1 - A3_i)
+            # Calculo la reactividad
+            rho_od_s.append(1 / _n_t_salto - 1)
+
+        rho_od = ufloat(np.mean(rho_od_s), np.std(rho_od_s, ddof=1))
 
     # Gráficos
     fig, ax = plt.subplots(1, 1)
