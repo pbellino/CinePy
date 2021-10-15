@@ -525,9 +525,10 @@ def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
             return None
         rho_old = rho_new
 
-    # -------------------------------------------------------------------------
     print(20*' ' + "Fin de la iteración")
     print(80*'-')
+
+    # -------------------------------------------------------------------------
     print(20*' ' + "Estimación por cinética inversa")
     rho_op, t_i_fit, t_c = estima_reactimetro_CEM(t, x_nor, result, constantes,
                                                   t_cero)
@@ -535,9 +536,17 @@ def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
     print(f"t_ajuste_rho >= {t_i_fit:.4f} s")
     print(f"t_caida = {t_c:.4f} s")
     print(80*'-')
+
     print(20*' ' + "Estimación por método integral")
-    rho_oi = estima_integral_CEM(result, constantes)
-    print(f"$_op = {rho_oi}")
+    _kargs = {'t_med': t , 'n_med_nor': x_nor}
+    rho_oi = estima_integral_CEM(result, constantes, **_kargs)
+    print(f"$_oi = {rho_oi}")
+    print(80*'-')
+
+    print(20*' ' + "Estimación por salto instantáneo")
+    print(80*'-')
+    rho_od = estima_salto_instantaneo_CEM(result, constantes, **_kargs)
+    print(f"$_od = {rho_od}")
     print(80*'-')
 
     if plot:
@@ -637,13 +646,14 @@ def estima_reactimetro_CEM(t, n_nor, result, constantes, t_o, *args, **kargs):
     t_caida, indx_t_caida = deteccion_tiempo_caida(t_r, rho_r, t_o)
     # Estimar la reactividad promedio en una zona constante
     rho_op, t_in_rho = estima_reactividad_reactimetro(t_r, rho_r, t_caida)
+    rho_op *= -1
 
     fig, (ax1, ax2) = plt.subplots(2, 1)
     # Gráfico de la reactividad
     ax1.plot(t_r, rho_r, '.')
     in_rho_op = t >= t_in_rho
     _lab = f"$\$_{{op}}$ = {rho_op:.3f}"
-    ax1.plot(t_r[in_rho_op], rho_op.n * np.ones(sum(in_rho_op)), 'r',
+    ax1.plot(t_r[in_rho_op], -rho_op.n * np.ones(sum(in_rho_op)), 'r',
              label=_lab, lw=2)
     ax1.set_xlabel(r"Tiempo [s]")
     ax1.set_ylabel(r"$(t)")
@@ -698,6 +708,9 @@ def estima_integral_CEM(result, constantes, *args, **kargs):
             b (list), lambda (list), reduced Lambda (float)
             b_i = beta_i / beta_eff
             L* = L/beta_eff
+        kargs :
+            't_med' : Vector temporal de la medición
+            'n_med_nor' : Vector de datos medidos y normalizados
 
     Returns
     -------
@@ -705,6 +718,9 @@ def estima_integral_CEM(result, constantes, *args, **kargs):
             Reactividad estimada
 
     """
+
+    t_med = kargs.get('t_med')
+    n_med_nor = kargs.get('n_med_nor')
 
     rho = result.params['rho'].value
     t1 = result.params['t1'].value
@@ -716,7 +732,7 @@ def estima_integral_CEM(result, constantes, *args, **kargs):
     # Tiempos en que se va a integrar, (t1 = t_o + t_b , t1 + 10min)
     t_int = np.linspace(t1, t1 + 600, 100000)
     f_t_int = salto_instantaneo_espacial(t_int, *_args, constantes)
-    n_t_int = f_t_int - A3 / (1 - A3)
+    n_t_int = (f_t_int - A3) / (1 - A3)
 
     b, lam, Lambda_red = constantes
     # calculo la integral
@@ -728,10 +744,12 @@ def estima_integral_CEM(result, constantes, *args, **kargs):
     # Función n(t) en todo el rango
     t = np.linspace(0, t1 + 600, 100000)
     f_t = salto_instantaneo_espacial(t, *_args, constantes)
-    n_t = f_t - A3 / (1 - A3)
+    n_t = (f_t - A3) / (1 - A3)
 
-    ax.plot(t, n_t, label="Ajuste CEM", lw=3)
-    _lab = f"$\$_{{op}}$ = {rho_oi:.3f}"
+    n_med = (n_med_nor - A3) / (1 - A3)
+    ax.plot(t_med, n_med, '.', label="Medición")
+    ax.plot(t, n_t, label="Ajuste CEM", lw=2)
+    _lab = f"$\$_{{oi}}$ = {rho_oi:.3f}"
     ax.fill_between(t_int, n_t_int, color='r', label=_lab)
 
     ax.set_xlabel(r"Tiempo [s]")
@@ -740,6 +758,86 @@ def estima_integral_CEM(result, constantes, *args, **kargs):
     ax.legend()
 
     return rho_oi
+
+
+def estima_salto_instantaneo_CEM(result, constantes, *args, **kargs):
+    """
+    Estima la reactividad usando método del salto instantáneo junto con la
+    cinética modal.
+
+    Para obtener el salto instantáneo se utiliza la función f(t) con los
+    mejores parámetros del ajuste CEM.
+
+    Se corrige el offset en los datos medidos utilizando el valor A3 obtenido
+    del algoritmo para la CEM.
+
+    Se toma al tiempo del salto instantáneo como t1 =  t0 + tb
+
+    TODO: Falta calcular la incerteza en $_oi
+    TODO: El méotdo para estiar el salto instantáneo no parece ser muy robusto
+
+
+    Parameters
+    ----------
+        result : lmfit object
+            Resultados del último ajuste (t1 está fijo)
+        constantes : touple or list (b, lambda, L*)
+            b (list), lambda (list), reduced Lambda (float)
+            b_i = beta_i / beta_eff
+            L* = L/beta_eff
+        kargs :
+            't_med' : Vector temporal de la medición
+            'n_med_nor' : Vector de datos medidos y normalizados
+
+    Returns
+    -------
+        rho_od : loat
+            Reactividad estimada
+
+    """
+
+    t_med = kargs.get('t_med')
+    n_med_nor = kargs.get('n_med_nor')
+
+    rho = result.params['rho'].value
+    t1 = result.params['t1'].value
+    n0 = result.params['n0'].value
+    A1 = result.params['A1'].value
+    A3 = result.params['A3'].value
+    _args = rho, t1, n0, A1, A3
+
+    b, lam, Lambda_red = constantes
+    # Tiempo del salto instantáneo pasado a numpy array para ser evaluado en
+    # la función f(t)
+    t1_np = np.linspace(t1, t1+1, 50)
+    # Evaluación
+    f_t_salto = salto_instantaneo_espacial(t1_np, *_args, constantes)
+    # Puede haber problemas en t1
+    f_t_salto = f_t_salto[t1_np > t1][0]
+    n_t_salto = (f_t_salto - A3) / (1 - A3)
+    # Calculo la reactividad
+    rho_od = 1 / n_t_salto - 1
+
+    # Gráficos
+    fig, ax = plt.subplots(1, 1)
+    # Evaluación de la f(t) en los rangos de la medición
+    t = np.linspace(t_med[0], t_med[-1], 2000)
+    f_t = salto_instantaneo_espacial(t, *_args, constantes)
+    n_t = (f_t - A3) / (1 - A3)
+    # Curva medida
+    n_med = (n_med_nor - A3) / (1 - A3)
+    ax.plot(t_med, n_med, '.', label="Medición")
+    ax.plot(t, n_t, label="Ajuste CEM", lw=1)
+    _lab = f"$\$_{{od}}$ = {rho_od:.3f}"
+    # Salto instantáneo
+    ax.plot(t1, n_t_salto, 'ro', label=_lab)
+    ax.set_xlabel(r"Tiempo [s]")
+    ax.set_ylabel(r'$n_{CEM}(t)$')
+    ax.set_xlim(t1-4, t1 + 5)
+    # ax.set_yscale('log')
+    ax.legend()
+
+    return rho_od
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ if __name__ == "__main__":
     folder = "data"
 
     archivo = "S-B23A-1.CIN"
-    #archivo = "S-B23A-2.CIN"
+    archivo = "S-B23A-2.CIN"
     #archivo = "SCT-13-1.CIN"
     archivo = "SCT-13-2.CIN"
 
@@ -44,7 +44,7 @@ if __name__ == "__main__":
                    "epsilon": 1e-3,
                    "n_iter_max": 20,
                    "verbose": True,
-                   "plot": False,
+                   "plot": True,
                   }
 
     result = algoritmo_angel_CEM(t_cin, n_cin, constantes_cineticas,
@@ -63,6 +63,8 @@ if __name__ == "__main__":
     print(f"t_b (final) = {ref_vals[1]}")
     print(f"$_om (final) = {ref_vals[3]}")
     print(f"A3 (final) = {ref_vals[2]}")
+    print("")
     print(f"$_op (final) = {ref_vals[6]}")
-    print(f"$_oi (final) = {ref_vals[4]}")
+    print(f"$_oi  = {ref_vals[4]}")
+    print(f"$_od  = {ref_vals[5]}")
     print(80*'-')
