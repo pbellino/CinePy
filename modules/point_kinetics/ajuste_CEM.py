@@ -546,15 +546,17 @@ def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
     print(f"t_caida = {t_c:.4f} s")
     print(80*'-')
 
-    print(20*' ' + "Estimación por método integral")
+    # Parámetros para el cálculo de reactividad con el MRP basado en CEM
     _kargs = {'t_med': t , 'n_med_nor': x_nor}
+    #_kargs['t1_std'] = t1.s
+
+    print(20*' ' + "Estimación por método integral")
     rho_oi = estima_integral_CEM(result, constantes, **_kargs)
     print(f"$_oi = {rho_oi}")
     print(80*'-')
 
     print(20*' ' + "Estimación por salto instantáneo")
     print(80*'-')
-    _kargs = {'t_med': t , 'n_med_nor': x_nor, 't1_std': t1.s}
     rho_od = estima_salto_instantaneo_CEM(result, constantes, **_kargs)
     print(f"$_od = {rho_od}")
     print(80*'-')
@@ -709,6 +711,11 @@ def estima_integral_CEM(result, constantes, *args, **kargs):
     Se toma el tiempo final como t1 + 600s
 
     TODO: Falta calcular la incerteza en $_oi
+    Se calculan incertezas muestreando los parámetros del ajuste con una
+    multinormal. Considerando a t0 independiente.
+
+    TODO: Las incertezas son estadísticas, revisar si las sistemáticas dominan.
+    Se hace sobre la curva f(t) estimada con el último ajuste del algoritmo.
 
     Parameters
     ----------
@@ -721,16 +728,20 @@ def estima_integral_CEM(result, constantes, *args, **kargs):
         kargs :
             't_med' : Vector temporal de la medición
             'n_med_nor' : Vector de datos medidos y normalizados
+            't1_std' : Incerteza en t1. Si se especifica, se calculan
+                       incertezas.
+
 
     Returns
     -------
-        rho_oi : loat
+        rho_oi : ufloat
             Reactividad estimada
 
     """
 
     t_med = kargs.get('t_med')
     n_med_nor = kargs.get('n_med_nor')
+    t1_std = kargs.get('t1_std', None)
 
     rho = result.params['rho'].value
     t1 = result.params['t1'].value
@@ -749,6 +760,31 @@ def estima_integral_CEM(result, constantes, *args, **kargs):
     int_n = np.trapz(n_t_int, t_int)
     # Calculo la reactividad
     rho_oi = (Lambda_red + np.dot(b, 1/lam)) / int_n
+    # Si no se piden incertezas, se la toma como cero
+    rho_oi = ufloat(rho_oi, 0)
+
+    # Estimación de incertezas
+    if t1_std:
+        # Tamaño de la muestra
+        N_s = 100
+        # Los parámetros rho, A1 y A3 están correlacionados por el ajuste
+        _p_n = rho, A1, A3
+        _cov = result.covar
+        rho_s, A1_s, A3_s = np.random.multivariate_normal(_p_n, _cov, N_s).T
+        # Se asume que t1 es independiente del resto (mentira)
+        t1_s = np.random.normal(t1, t1_std, N_s)
+        rho_oi_s = []
+        for rho_i, t1_i, A1_i, A3_i in zip(rho_s, t1_s, A1_s, A3_s):
+            _t_int = np.linspace(t1_i, t1_i + 600, 100000)
+            _f_t_int = salto_instantaneo_espacial(_t_int, rho_i, t1_i, n0,
+                                            A1_i, A3_i, constantes)
+            _n_t_int = (_f_t_int - A3_i) / (1 - A3_i)
+            # calculo la integral
+            _int_n = np.trapz(_n_t_int, _t_int)
+            # Calculo la reactividad
+            rho_oi_s.append((Lambda_red + np.dot(b, 1/lam)) / _int_n)
+        rho_oi = ufloat(np.mean(rho_oi_s), np.std(rho_oi_s, ddof=1))
+
     # Gráficos
     fig, ax = plt.subplots(1, 1)
     # Función n(t) en todo el rango
@@ -801,7 +837,7 @@ def estima_salto_instantaneo_CEM(result, constantes, *args, **kargs):
         kargs :
             't_med' : Vector temporal de la medición
             'n_med_nor' : Vector de datos medidos y normalizados
-            't1_std' : Incerteza en t1, si se especifica, se calculan
+            't1_std' : Incerteza en t1. Si se especifica, se calculan
             incertezas.
 
     Returns
@@ -833,12 +869,11 @@ def estima_salto_instantaneo_CEM(result, constantes, *args, **kargs):
     n_t_salto = (f_t_salto[0] - A3) / (1 - A3)
     # Calculo la reactividad
     rho_od = 1 / n_t_salto - 1
-    # No se calculan incertezas
+    # Si no se calculan incertezas, se la toma como cero
     rho_od = ufloat(rho_od, 0.0)
 
     # Estimación de incertezas
     if t1_std:
-        """Genera t1's y A3's de una normal"""
         # Tamaño de la muestra
         N_s = 500
         # Los parámetros rho, A1 y A3 están correlacionados por el ajuste
@@ -857,7 +892,6 @@ def estima_salto_instantaneo_CEM(result, constantes, *args, **kargs):
             _n_t_salto = (f_t_salto[0] - A3_i) / (1 - A3_i)
             # Calculo la reactividad
             rho_od_s.append(1 / _n_t_salto - 1)
-
         rho_od = ufloat(np.mean(rho_od_s), np.std(rho_od_s, ddof=1))
 
     # Gráficos
