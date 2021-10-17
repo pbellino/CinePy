@@ -17,17 +17,15 @@ if __name__ == "__main__":
     # Se lee el archivo .CIN
     folder = "data"
 
-    archivo = "S-B23A-1.CIN"
+    #archivo = "S-B23A-1.CIN"
     #archivo = "S-B23A-2.CIN"
-    #archivo = "SCT-13-1.CIN"
-    archivo = "SCT-13-2.CIN"
+    archivo = "SCT-13-1.CIN"
+    #archivo = "SCT-13-2.CIN"
 
     file_path = os.path.join(folder, archivo)
 
     t_cin, n_cin = lee_archivo_CIN(file_path)
 
-    # Se leen juego de cosntantes nucleares de neutrones retardados
-    b, lam , beta = lee_constantes_retardados('Tuttle')
 
     if "B23A" in archivo:
         from constantes.constantes_reactores import RA1 as REACTOR
@@ -36,6 +34,22 @@ if __name__ == "__main__":
 
     # Se leen constantes características de cada reactor
     Lambda_red = REACTOR.LAMBDA_REDUCIDO
+    beta_efectivo_ret = REACTOR.BETA_EFECTIVO
+    efect_fotoneut = REACTOR.EFECTIVIDAD_FOTONEUTRONES
+
+    # Se leen juego de cosntantes nucleares de neutrones retardados
+    _kargs = {
+              "Fotoneutrones": True,
+              "Constantes fotoneutrones": "Deuterio",
+              "Beta efectivo retardados" : beta_efectivo_ret,
+              "Grupos fotoneutrones" : 6,
+              "Efectividad fotoneutrones" : 1e-5,
+              }
+
+    b, lam , dic_ctes = lee_constantes_retardados('Tuttle', **_kargs)
+
+    print(dic_ctes.get("beta efectivo total"))
+
     constantes_cineticas = b, lam, Lambda_red
 
     _parametros = {
@@ -43,9 +57,9 @@ if __name__ == "__main__":
                    "t_fit": (6.0, 80),
                    "epsilon": 1e-3,
                    "n_iter_max": 20,
-                   "verbose": True,
+                   "verbose": False,
                    "plot": False,
-                   "incertezas": True,
+                   "incertezas": False,
                   }
 
     result = algoritmo_angel_CEM(t_cin, n_cin, constantes_cineticas,
