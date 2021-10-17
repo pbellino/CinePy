@@ -32,6 +32,8 @@ def solucion_in_hour_equation(rho, constants):
     """
     Resuelve la ecuación in-hour para un valor de rho
 
+    TODO: revisar los problemas numéricos que aparecen al incluir fotoneutrones
+
     Parameters
     ----------
         rho : float
@@ -51,9 +53,11 @@ def solucion_in_hour_equation(rho, constants):
     from scipy.optimize import brentq
 
     _, lam, _ = constants
-    eps = np.finfo(float).eps * 10
-    ome_ini = np.insert(-lam[::-1] + eps, 0, -1e+10)
-    ome_fin = np.append(-lam[::-1] - eps, 1e+10)
+    fac = 1e-15
+    lam_ini = -lam[::-1] * (1 - fac)
+    lam_fin = -lam[::-1] * (1 + fac)
+    ome_ini = np.insert(lam_ini, 0, -1e+10)
+    ome_fin = np.append(lam_fin, 1e+10)
 
     roots = []
     for ini, fin in zip(ome_ini, ome_fin):
