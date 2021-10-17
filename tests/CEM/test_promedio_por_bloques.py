@@ -3,6 +3,7 @@
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+from uncertainties import ufloat
 import seaborn as sns
 sns.set()
 import sys
@@ -68,8 +69,8 @@ if __name__ == "__main__":
                   }
 
     result = ajuste_cinetica_espacial(t_cin, n_cin_nor, **parametros)
-    # A3 = ufloat(result.params['A3'].value, result.params['A3'].stderr)
-    A3 = result.params['A3'].value
+    A3 = ufloat(result.params['A3'].value, result.params['A3'].stderr)
+    # A3 = result.params['A3'].value
 
     # -------------------------------------------------------------------------
     # 4.  Cinética inversa para obtener $op
