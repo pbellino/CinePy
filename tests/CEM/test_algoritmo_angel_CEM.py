@@ -39,11 +39,11 @@ if __name__ == "__main__":
 
     # Se leen juego de cosntantes nucleares de neutrones retardados
     _kargs = {
-              "Fotoneutrones": True,
+              "Fotoneutrones": False,
               "Constantes fotoneutrones": "Deuterio",
               "Beta efectivo retardados" : beta_efectivo_ret,
-              "Grupos fotoneutrones" : 6,
-              "Efectividad fotoneutrones" : 1e-5,
+              "Grupos fotoneutrones" : 9,
+              "Efectividad fotoneutrones" : 1e-4,
               }
 
     b, lam , dic_ctes = lee_constantes_retardados('Tuttle', **_kargs)

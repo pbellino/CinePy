@@ -53,7 +53,7 @@ def solucion_in_hour_equation(rho, constants):
     from scipy.optimize import brentq
 
     _, lam, _ = constants
-    fac = 1e-15
+    fac = 3e-15
     lam_ini = -lam[::-1] * (1 - fac)
     lam_fin = -lam[::-1] * (1 + fac)
     ome_ini = np.insert(lam_ini, 0, -1e+10)
