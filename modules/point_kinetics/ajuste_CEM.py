@@ -343,6 +343,11 @@ def estima_reactividad_reactimetro(t, rho, t_caida, metodo='Angel'):
     if not se_obtiene_resultado:
         _msg = "La función 'estima_reactividad_reactimetro' no pudo encontrar"
         _msg += "una zona de reactividad constante para estimar $_op"
+        plt.plot(t, rho, '.')
+        plt.xlabel("Tiempo [s]")
+        plt.ylabel(r"$\$(t)$")
+        plt.title("No se pudo encontrar una zona con reactividad constante")
+        plt.show()
         raise ValueError(_msg)
 
     return rho_op, t_in_ajuste
@@ -440,15 +445,20 @@ def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
                   }
 
     result = ajuste_cinetica_espacial(t, x_nor, **parametros)
-
-    t1 = ufloat(result.params['t1'].value, result.params['t1'].stderr)
+    if result.errorbars:
+        t1 = ufloat(result.params['t1'].value, result.params['t1'].stderr)
+        A3 = ufloat(result.params['A3'].value, result.params['A3'].stderr)
+    else:
+        print("No se estimaron errores en el primer ajuste")
+        print("Se los asume nulos")
+        report_fit(result)
+        t1 = ufloat(result.params['t1'].value, 0)
+        A3 = ufloat(result.params['A3'].value, 0)
     tb = t1 - t_cero
-    A3 = ufloat(result.params['A3'].value, result.params['A3'].stderr)
     if verbose:
         print(f"t_cero = {t_cero}")
         print(f"t_b = {tb:.3e} s (Primer ajuste)")
         print(f"A3 = {A3:.3e} (Primer ajuste")
-
         print(80*'-')
     # -------------------------------------------------------------------------
     # 4.  Cinética inversa para obtener $op
