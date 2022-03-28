@@ -36,7 +36,8 @@ sns.set()
 plt.style.use('paper')
 
 
-def arossi_una_historia_I(data, dt_s, dtmax_s, tb, trigs='compute'):
+def arossi_una_historia_I(data, dt_s, dtmax_s, tb, trigs='compute',
+                          save_trigs=True):
     """
     Aplica el método de a-Rossi (Tipo I) a una historia
 
@@ -71,6 +72,10 @@ def arossi_una_historia_I(data, dt_s, dtmax_s, tb, trigs='compute'):
             comportamiento original).
             "all" : usa todos los triggers. Se agregó para procesar los datos
             de coincidencias sin accidentales a través de la PTRAC.
+        save_trigs: bool
+            Indica si se devuelve P_trigger. Si la cantidad de datos es muy
+            grande, P_trigger puede consumir mucha memoria.
+
 
     Resultados
     ----------
@@ -148,7 +153,10 @@ def arossi_una_historia_I(data, dt_s, dtmax_s, tb, trigs='compute'):
     # parte no correlacionada sea siempore igual a uno).
     P_historia = np.mean(P_trigger, axis=0) / dt_s / R_historia[0]
 
-    return P_historia, R_historia, N_triggers, P_trigger
+    if save_trigs:
+        return P_historia, R_historia, N_triggers, P_trigger
+    else:
+        return P_historia, R_historia, N_triggers
 
 
 def arossi_serial(data_bloques_undet, dt_s, dtmax_s, tb):
@@ -161,11 +169,12 @@ def arossi_serial(data_bloques_undet, dt_s, dtmax_s, tb):
 
 def wrapper_arossi_una_historia_I(arg_tupla):
     """ Wrapper de `arossi_una_historia_I` usada al paralelizar. """
-    data, dt_s, dtmax_s, tb, trigs = arg_tupla
-    return arossi_una_historia_I(data, dt_s, dtmax_s, tb, trigs)
+    data, dt_s, dtmax_s, tb, trigs, save_trigs = arg_tupla
+    return arossi_una_historia_I(data, dt_s, dtmax_s, tb, trigs, save_trigs)
 
 
-def alfa_rossi_procesamiento(data_bloques, dt_s, dtmax_s, tb, trigs='compute'):
+def alfa_rossi_procesamiento(data_bloques, dt_s, dtmax_s, tb, trigs='compute',
+        save_trigs=True):
     """
     Procesamiento de alfa-Rossi para todos los detectores.
 
@@ -190,6 +199,8 @@ def alfa_rossi_procesamiento(data_bloques, dt_s, dtmax_s, tb, trigs='compute'):
             comportamiento original).
             "all" : usa todos los triggers. Se agregó para procesar los datos
             de coincidencias sin accidentales a través de la PTRAC.
+        save_trigs : bool
+            Indica si se guardan las cuentas de cada trigger
 
     Resultados
     ----------
@@ -200,7 +211,8 @@ def alfa_rossi_procesamiento(data_bloques, dt_s, dtmax_s, tb, trigs='compute'):
                 - P_historia : numpy array
                 - R_historia : tupla (R_promedio, R_desvío)
                 - N_triggers : int
-                - P_trigger : list of list of numpy array
+                - P_trigger : list of list of numpy array (sólo si
+                              save_trigs=True)
             Para más detalle, ver la función `arossi_una_historia_I`
 
     """
@@ -218,6 +230,7 @@ def alfa_rossi_procesamiento(data_bloques, dt_s, dtmax_s, tb, trigs='compute'):
                                  itertools.repeat(dtmax_s),
                                  itertools.repeat(tb),
                                  itertools.repeat(trigs),
+                                 itertools.repeat(save_trigs),
                                  )
         _res = _pool.map(wrapper_arossi_una_historia_I, argumentos_wrapper)
         _res = np.asarray(_res)
