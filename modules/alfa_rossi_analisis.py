@@ -19,11 +19,11 @@ from scipy.stats import norm
 import seaborn as sns
 
 import sys
-sys.path.append('../')
+sys.path.append('../../')
 
-from modules.alfa_rossi_lectura import arossi_lee_historias_completas, \
+from CinePy.modules.alfa_rossi_lectura import arossi_lee_historias_completas, \
                                        arossi_lee_historias_promedio
-from modules.funciones import arossi_1exp, arossi_2exp
+from CinePy.modules.funciones import arossi_1exp, arossi_2exp
 
 sns.set()
 plt.style.use('paper')

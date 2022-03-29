@@ -27,10 +27,10 @@ import time
 import os
 
 import sys
-sys.path.append('../')
+sys.path.append('../../')
 
-from modules.alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
-from modules.estadistica import rate_from_timestamp
+from CinePy.modules.alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
+from CinePy.modules.estadistica import rate_from_timestamp
 
 sns.set()
 plt.style.use('paper')

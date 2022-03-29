@@ -15,10 +15,10 @@ import seaborn as sns
 sns.set()
 
 import sys
-sys.path.append('../')
+sys.path.append('../../')
 
-from modules.io_modules import read_timestamp_list, read_timestamp_list_ascii
-from modules.estadistica import timestamp_to_timewindow
+from CinePy.modules.io_modules import read_timestamp_list, read_timestamp_list_ascii
+from CinePy.modules.estadistica import timestamp_to_timewindow
 
 
 plt.style.use('paper')

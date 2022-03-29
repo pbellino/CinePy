@@ -22,10 +22,10 @@ import os
 import datetime
 
 import sys
-sys.path.append('../')
+sys.path.append('../../')
 
-from modules.alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
-from modules.alfa_rossi_procesamiento import alfa_rossi_procesamiento
+from CinePy.modules.alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
+from CinePy.modules.alfa_rossi_procesamiento import alfa_rossi_procesamiento
 
 
 def genera_encabezado(nombre, Nhist, dt_s, dtmax_s, tb, *args, **kargs):
