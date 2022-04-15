@@ -97,8 +97,8 @@ def lectura_SEAD_bin(file_name, variables=[], panda=True, formato='datetime',
         20  MA CO
         21  CI N16-1
         22  CI N16-2
-        23  TEN 2
-        24  TSN 2
+        23  TEN 2 (Figura como DELTA T1 usando RA3Convert)
+        24  TSN 2 (Figura como DELTA T3 usando RA3Convert)
         25  LOG A1
         26  LOG A2
         27  LOG A3
@@ -107,7 +107,7 @@ def lectura_SEAD_bin(file_name, variables=[], panda=True, formato='datetime',
         30  COND
         31  BC1
         32  BC4
-        33  REACTIV
+        33  REACTIV (No se escribe usando RA3Convert)
 
     Parámetros
     ----------
@@ -149,13 +149,13 @@ def lectura_SEAD_bin(file_name, variables=[], panda=True, formato='datetime',
                     'TSN 1': 11,    # Temperatura de salida al núcleo 1
                     'TEN 3': 12,    # Temperatura de entrada al núcleo 3
                     'TSN 3': 13,    # Temperatura de salida al núcleo 3
-                    'MA SB': 14,    # ?
-                    'MA PC': 15,    # ?
-                    'MA TM': 16,    # ? Originalmente "MA LAB52" (?)
-                    'MA BT1': 17,   # ?
-                    'MA BT2': 18,   # ?
-                    'MA BT3': 19,   # ?
-                    'MA CO': 20,    # ?
+                    'MA SB': 14,    # Monitor de área sala de bombas
+                    'MA PC': 15,    # Monitor de área ¿?
+                    'MA TM': 16,    # Monitor de área ¿? (originalmente LAB52")
+                    'MA BT1': 17,   # Monitor de área boca de tanque 1
+                    'MA BT2': 18,   # Monitor de área boca de tanque 2
+                    'MA BT3': 19,   # Monitor de área boca de tanque 3
+                    'MA CO': 20,    # Monitor de área consola
                     'CI N16-1': 21, # Corriente de cámara 1 de N16
                     'CI N16-2': 22, # Corriente de cámara 2 de N16
                     'TEN 2': 23,    # Temperatura de entrada al núcleo 2
@@ -176,6 +176,12 @@ def lectura_SEAD_bin(file_name, variables=[], panda=True, formato='datetime',
         data_raw = np.fromfile(f, dtype='float', count=-1)
     # Datos en columnas
     data_cols = np.reshape(data_raw, (-1, 34)).T
+    # La primer lectura corresponde a valores de calibración
+    # TODO: cuando se sepa qué es, ver cómo usarlos
+    calibracion = data_cols[:, 0]
+    #  print(f"Datos de calibración:\n {calibracion}")
+    # Sigo trabajando sin la calibración
+    data_cols = data_cols[:, 1:]
 
     if formato == 'datetime':
         to_datetime = lambda t: xlrd.xldate_as_datetime(t, 0)
