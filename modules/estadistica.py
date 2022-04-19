@@ -4,8 +4,86 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def agrupa_datos(data, n_datos=1, dt=None):
+def agrupa_datos(data, n_datos=1, dt=None, tipo='cps'):
     '''
+    Agrupa los datos de data en n_datos.
+
+    Dependiendo de la normalización "tipo" esto puede ser un promediado
+
+    TODO: la normalización se agregó para promediar una señal analógica, se
+    trabajó sobre la ahora llamada "agrupa_datos_original" que fue escrita para
+    contadores. Comprobar que sigue funcionando en este último caso.
+
+    Parametros
+    ----------
+        data : numpy array
+            datos que se quieren agrupar
+        n_datos : entero
+            número de intervalos que se agruparán
+        dt : flotante, opcional
+            intervalo de tiempo original de 'data'
+        tipo : strings ('dt', 'cps', 'promedio')
+            Tipo de normalización para los datos agrupados
+            'dt' : para un contador, queda expresado en cpdt
+            'cps': para un contador, queda expresado en cps
+            'promedio': promedio de la señal en los n_datos
+
+    Salida
+    ------
+        datos_agrupados : numpy array
+            datos agrupados cada n_datos
+        dt_agrupado : flotante, opcional
+            Si se especificó dt se devuelve el dt agrupado
+            (dt_agrupado = dt*n_datos)
+
+    >>> a = np.array([3, 6, 7, 9, 1])
+    >>> agrupa_datos(a, 2)
+    Se agrupan 2 intervalos base
+    array([ 9, 16], dtype=uint32)
+    >>> agrupa_datos(a, 2, 0.3)
+    Se agrupan 2 intervalos base
+    Intervalo de adquisición agrupado: 0.6 s
+    (array([ 9, 16], dtype=uint32), 0.6)
+    '''
+
+    if (tipo in ['cps', 'promedio']) and dt==None:
+        raise ValueError('Falta especificar el dt')
+
+    data = np.array(data)
+    if n_datos == 1:
+        if dt is None:
+            return data
+        else:
+            return data, dt
+    elif n_datos >= 2:
+        print('Se agrupan {} intervalos base'.format(n_datos))
+        # Al hacer reshape, el array debe tener el tamaño exacto
+        # Se deben obviar los datos sobrantes
+        _partes = len(data) // n_datos
+        _indice_exacto = _partes * n_datos
+        _matriz = data[0:_indice_exacto].reshape(_partes, n_datos)
+        # Mantengo el tipo de dato original
+        datos_agrupados = _matriz.sum(axis=1, dtype=type(data[0]))
+        # Normalizo los datos
+        if tipo == 'dt':
+            # No se hace nada
+            return datos_agrupados
+        elif tipo == 'cps':
+            # Divide por el dt agrupado
+            dt_agrupado = dt * n_datos
+            return datos_agrupados / dt_agrupado, dt_agrupado
+        elif tipo == 'promedio':
+            # Promedia los datos agrupados
+            dt_agrupado = dt * n_datos
+            return datos_agrupados / n_datos, dt_agrupado
+
+
+def agrupa_datos_original(data, n_datos=1, dt=None):
+    '''
+    TODO: función reemplazada por 'agrupa_datos' donde se agregó la opción de
+    promediar señales analógicas. Una vez chequeado que sigue siendo compatible
+    con datos de contador, eliminar esta función.
+
     Agrupa los datos de data en n_datos
 
     Parametros
