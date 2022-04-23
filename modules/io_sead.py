@@ -151,7 +151,7 @@ def lectura_SEAD_bin(file_name, variables=[], panda=True, formato='datetime',
                     'TSN 3': 13,    # Temperatura de salida al núcleo 3
                     'MA SB': 14,    # Monitor de área sala de bombas
                     'MA PC': 15,    # Monitor de área ¿?
-                    'MA TM': 16,    # Monitor de área ¿? (originalmente LAB52")
+                    'MA TM': 16,    # Monitor de área telem-anipuladores (originalmente LAB52")
                     'MA BT1': 17,   # Monitor de área boca de tanque 1
                     'MA BT2': 18,   # Monitor de área boca de tanque 2
                     'MA BT3': 19,   # Monitor de área boca de tanque 3
