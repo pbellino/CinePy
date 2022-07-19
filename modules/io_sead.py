@@ -67,7 +67,7 @@ def lee_sead_II(file_name):
     return data
 
 
-def lectura_SEAD_bin(file_name, variables=[], panda=True, formato='datetime',
+def lectura_SEAD_bin(file_names, variables=[], panda=True, formato='datetime',
                      region=False):
     """
     Función para leer los archivo guardados por el SEAD del RA3 binarios
@@ -111,8 +111,10 @@ def lectura_SEAD_bin(file_name, variables=[], panda=True, formato='datetime',
 
     Parámetros
     ----------
-        file_name: string
-            Nombre del archivo .RA3 que se quiere leer
+        file_names: string or list of strings
+            Nombre(s) de el(los) archivo(s) .RA3 que se quiere(n) leer
+            Si es una lista, concatena los archivos en el orden en que se
+            ingresan. Es últil para leer archivos consecutivos en el tiempo.
         variables: list of strings
             Nombre de las variables que se quieren leer. Si no se especifica
             nada se devuelven todas las variables disponibles
@@ -171,17 +173,29 @@ def lectura_SEAD_bin(file_name, variables=[], panda=True, formato='datetime',
                     'REACTIV': 33,  # Reactividad (calculada con LIN M4)
                     }
 
-    # Lectura de todos los datos
-    with open(file_name, 'rb') as f:
-        data_raw = np.fromfile(f, dtype='float', count=-1)
-    # Datos en columnas
-    data_cols = np.reshape(data_raw, (-1, 34)).T
-    # La primer lectura corresponde a valores de calibración
-    # TODO: cuando se sepa qué es, ver cómo usarlos
-    calibracion = data_cols[:, 0]
-    #  print(f"Datos de calibración:\n {calibracion}")
-    # Sigo trabajando sin la calibración
-    data_cols = data_cols[:, 1:]
+    # -- Lectura de todos los datos
+    # Si hay sólo un string, lo convierto a lista de un elemento
+    if isinstance(file_names, str): file_names = [file_names]
+    # Variable para guardar datos de calibración del archivo
+    calibracion = []
+    # Itero sobre todos los archivos
+    for file_name in file_names:
+        with open(file_name, 'rb') as f:
+            data_raw = np.fromfile(f, dtype='float', count=-1)
+        # Datos en columnas para el archivo leido
+        data_cols_single = np.reshape(data_raw, (-1, 34)).T
+        # La primer lectura corresponde a valores de calibración
+        # TODO: cuando se sepa qué es, ver cómo usarlos
+        calibracion.append(data_cols_single[:, 0])
+        #  print(f"Datos de calibración:\n {calibracion}")
+        # Sigo trabajando sin la calibración
+        data_cols_single = data_cols_single[:, 1:]
+        # Concateno los datos en columnas de todos los archivos
+        try:
+            data_cols = np.concatenate((data_cols, data_cols_single), axis=1)
+        except UnboundLocalError:
+            # Si la variable data_new no existe
+            data_cols = data_cols_single
 
     if formato == 'datetime':
         to_datetime = lambda t: xlrd.xldate_as_datetime(t, 0)
