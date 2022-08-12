@@ -8,8 +8,8 @@ y a distintos reactores nucleares
 class Constantes_Nucleares:
     """ Constantes comunes """
 
-    ENERGIA_FISION = 3.2e-11  # [J]
-    FACTOR_DIVEN = 0.7962
+    ENERGIA_FISION = 3.2e-11  # [J] ENDF B-VIII.0 
+    FACTOR_DIVEN = 0.7962  # Holden and Zucker, Nucl. Sci. Eng., 98 (1988) 174.
     EFECTIVIDAD_FOTONEUTRONES = 0
     FACTOR_BENNETT = 1
 
