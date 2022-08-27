@@ -2,9 +2,9 @@ cimport cython
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def flag_np_deadtime(unsigned long[:] data, int tau_np,
-                          unsigned long flag):
-    cdef unsigned long[:] result
+def flag_np_deadtime(unsigned long long[:] data, unsigned long long tau_np,
+                          unsigned long long flag):
+    cdef unsigned long long[:] result
     cdef int i, j, N_tot
     result = data.copy()
     N_tot = data.size
