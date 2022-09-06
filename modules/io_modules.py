@@ -194,7 +194,7 @@ def lee_fey(nombre):
     return vec_temp, mean_Y, std_Y, num_hist, tasas
 
 
-def read_timestamp(filename):
+def read_timestamp(filename, common_time=False):
     '''
     Función para leer los archivoss grabados por el programa "Timestamping_3C"
     (o alguna de sus versiones previas).
@@ -207,11 +207,19 @@ def read_timestamp(filename):
     El formato en que está grabado es entero sin signo de 32 bits con
     codificación big-endian.
 
+    Por default, los tiempos comienzan en cero. Si esto no es lo que se quiere,
+    se puede utilizar common_time=True para mostrar los tiempos comunes (en
+    caso de que se mida con más de un detector y se necesite un tiempo común
+    entre ambos).
+
     Parameters
     ----------
 
     filename : string
         Nombre del archivo que se quiere leer
+    common_time: boolean
+        Si es falso, a todos los valores temporales se le resta el tiempo de
+        llegada del primer pulso. Si es verdadero, no.
 
     Returns
     -------
@@ -252,8 +260,8 @@ def read_timestamp(filename):
                 f.seek(0, 0)
             # Continua leyendo los datos
             a = np.fromfile(f, dtype=dt, count=nread)
-            # Se toma t=0 con el primer pulso
-            a -= a[0]
+            # Se toma t=0 con el primer pulso en caso de usar common_time=False
+            if not common_time: a -= a[0]
         return a, header
     except IOError as err:
         print('No se pudo leer el archivo: ' + filename)
