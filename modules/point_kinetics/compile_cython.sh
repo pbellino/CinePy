@@ -18,9 +18,9 @@ setup(
 EOF
 
     python3 setup.py build_ext --inplace
-    cp modules/point_kinetics/${file}*.so ./${file}.so
+    cp CinePy/modules/point_kinetics/${file}*.so ./${file}.so
     rm ${file}.c
 done
 
-rm -fr build modules
+rm -fr build CinePy
 
