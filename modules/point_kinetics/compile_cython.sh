@@ -22,5 +22,5 @@ EOF
     rm ${file}.c
 done
 
-rm -fr build CinePy
+rm -fr build CinePy setup.py
 
