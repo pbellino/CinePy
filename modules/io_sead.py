@@ -67,7 +67,7 @@ def lee_sead_II(file_name):
     return data
 
 
-def lectura_SEAD_bin(file_names, variables=[], panda=True, formato='datetime',
+def lectura_SEAD_RA3_bin(file_names, variables=[], panda=True, formato='datetime',
                      region=False):
     """
     Función para leer los archivo guardados por el SEAD del RA3 binarios
@@ -229,6 +229,147 @@ def lectura_SEAD_bin(file_names, variables=[], panda=True, formato='datetime',
         return datetime, data_cols[sel_indx, :]
 
 
+def lectura_SEAD_RA1_bin(file_names, variables=[], panda=True, formato='datetime',
+                     region=False):
+    """
+    Función para leer los archivo guardados por el SEAD del RA1 binarios
+
+    Las variables que se guardan son:
+    (columna) (identificación)          (descripción)
+         1    'LinM4'               # Corriente lineal de marcha 4
+         2    'TasaM1'              # Tasa de crecimiento de marcha 1
+         3    'LogM1'               # Corriente logarítmica de marcha 1
+         4    'LinA1'               # Tasa de cuenta lineales de arranque 1
+         5    'LinM5'               # Corriente lineal de marcha 5
+         6    'MA1'                 # Monitor de área 1 ¿?
+         7    'QP'                  # Caudal del rimario
+         8    'DeltaT'              # Delta T del núcleo
+         9    'N16'                 # Corriente de nitrógeno-16
+         10   'BC3'                 # Porcentaje de extracción de BC3 (señal
+                                      incorrecta, aparece como si fuera algo
+                                      parecido a una temperatura de núcleo)
+                                      (sacar advertencia cuando se arregle)
+         11   'BC4'                 # Porcentaje de extracción de BC4
+         12   'BC1'                 # Porcentaje de extracción de BC1
+         13   'BC2'                 # Porcentaje de extracción de BC2
+         14   'LogA2'               # Tasa de cuentas logarítmica de arranque 2
+         15   'TasaA1'              # Tasa de cuentas lineales de arranque 1
+         16   'LogA1'               # Tasa de cuentas logarítmica de arranque 1
+         17   'TEN'                 # Temperatura de entrada al núcleo
+         17   'TSN'                 # Temperatura de salida al núcleo
+
+
+    Parámetros
+    ----------
+        file_names: string or list of strings
+            Nombre(s) de el(los) archivo(s) .RA1 que se quiere(n) leer
+            Si es una lista, concatena los archivos en el orden en que se
+            ingresan. Es últil para leer archivos consecutivos en el tiempo.
+        variables: list of strings (no usar por ahora)
+            Nombre de las variables que se quieren leer. Si no se especifica
+            nada se devuelven todas las variables disponibles
+        panda: boolean
+            Si es True, devuelve un dataframe con todas las variables
+            Si es False, devuelve un array de datetime y otro array de numpy
+            con el resto de las variables.
+        formato: string ('datetime', 'time')
+            Indica el formato de la primer columna. 'datetima' es fecha + hora.
+            'time' es sólo hora
+        region: TODO
+            Especifica el intervalo temporal que se quiere leer
+
+    Resultados
+    ----------
+        df: pandas dataframe (sólo si panda=True)
+            Dataframe con las columnas leidas
+        datetime, data_nparray: datetime array, numpy array (sólo si
+                                panda=False)
+
+    """
+    # Diccionario para asociar columnas con variables
+    label_to_int = {
+                    'LinM4': 1,    # Corriente lineal de marcha 4
+                    'TasaM1': 2,   # Tasa de crecimiento de marcha 1
+                    'LogM1': 3,    # Corriente logarítmica de marcha 1
+                    'LinA1': 4,    # Tasa de cuenta lineales de arranque 1
+                    'LinM5': 5,    # Corriente lineal de marcha 5
+                    'MA1': 6,      # Monitor de área 1 ¿?
+                    'QP': 7,       # Caudal del rimario
+                    'DeltaT': 8,   # Delta T del núcleo
+                    'N16': 13,     # Corriente de nitrógeno-16
+                    'BC3': 17,     # Porcentaje de extracción de BC3 (mala)
+                    'BC4': 18,     # Porcentaje de extracción de BC4
+                    'BC1': 19,     # Porcentaje de extracción de BC1
+                    'BC2': 20,     # Porcentaje de extracción de BC2
+                    'LogA2': 21,   # Tasa de cuentas logarítmica de arranque 2
+                    'TasaA1': 22,  # Tasa de cuentas lineales de arranque 1
+                    'LogA1': 24,   # Tasa de cuentas logarítmica de arranque 1
+                    'TEN': 30,     # Temperatura de entrada al núcleo
+                    'TSN': 32,     # Temperatura de salida al núcleo
+                    }
+
+    # -- Lectura de todos los datos
+    # Si hay sólo un string, lo convierto a lista de un elemento
+    if isinstance(file_names, str): file_names = [file_names]
+    # Variable para guardar datos de calibración del archivo
+    calibracion = []
+    # Itero sobre todos los archivos
+    for file_name in file_names:
+        with open(file_name, 'rb') as f:
+            data_raw = np.fromfile(f, dtype='float', count=-1)
+        # Datos en columnas para el archivo leido
+        # TODO: ¿por qué tiene la misma cantidad de columnas que para el RA3?
+        # TODO: Conseguir RA1convert en la versión actual, la del 2010 no sirve
+        data_cols_single = np.reshape(data_raw, (-1, 34)).T
+        # La primer lectura corresponde a valores de calibración
+        # TODO: cuando se sepa qué es, ver cómo usarlos
+        calibracion.append(data_cols_single[:, 0])
+        #  print(f"Datos de calibración:\n {calibracion}")
+        # Sigo trabajando sin la calibración
+        data_cols_single = data_cols_single[:, 1:]
+        # Concateno los datos en columnas de todos los archivos
+        try:
+            data_cols = np.concatenate((data_cols, data_cols_single), axis=1)
+        except UnboundLocalError:
+            # Si la variable data_new no existe
+            data_cols = data_cols_single
+
+    if formato == 'datetime':
+        to_datetime = lambda t: xlrd.xldate_as_datetime(t, 0)
+    elif formato == 'time':
+        to_datetime = lambda t: xlrd.xldate_as_datetime(t, 0).time()
+    else:
+        ValueError("'formato' no reconocido para datetime")
+    # Convierto datetime del formato excell al formato datetime de python
+    datetime = np.vectorize(to_datetime)(data_cols[0, :])
+
+
+    # Convierto las variables que quiero leer en el índice de su columna
+    if len(variables) !=0:
+        sel_indx = [label_to_int[s] for s in variables]
+        col_names = variables
+        #TODO: Sacar advertencia cuando se arregle BC3
+        if 'BC3' in variables: print('\n\n\nLos datos de BC3 están mal\n\n\n')
+    else:
+        sel_indx = list(range(1, 19))
+        col_names = label_to_int.keys()
+        #TODO: Sacar advertencia cuando se arregle BC3
+        print('\n\n\nLos datos de BC3 están mal\n\n\n')
+
+    if panda:
+        # Se devuelve un dataframe
+        import pandas as pd
+        df = pd.DataFrame(data_cols[sel_indx, :].T, columns=col_names)
+        # Agrago columna con fecha y hora
+        df.insert(0, 'Fecha-Hora', datetime)
+        # Hago que la fecha y hora sea el índice del dataframe
+        # df = df.set_index('Fecha-Hora')
+        return df
+    else:
+        # Se devuelve por separado vector de Fecha-Hora y datos
+        return datetime, data_cols[sel_indx, :]
+
+
 if __name__ == "__main__":
     """
     Prueba de la función "lectura_SEAD_bin()"
@@ -248,7 +389,7 @@ if __name__ == "__main__":
                   'TSN 1', 'TSN 2', 'TSN 3',
                  ]
 
-    data = lectura_SEAD_bin(file_name, magnitudes, formato='datetime')
+    data = lectura_SEAD_RA3_bin(file_name, magnitudes, formato='datetime')
     print(data)
 
     # Gráficos
