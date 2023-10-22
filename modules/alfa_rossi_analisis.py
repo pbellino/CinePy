@@ -21,9 +21,9 @@ import seaborn as sns
 import sys
 sys.path.append('../../')
 
-from CinePy.modules.alfa_rossi_lectura import arossi_lee_historias_completas, \
+from .alfa_rossi_lectura import arossi_lee_historias_completas, \
                                        arossi_lee_historias_promedio
-from CinePy.modules.funciones import arossi_1exp, arossi_2exp
+from .funciones import arossi_1exp, arossi_2exp
 
 sns.set()
 plt.style.use('paper')
