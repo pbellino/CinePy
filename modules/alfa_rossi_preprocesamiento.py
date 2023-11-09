@@ -31,7 +31,7 @@ def corrige_roll_over(datas_con_rollover):
     El roll-over se produce por la resolución finita del contador utilizado.
     Esta corrección se basa en el casteo que hace python: al usar np.diff()
     hace un roll-over para mantenerse en el tipo de dato original. Al usar
-    np.sumsum() pasa al siguiente tipo de datos más grande uint64.
+    np.cumsum() pasa al siguiente tipo de datos más grande uint64.
 
     Parámetros
     ----------
@@ -50,6 +50,11 @@ def corrige_roll_over(datas_con_rollover):
     else:
         _es_lista = True
 
+    # Tiempo con que empieza cada serie
+    tiempos_iniciales = [t[0] for t in datas_con_rollover]
+    # Se usará al menor de todos como origen temporal
+    tiempo_inicial = np.min(tiempos_iniciales)
+    print(f"\nSe resta {tiempo_inicial} a todas las series de datos\n")
     data_sin_rollover = []
     for i, data in enumerate(datas_con_rollover):
         print('Corrigiendo roll-over del archivo [{}]'.format(i))
@@ -58,11 +63,12 @@ def corrige_roll_over(datas_con_rollover):
         _dts = np.diff(data)
         # Sumo todos los intervalos
         _data_acum = np.cumsum(_dts)
-        # Agrego el primer punto como t=0
-        _data_acum = np.insert(_data_acum, 0, 0)
+        # Sumo y agrego el tiempo inicial de cada serie
+        _data_acum = np.insert(_data_acum + data[0], 0, data[0])
         print('Tipo de dato final {}'.format(_data_acum.dtype))
         print('-' * 50)
-        data_sin_rollover.append(_data_acum)
+        # Se resta el origen temporal para que al menos uno comience en cero
+        data_sin_rollover.append(_data_acum - tiempo_inicial)
 
     if not _es_lista:
         data_sin_rollover = data_sin_rollover[0]
