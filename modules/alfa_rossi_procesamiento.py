@@ -26,6 +26,9 @@ import itertools
 import time
 import os
 
+import sys
+sys.path.append('../')
+
 from modules.alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
 from modules.estadistica import rate_from_timestamp
 
