@@ -28,6 +28,11 @@ import os
 
 from modules.alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
 from modules.estadistica import rate_from_timestamp
+import sys
+sys.path.append('../../')
+
+from CinePy.modules.alfa_rossi_preprocesamiento import alfa_rossi_preprocesamiento
+from CinePy.modules.estadistica import rate_from_timestamp
 
 sns.set()
 plt.style.use('paper')
