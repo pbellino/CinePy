@@ -73,41 +73,47 @@ def lectura_SEAD_RA3_bin(file_names, variables=[], panda=True, formato='datetime
     Función para leer los archivo guardados por el SEAD del RA3 binarios
 
     Las variables que se guardan son:
-    (columna) (identificación)
+    (columna) (identificación)          (descripción)
         0   Fecha y hora
-        1   LOG M1
-        2   LOG M2
-        3   LOG M3
-        4   TASA M3
-        5   LIN M3
-        6   CIP
-        7   DELTA P
-        8   LIN M4
-        9   QP
-        10  TEN 1
-        11  TSN 1
-        12  TEN 3
-        13  TSN 3
-        14  MA SB
-        15  MA PC
-        16  MA LAB52? <- creo que se había cambiado por MA TM
-        17  MA BT1
-        18  MA BT2
-        19  MA BT3
-        20  MA CO
-        21  CI N16-1
-        22  CI N16-2
-        23  TEN 2 (Figura como DELTA T1 usando RA3Convert)
-        24  TSN 2 (Figura como DELTA T3 usando RA3Convert)
-        25  LOG A1
-        26  LOG A2
-        27  LOG A3
-        28  TASA A1
-        29  TASA A2
-        30  COND
-        31  BC1
-        32  BC4
-        33  REACTIV (No se escribe usando RA3Convert)
+        1   LOG M1                        Corriente logarítmico de marcha 1
+        2   LOG M2                        Corriente logarítmico de marcha 2
+        3   LOG M3                        Corriente logarítmico de marcha 3
+        4   TASA M3                       Tasa de crecimiento de marcha 3
+        5   LIN M3                        Corriente lineal de marcha 3
+        6   CIP                           Corriente CIP
+        7   DELTA P                       Delta P
+        8   LIN M4                        Corriente lineal de marcha 4
+        9   QP                            Caudal del primario
+        10  TEN 1                         Temperatura de entrada al núcleo 1
+        11  TSN 1                         Temperatura de salida al núcleo 1
+        12  TEN 3                         Temperatura de entrada al núcleo 3
+        13  TSN 3                         Temperatura de salida al núcleo 3
+        14  MA SB                         Monitor de área sala de bombas
+        15  MA PC                         Monitor de área ¿?
+        16  MA TM                         Monitor de área telem-anipuladores
+        17  MA BT1                        Monitor de área boca de tanque 1
+        18  MA BT2                        Monitor de área boca de tanque 2
+        19  MA BT3                        Monitor de área boca de tanque 3
+        20  MA CO                         Monitor de área consola
+        21  CI N16-1                      Corriente de cámara 1 de N16
+        22  CI N16-2                      Corriente de cámara 2 de N16
+        23  TEN 2                         Temperatura de entrada al núcleo 2
+        24  TSN 2                         Temperatura de salida al núcleo 2
+        25  LOG A1                        Cuentas logarítmico de arranque 1
+        26  LOG A2                        Cuentas logarítmico de arranque 2
+        27  LOG A3                        Cuentas logarítmico de arranque 3
+        28  TASA A1                       Tasa de cuentas de arranque 1
+        29  TASA A2                       Tasa de cuentas de arranque 2
+        30  COND                          ?
+        31  BC1                           Porcentaje de extracción de barra 1
+        32  BC4                           Porcentaje de extracción de barra 4
+        33  REACTIV                       Reactividad calculada con LIN M4
+
+    Notas:
+        MA TM era originalmente LAB52
+        TEN 2 figura como DELTA T1 usando RA3Convert
+        TSN 2 figura como DELTA T3 usando RA3Covnert
+        REACTIV Nno se escribe usand RA3Convert
 
     Parámetros
     ----------
