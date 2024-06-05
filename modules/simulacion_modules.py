@@ -370,6 +370,32 @@ def lee_tally_E_mcnptools(filename, tally):
     return map(np.asarray, (bins, val, err))
 
 
+def lee_tally_E_facet_mcnptools(filename, tally):
+    """ Read energy tally with facets from mctal file using MCNPTools """
+
+    from mcnptools import Mctal, MctalTally
+
+    m = Mctal(filename)
+    if tally not in m.GetTallyList():
+        raise ValueError('El número de tally no existe en el archivo')
+
+    tal = m.GetTally(tally)
+    bins = tal.GetEBins()
+    facets = tal.GetFBins()
+    tfc = MctalTally.TFC
+    vals = []
+    errs = []
+    for f in range(len(facets)):
+        val = []
+        err = []
+        for e in range(len(bins)):
+            val.append(tal.GetValue(f, tfc, tfc, tfc, tfc, tfc, e, tfc))
+            err.append(tal.GetError(f, tfc, tfc, tfc, tfc, tfc, e, tfc))
+        vals.append(val)
+        errs.append(err)
+    return map(np.asarray, (bins, vals, errs))
+
+
 def corrige_t_largos(datos, tasa, nps_tot, metodo='elimina'):
     """
     Corrección de los tiempos muy largos en medios multiplicativos
