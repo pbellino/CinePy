@@ -65,7 +65,7 @@ def lee_reactimetro(nombre):
 
     # Ordena por columnas
     _num_datos = int(_data.size / _num_col)
-    _data = _data.reshape(_num_datos, _num_col).astype(np.float)
+    _data = _data.reshape(_num_datos, _num_col).astype(np.float64)
     # Separa los datos
     n = _data[:, 0]
     rho = _data[:, 1]
