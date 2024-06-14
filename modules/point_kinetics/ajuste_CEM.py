@@ -547,9 +547,13 @@ def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
             return None
         rho_old = rho_new
 
+    rho_om = rho_new
     print(20*' ' + "Fin de la iteración")
     print(80*'-')
 
+    print(20*' ' + "Estimación por cinética espacial modal")
+    print(f"$_om = {rho_om}")
+    print(80*'-')
     # -------------------------------------------------------------------------
     print(20*' ' + "Estimación por cinética inversa")
     rho_op, t_i_fit, t_c = estima_reactimetro_CEM(t, x_nor, result, constantes,
@@ -569,7 +573,6 @@ def algoritmo_angel_CEM(t, x, constantes, *args, **kargs):
     print(80*'-')
 
     print(20*' ' + "Estimación por salto instantáneo")
-    print(80*'-')
     rho_od = estima_salto_instantaneo_CEM(result, constantes, **_kargs)
     print(f"$_od = {rho_od}")
     print(80*'-')
