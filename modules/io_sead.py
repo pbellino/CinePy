@@ -129,10 +129,15 @@ def lectura_SEAD_RA3_bin(file_names, variables=[], panda=True, formato='datetime
             Si es False, devuelve un array de datetime y otro array de numpy
             con el resto de las variables.
         formato: string ('datetime', 'time')
-            Indica el formato de la primer columna. 'datetima' es fecha + hora.
+            Indica el formato de la primer columna. 'datetime' es fecha + hora.
             'time' es sólo hora
-        region: TODO
-            Especifica el intervalo temporal que se quiere leer
+        region: ['start', 'end'] in 'datetetime' format
+            Especifica el intervalo temporal que se quiere leer.
+            Ejemplo: ["2023-03-10 14:35", "2023-03-10 16:00"]
+            Si se desea sólo un inicio o fin, poner el otro valor fuera del
+            rango de/los archivos leidos.
+            Sólo se puede utilizar cuando formato='datetime'.
+
 
     Resultados
     ----------
@@ -206,6 +211,9 @@ def lectura_SEAD_RA3_bin(file_names, variables=[], panda=True, formato='datetime
     if formato == 'datetime':
         to_datetime = lambda t: xlrd.xldate_as_datetime(t, 0)
     elif formato == 'time':
+        if region:
+            raise ValueError(
+            "La selección de datos sólo es valida con formato 'datetime'")
         to_datetime = lambda t: xlrd.xldate_as_datetime(t, 0).time()
     else:
         ValueError("'formato' no reconocido para datetime")
@@ -229,7 +237,12 @@ def lectura_SEAD_RA3_bin(file_names, variables=[], panda=True, formato='datetime
         df.insert(0, 'Fecha-Hora', datetime)
         # Hago que la fecha y hora sea el índice del dataframe
         # df = df.set_index('Fecha-Hora')
-        return df
+        if region:
+            zona = (df['Fecha-Hora'] >= region[0]) & \
+                   (df['Fecha-Hora'] <= region[1])
+            return df[zona].reset_index(drop=True)
+        else:
+            return df
     else:
         # Se devuelve por separado vector de Fecha-Hora y datos
         return datetime, data_cols[sel_indx, :]
