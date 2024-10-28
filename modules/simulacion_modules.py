@@ -395,6 +395,30 @@ def lee_tally_E_facet_mcnptools(filename, tally):
         errs.append(err)
     return map(np.asarray, (bins, vals, errs))
 
+def lee_tally_FM_mcnptools(filename, tally):
+    """ Read energy tally with facets from mctal file using MCNPTools """
+
+    from mcnptools import Mctal, MctalTally
+
+    m = Mctal(filename)
+    if tally not in m.GetTallyList():
+        raise ValueError('El número de tally no existe en el archivo')
+
+    tal = m.GetTally(tally)
+    bins = tal.GetEBins()
+    multipliers = tal.GetMBins()
+    tfc = MctalTally.TFC
+    vals = []
+    errs = []
+    for m in range(len(multipliers)):
+        val = []
+        err = []
+        for e in range(len(bins)):
+            val.append(tal.GetValue(tfc, tfc, tfc, tfc, m, tfc, e, tfc))
+            err.append(tal.GetError(tfc, tfc, tfc, tfc, m, tfc, e, tfc))
+        vals.append(val)
+        errs.append(err)
+    return map(np.asarray, (bins, vals, errs))
 
 def corrige_t_largos(datos, tasa, nps_tot, metodo='elimina'):
     """
