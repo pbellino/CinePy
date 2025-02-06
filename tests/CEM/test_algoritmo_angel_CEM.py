@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     file_path = os.path.join(folder, archivo)
 
-    t_cin, n_cin = lee_archivo_CIN(file_path)
+    t_cin, n_cin, _ = lee_archivo_CIN(file_path)
 
 
     if "B23A" in archivo:

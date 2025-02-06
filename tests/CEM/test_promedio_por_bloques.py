@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     file_path = os.path.join(folder, archivo)
 
-    t_cin, n_cin = lee_archivo_CIN(file_path)
+    t_cin, n_cin, _ = lee_archivo_CIN(file_path)
 
     # Se leen juego de cosntantes nucleares de neutrones retardados
     b, lam , beta = lee_constantes_retardados('Tuttle')
