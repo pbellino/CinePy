@@ -27,14 +27,16 @@ def lee_archivo_CIN(name):
             header.append(f.readline().rstrip('\n'))
         data = []
         for line in f:
-            if line != "0,0\n":
-                data.append(line.rstrip('\n'))
+            if not (line == "0,0\n" or line == "0,0"):
+                data.append(line.rstrip('\n').split(','))
             else:
                 break
     data = np.asarray(data, dtype=float)
+    val = data[:, 0]
+    std = data[:, 1] if np.shape(data)[1] == 2 else None
     dt = float(header[-2])
     time = dt * np.arange(len(data))
-    return time, data
+    return time, val, std
 
 
 def salto_instantaneo_espacial(t, rho, t1, n0, A1, A3, constantes, **kargs):
