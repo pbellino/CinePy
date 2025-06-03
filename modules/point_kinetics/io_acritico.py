@@ -50,7 +50,7 @@ def read_acritico(filename):
             # El primer dato se descarta
             data = data[1:]
             # Lee el dt del encabezado
-        dt = np.float(header[5].rsplit(':')[-1])
+        dt = float(header[5].rsplit(':')[-1])
         # Vector temporal
         t = dt * np.arange(0, len(data))
         return data, t, dt, header
