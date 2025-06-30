@@ -4,7 +4,13 @@ import numpy as np
 import pandas as pd
 import os
 from datetime import datetime
+import matplotlib.pyplot as plt
+from matplotlib.dates import DateFormatter
 import xlrd
+
+# Conversión de datetime entre panda y matplotlib
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
 
 """
 Las funciones que leen los archivos en ASCII usan pandas.
@@ -387,6 +393,59 @@ def lectura_SEAD_RA1_bin(file_names, variables=[], panda=True, formato='datetime
     else:
         # Se devuelve por separado vector de Fecha-Hora y datos
         return datetime, data_cols[sel_indx, :]
+
+
+def plot_SEAD(data, col_names):
+    """
+    Gráfico de los 'col_names' de 'data'
+
+    TODO
+    """
+    if len(col_names) > 7:
+        raise ValueError("Demasiados datos para graficar, deben ser menores que 7")
+        return None
+
+    fig = plt.figure(figsize=(9, 6))
+    #fig.subplots_adjust(left=0.14, right=0.7)
+    axes=[]
+    axes.append(fig.add_subplot(1, 1, 1))
+    [axes.append(axes[0].twinx()) for _ in range(len(col_names)-1)]
+
+    axes_colors = ['k', 'g', 'r', 'b','m', 'c', 'y']
+    # Formatos para los ejes
+    spines= ['right', 'right' ,'right', 'right', 'right', 'right']
+    # Ubicación de los ejes separados del recuadro
+    axes_position = [0.0, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5]
+    # Strings presentes en las señales que muestran corrientes
+    corrientes = ['LOG', 'LIN', 'CI']
+
+    for j, ax in enumerate(axes):
+        ax.spines[spines[j]].set_position(('axes', axes_position[j]))
+        ax.set_frame_on(True)
+        ax.patch.set_visible(False)
+        # Aplico colores a los ejes
+        ax.spines[spines[j]].set_color(axes_colors[j])
+        ax.tick_params(axis='y', colors=axes_colors[j])
+        # Corre el exponente de la notación científica
+        ax.get_yaxis().get_offset_text().set_x(axes_position[j])
+        # Nombre de los ejes
+        ax.set_ylabel(col_names[j])
+        # Colores de los ejes
+        ax.yaxis.label.set_color(axes_colors[j])
+        # Fuerzo notación científica para las corrientes
+        if any([s in col_names[j] for s in corrientes]):
+            ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+        # Gráfico
+        data.plot(x='Fecha-Hora', y=col_names[j], ax=ax,
+                color=axes_colors[j], alpha=0.8)
+    date_form = DateFormatter("%d/%m %H:%M")
+    axes[0].xaxis.set_major_formatter(date_form)
+    axes[0].grid(True)
+    axes[0].set_title("Año: " + str(data['Fecha-Hora'][0].year))
+    [ax.get_legend().remove() for ax in axes]
+    fig.tight_layout()
+
+    return fig
 
 
 if __name__ == "__main__":
