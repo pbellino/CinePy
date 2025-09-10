@@ -9,6 +9,7 @@ extensions = [
         include_dirs=[numpy.get_include()],  # NumPy headers
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
         extra_compile_args=["-O3", "-ffast-math"],  # Optimization flags
+        extra_link_args=['-lm'],
     )
 ]
 
