@@ -1,26 +1,43 @@
 #!/bin/bash
 
-# Auxiliary script used for compiling .pyx files with cython
-# Also: copy .so files and delete temporal folders
-
 
 FILES=(reactimeter direct_kinetic_solver)
 
 for file in "${FILES[@]}"; do
     cat > setup.py << EOF
-from distutils.core import setup
+from setuptools import setup, Extension
 from Cython.Build import cythonize
 
+extensions = [
+    Extension(
+        "$file",  # Name of the compiled module
+        ["$file.pyx"], # Nombre del archivo .pyx
+        # include_dirs=[numpy.get_include()],  # NumPy headers
+        define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
+        extra_compile_args=["-O3", "-ffast-math"],  # Optimization flags
+        extra_link_args=['-lm'],
+    )
+]
 
 setup(
-    ext_modules = cythonize("${file}.pyx")
+    #name="reactimetro",
+    ext_modules=cythonize(
+        extensions,
+        compiler_directives={
+            'boundscheck': False,
+            'wraparound': False,
+            'cdivision': True,
+            'language_level': 3,
+        }
+    ),
+    zip_safe=False,
 )
+
 EOF
 
     python3 setup.py build_ext --inplace
-    cp CinePy/modules/point_kinetics/${file}*.so ./${file}.so
     rm ${file}.c
 done
 
-rm -fr build CinePy setup.py
+rm -fr build setup.py
 
