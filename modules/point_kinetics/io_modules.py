@@ -11,8 +11,9 @@ def _lee_dt_encabezado(encabezado, _tipo_datos):
     TODO
     """
     if _tipo_datos == 'AI':
-        _frecuencia = np.double(encabezado[14].split()[-1])
-        filtrada = encabezado[11].split()[-1].decode("utf-8")
+        _frecuencia = np.double(encabezado[14].split()[-1].replace(',', '.'))
+        filtrada = encabezado[11].split()[-1]
+
         if filtrada == 'Si':
             _num_col = 3
         elif filtrada == 'No':
@@ -48,7 +49,7 @@ def lee_reactimetro(nombre):
         quit()
 
     # Se lee el archivo
-    with open(nombre, 'rb') as f:
+    with open(nombre, 'r', encoding='latin-1') as f:
         # Lectura del encabezado
         encabezado = []
         for _ in range(_lineas_encabezado):
