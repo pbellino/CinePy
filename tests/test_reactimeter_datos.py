@@ -33,11 +33,6 @@ if __name__ == "__main__":
     b, lam , beta = lee_constantes_retardados('Tuttle')
     # Reduced generation time
     Lambda_red = RA3.LAMBDA_REDUCIDO
-    # dt read from header of data file
-    for line in head:
-        if line.startswith(b"Frecuencia sampleo procesamiento"):
-            dt = line.split()[-1]
-            dt = 1 / float(dt)
 
     rho_r, t_r, _ = reactimetro(n, dt, lam, b, Lambda_red)
 
